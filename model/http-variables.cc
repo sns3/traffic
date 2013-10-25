@@ -31,14 +31,144 @@ NS_LOG_COMPONENT_DEFINE ("HttpVariables");
 
 namespace ns3 {
 
+
+// WRAPPER CLASSES ////////////////////////////////////////////////////////////
+
+
+NS_OBJECT_ENSURE_REGISTERED (HttpLogNormalVariable);
+
+
+HttpLogNormalVariable::HttpLogNormalVariable ()
+  : LogNormalRandomVariable ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+TypeId
+HttpLogNormalVariable::GetTypeId ()
+{
+  static TypeId tid = TypeId ("ns3::HttpLogNormalVariable")
+    .SetParent<LogNormalRandomVariable> ()
+    .AddConstructor<HttpLogNormalVariable> ()
+  ;
+  return tid;
+}
+
+
+uint32_t
+HttpLogNormalVariable::GetTruncatedInteger ()
+{
+  NS_LOG_FUNCTION (this);
+  uint32_t ret;
+  do
+    {
+      ret = GetInteger (); // invoking a function of parent class
+    }
+  while ((ret < m_min) || (ret > m_max));
+  return ret;
+}
+
+
+void
+HttpLogNormalVariable::SetMin (uint32_t min)
+{
+  NS_LOG_FUNCTION (this << min);
+  m_min = min;
+}
+
+
+uint32_t
+HttpLogNormalVariable::GetMin () const
+{
+  return m_min;
+}
+
+
+void
+HttpLogNormalVariable::SetMax (uint32_t max)
+{
+  NS_LOG_FUNCTION (this << max);
+  m_max = max;
+}
+
+
+uint32_t
+HttpLogNormalVariable::GetMax () const
+{
+  return m_max;
+}
+
+
+void
+HttpLogNormalVariable::SetMean (uint32_t mean)
+{
+  NS_LOG_FUNCTION (this << mean);
+  if (mean == 0)
+    {
+      NS_FATAL_ERROR ("Mean shall not be zero");
+    }
+  m_mean = mean;
+  RefreshBaseParameters ();
+}
+
+
+uint32_t
+HttpLogNormalVariable::GetMean () const
+{
+  return m_mean;
+}
+
+
+void
+HttpLogNormalVariable::SetStdDev (uint32_t stdDev)
+{
+  NS_LOG_FUNCTION (this << stdDev);
+  m_stdDev = stdDev;
+  RefreshBaseParameters ();
+}
+
+
+uint32_t
+HttpLogNormalVariable::GetStdDev () const
+{
+  return m_stdDev;
+}
+
+
+void
+HttpLogNormalVariable::RefreshBaseParameters ()
+{
+  NS_LOG_FUNCTION (this);
+
+  double a1 = pow (m_stdDev, 2);
+  double a2 = pow (m_mean, 2);
+  double a = log (1 + (a1 / a2));
+
+  double mu = log (m_mean) - (0.5 * a);
+  double sigma = sqrt (a);
+  NS_LOG_INFO (this << " Mu= " << mu << " Sigma= " << sigma);
+
+  // updating attributes of parent class
+  SetAttribute ("Mu", DoubleValue (mu));
+  SetAttribute ("Sigma", DoubleValue (sigma));
+}
+
+
+// PRIMARY CLASS //////////////////////////////////////////////////////////////
+
+
 NS_OBJECT_ENSURE_REGISTERED (HttpVariables);
 
 
 HttpVariables::HttpVariables ()
   : m_httpVersionRng (CreateObject<UniformRandomVariable> ()),
     m_mtuSizeRng (CreateObject<UniformRandomVariable> ()),
-    m_mainObjectSizeRng (CreateObject<LogNormalRandomVariable> ()),
-    m_embeddedObjectSizeRng (CreateObject<LogNormalRandomVariable> ())
+    m_mainObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
+    m_embeddedObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
+    m_numOfEmbeddedObjectsRng (CreateObject<ParetoRandomVariable> ()),
+    m_readingTimeRng (CreateObject<ExponentialRandomVariable> ()),
+    m_parsingTimeRng (CreateObject<ExponentialRandomVariable> ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -52,12 +182,9 @@ HttpVariables::GetTypeId ()
     .AddConstructor<HttpVariables> ()
     .AddAttribute ("Stream",
                    "The stream number for the underlying random number generators stream. "
-                   "-1 means \"allocate a stream automatically\". "
-                   "Note that if -1 is set, Get will return -1, "
-                   "so that it is not possible to know which value was was automatically allocated.",
+                   "-1 means \"allocate a stream automatically\".",
                    IntegerValue (-1),
-                   MakeIntegerAccessor (&HttpVariables::SetStream,
-                                        &HttpVariables::GetStream),
+                   MakeIntegerAccessor (&HttpVariables::SetStream),
                    MakeIntegerChecker<int64_t> ())
 
     // MAIN OBJECT SIZE
@@ -66,24 +193,21 @@ HttpVariables::GetTypeId ()
                    UintegerValue (10710),
                    MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMean,
                                          &HttpVariables::GetMainObjectSizeMean),
-                   MakeUintegerChecker<uint32_t> (1))
-    .AddAttribute ("MainObjectSizeSd",
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("MainObjectSizeStdDev",
                    "The standard deviation of main object sizes (in bytes).",
                    UintegerValue (25032),
-                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeStdDev,
-                                         &HttpVariables::GetMainObjectSizeStdDev),
+                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeStdDev),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("MainObjectSizeMin",
                    "The minimum value of main object sizes (in bytes).",
                    UintegerValue (100),
-                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMin,
-                                         &HttpVariables::GetMainObjectSizeMin),
+                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMin),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("MainObjectSizeMax",
                    "The maximum value of main object sizes (in bytes).",
                    UintegerValue (2000000), // 2 MB
-                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMax,
-                                         &HttpVariables::GetMainObjectSizeMax),
+                   MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMax),
                    MakeUintegerChecker<uint32_t> ())
 
     // EMBEDDED OBJECT SIZE
@@ -92,25 +216,56 @@ HttpVariables::GetTypeId ()
                    UintegerValue (7758),
                    MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeMean,
                                          &HttpVariables::GetEmbeddedObjectSizeMean),
-                   MakeUintegerChecker<uint32_t> (1))
-    .AddAttribute ("EmbeddedObjectSizeSd",
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("EmbeddedObjectSizeStdDev",
                    "The standard deviation of embedded object sizes (in bytes).",
                    UintegerValue (126168),
-                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeStdDev,
-                                         &HttpVariables::GetEmbeddedObjectSizeStdDev),
+                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeStdDev),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("EmbeddedObjectSizeMin",
                    "The minimum value of embedded object sizes (in bytes).",
                    UintegerValue (50),
-                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeMin,
-                                         &HttpVariables::GetEmbeddedObjectSizeMin),
+                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeMin),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("EmbeddedObjectSizeMax",
                    "The maximum value of embedded object sizes (in bytes).",
                    UintegerValue (2000000), // 2 MB
-                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeMax,
-                                         &HttpVariables::GetEmbeddedObjectSizeMax),
+                   MakeUintegerAccessor (&HttpVariables::SetEmbeddedObjectSizeMax),
                    MakeUintegerChecker<uint32_t> ())
+
+    // NUMBER OF EMBEDDED OBJECTS PER PAGE
+    .AddAttribute ("NumOfEmbeddedObjectsMean",
+                   "The mean of number of embedded objects per web page.",
+                   DoubleValue (5.55),
+                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMean,
+                                       &HttpVariables::GetNumOfEmbeddedObjectsMean),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("NumOfEmbeddedObjectsMax",
+                   "The maximum value of number of embedded objects per web page.",
+                   UintegerValue (55),
+                   MakeUintegerAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMax),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumOfEmbeddedObjectsParetoIndex",
+                   "The random distribution's Pareto index of number of embedded objects per web page.",
+                   DoubleValue (1.1),
+                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsParetoIndex),
+                   MakeDoubleChecker<double> ())
+
+    // READING TIME
+    .AddAttribute ("ReadingTimeMean",
+                   "The mean of reading time.",
+                   TimeValue (Seconds (30)),
+                   MakeTimeAccessor (&HttpVariables::SetReadingTimeMean,
+                                     &HttpVariables::GetReadingTimeMean),
+                   MakeTimeChecker ())
+
+    // PARSING TIME
+    .AddAttribute ("ParsingTimeMean",
+                   "The mean of parsing time.",
+                   TimeValue (MilliSeconds (130)),
+                   MakeTimeAccessor (&HttpVariables::SetParsingTimeMean,
+                                     &HttpVariables::GetParsingTimeMean),
+                   MakeTimeChecker ())
   ;
   return tid;
 }
@@ -146,71 +301,88 @@ HttpVariables::GetMtuSize ()
 uint32_t
 HttpVariables::GetMainObjectSize ()
 {
-  NS_LOG_FUNCTION (this);
-  uint32_t ret;
-  do
-    {
-      ret = m_mainObjectSizeRng->GetInteger ();
-    }
-  while ((ret < m_mainObjectSizeMin) || (ret > m_mainObjectSizeMax));
-  return ret;
+  return m_mainObjectSizeRng->GetTruncatedInteger ();
+}
+
+
+uint32_t
+HttpVariables::GetMainObjectSizeKbytes ()
+{
+  return m_mainObjectSizeRng->GetTruncatedInteger () / 1000;
 }
 
 
 uint32_t
 HttpVariables::GetEmbeddedObjectSize ()
 {
-  NS_LOG_FUNCTION (this);
-  uint32_t ret;
-  do
-    {
-      ret = m_embeddedObjectSizeRng->GetInteger ();
-    }
-  while ((ret < m_embeddedObjectSizeMin) || (ret > m_embeddedObjectSizeMax));
-  return ret;
+  return m_embeddedObjectSizeRng->GetTruncatedInteger ();
 }
 
 
-// ATTRIBUTES SETTER AND GETTER METHODS ///////////////////////////////////////
+uint32_t
+HttpVariables::GetEmbeddedObjectSizeKbytes ()
+{
+  return m_embeddedObjectSizeRng->GetTruncatedInteger () / 1000;
+}
+
+
+uint32_t
+HttpVariables::GetNumOfEmbeddedObjects ()
+{
+  return m_numOfEmbeddedObjectsRng->GetInteger ();
+}
+
+
+Time
+HttpVariables::GetReadingTime ()
+{
+  return Seconds (m_readingTimeRng->GetValue ());
+}
+
+
+double
+HttpVariables::GetReadingTimeSeconds ()
+{
+  return m_readingTimeRng->GetValue ();
+}
+
+
+Time
+HttpVariables::GetParsingTime ()
+{
+  return Seconds (m_parsingTimeRng->GetValue ());
+}
+
+
+double
+HttpVariables::GetParsingTimeSeconds ()
+{
+  return m_parsingTimeRng->GetValue ();
+}
 
 
 void
 HttpVariables::SetStream (int64_t stream)
 {
   NS_LOG_FUNCTION (this << stream);
-  m_stream = stream;
+  m_httpVersionRng->SetStream (stream);
+  m_mtuSizeRng->SetStream (stream);
   m_mainObjectSizeRng->SetStream (stream);
   m_embeddedObjectSizeRng->SetStream (stream);
+  m_numOfEmbeddedObjectsRng->SetStream (stream);
+  m_readingTimeRng->SetStream (stream);
+  m_parsingTimeRng->SetStream (stream);
 }
 
 
-int64_t
-HttpVariables::GetStream () const
-{
-  return m_stream;
-}
-
-
-// MAIN OBJECT SIZE ATTRIBUTES SETTER AND GETTER METHODS //////////////////////
+// MAIN OBJECT SIZE ATTRIBUTES SETTER METHODS /////////////////////////////////
 
 
 void
 HttpVariables::SetMainObjectSizeMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  if (mean == 0)
-    {
-      NS_FATAL_ERROR ("Mean shall not be zero");
-    }
-  m_mainObjectSizeMean = mean;
-  RefreshMainObjectSizeDistribution ();
-}
-
-
-uint32_t
-HttpVariables::GetMainObjectSizeMean () const
-{
-  return m_mainObjectSizeMean;
+  m_mainObjectSizeRng->SetMean (mean);
 }
 
 
@@ -218,15 +390,7 @@ void
 HttpVariables::SetMainObjectSizeStdDev (uint32_t stdDev)
 {
   NS_LOG_FUNCTION (this << stdDev);
-  m_mainObjectSizeStdDev = stdDev;
-  RefreshMainObjectSizeDistribution ();
-}
-
-
-uint32_t
-HttpVariables::GetMainObjectSizeStdDev () const
-{
-  return m_mainObjectSizeStdDev;
+  m_mainObjectSizeRng->SetStdDev (stdDev);
 }
 
 
@@ -234,14 +398,7 @@ void
 HttpVariables::SetMainObjectSizeMin (uint32_t min)
 {
   NS_LOG_FUNCTION (this << min);
-  m_mainObjectSizeMin = min;
-}
-
-
-uint32_t
-HttpVariables::GetMainObjectSizeMin () const
-{
-  return m_mainObjectSizeMin;
+  m_mainObjectSizeRng->SetMin (min);
 }
 
 
@@ -249,37 +406,14 @@ void
 HttpVariables::SetMainObjectSizeMax (uint32_t max)
 {
   NS_LOG_FUNCTION (this << max);
-  m_mainObjectSizeMax = max;
+  m_mainObjectSizeRng->SetMax (max);
 }
 
 
 uint32_t
-HttpVariables::GetMainObjectSizeMax () const
+HttpVariables::GetMainObjectSizeMean () const
 {
-  return m_mainObjectSizeMax;
-}
-
-
-double
-HttpVariables::GetMainObjectSizeMu () const
-{
-  NS_ASSERT (m_mainObjectSizeMean > 0);
-  double eqA1 = pow (m_mainObjectSizeStdDev, 2);
-  double eqA2 = pow (m_mainObjectSizeMean, 2);
-  double eqA = log (1 + (eqA1 / eqA2));
-  double eqB = log (m_mainObjectSizeMean);
-  return eqB - (0.5 * eqA);
-}
-
-
-double
-HttpVariables::GetMainObjectSizeSigma () const
-{
-  NS_ASSERT (m_mainObjectSizeMean > 0);
-  double eqA1 = pow (m_mainObjectSizeStdDev, 2);
-  double eqA2 = pow (m_mainObjectSizeMean, 2);
-  double eqA = log (1 + (eqA1 / eqA2));
-  return sqrt (eqA);
+  return m_mainObjectSizeRng->GetMean ();
 }
 
 
@@ -290,19 +424,7 @@ void
 HttpVariables::SetEmbeddedObjectSizeMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  if (mean == 0)
-    {
-      NS_FATAL_ERROR ("Mean shall not be zero");
-    }
-  m_embeddedObjectSizeMean = mean;
-  RefreshEmbeddedObjectSizeDistribution ();
-}
-
-
-uint32_t
-HttpVariables::GetEmbeddedObjectSizeMean () const
-{
-  return m_embeddedObjectSizeMean;
+  m_embeddedObjectSizeRng->SetMean (mean);
 }
 
 
@@ -310,15 +432,7 @@ void
 HttpVariables::SetEmbeddedObjectSizeStdDev (uint32_t stdDev)
 {
   NS_LOG_FUNCTION (this << stdDev);
-  m_embeddedObjectSizeStdDev = stdDev;
-  RefreshEmbeddedObjectSizeDistribution ();
-}
-
-
-uint32_t
-HttpVariables::GetEmbeddedObjectSizeStdDev () const
-{
-  return m_embeddedObjectSizeStdDev;
+  m_embeddedObjectSizeRng->SetStdDev (stdDev);
 }
 
 
@@ -326,14 +440,7 @@ void
 HttpVariables::SetEmbeddedObjectSizeMin (uint32_t min)
 {
   NS_LOG_FUNCTION (this << min);
-  m_embeddedObjectSizeMin = min;
-}
-
-
-uint32_t
-HttpVariables::GetEmbeddedObjectSizeMin () const
-{
-  return m_embeddedObjectSizeMin;
+  m_embeddedObjectSizeRng->SetMin (min);
 }
 
 
@@ -341,87 +448,85 @@ void
 HttpVariables::SetEmbeddedObjectSizeMax (uint32_t max)
 {
   NS_LOG_FUNCTION (this << max);
-  m_embeddedObjectSizeMax = max;
+  m_embeddedObjectSizeRng->SetMax (max);
 }
 
 
 uint32_t
-HttpVariables::GetEmbeddedObjectSizeMax () const
+HttpVariables::GetEmbeddedObjectSizeMean () const
 {
-  return m_embeddedObjectSizeMax;
+  return m_embeddedObjectSizeRng->GetMean ();
 }
 
 
-double
-HttpVariables::GetEmbeddedObjectSizeMu () const
-{
-  NS_ASSERT (m_embeddedObjectSizeMean > 0);
-  double eqA1 = pow (m_embeddedObjectSizeStdDev, 2);
-  double eqA2 = pow (m_embeddedObjectSizeMean, 2);
-  double eqA = log (1 + (eqA1 / eqA2));
-  double eqB = log (m_embeddedObjectSizeMean);
-  return eqB - (0.5 * eqA);
-}
-
-
-double
-HttpVariables::GetEmbeddedObjectSizeSigma () const
-{
-  NS_ASSERT (m_embeddedObjectSizeMean > 0);
-  double eqA1 = pow (m_embeddedObjectSizeStdDev, 2);
-  double eqA2 = pow (m_embeddedObjectSizeMean, 2);
-  double eqA = log (1 + (eqA1 / eqA2));
-  return sqrt (eqA);
-}
-
-
-// NUMBER OF EMBEDDED OBJECTS ATTRIBUTES SETTER AND GETTER METHODS ////////////
+// NUMBER OF EMBEDDED OBJECTS PER PAGE ATTRIBUTES SETTER AND GETTER METHODS ///
 
 
 void
-HttpVariables::SetNumEmbeddedObjectsMean (uint32_t mean)
+HttpVariables::SetNumOfEmbeddedObjectsMean (double mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  if (mean == 0)
-    {
-      NS_FATAL_ERROR ("Mean shall not be zero");
-    }
-  m_numEmbeddedObjectsMean = mean;
-  //RefreshNumEmbeddedObjectsDistribution ();
-}
-
-
-uint32_t
-HttpVariables::GetNumEmbeddedObjectsMean () const
-{
-  return m_numEmbeddedObjectsMean;
-}
-
-
-// INTERNAL METHODS ///////////////////////////////////////////////////////////
-
-
-void
-HttpVariables::RefreshMainObjectSizeDistribution ()
-{
-  NS_LOG_FUNCTION (this);
-  double mu = GetMainObjectSizeMu ();
-  double sigma = GetMainObjectSizeSigma ();
-  NS_LOG_INFO (this << " MainObjectSize Mu= " << mu << " Sigma= " << sigma);
-  m_mainObjectSizeRng->SetAttribute ("Mu", DoubleValue (mu));
-  m_mainObjectSizeRng->SetAttribute ("Sigma", DoubleValue (sigma));
+  m_numOfEmbeddedObjectsRng->SetAttribute ("Mean", DoubleValue (mean));
 }
 
 
 void
-HttpVariables::RefreshEmbeddedObjectSizeDistribution ()
+HttpVariables::SetNumOfEmbeddedObjectsMax (uint32_t max)
 {
-  NS_LOG_FUNCTION (this);
-  double mu = GetEmbeddedObjectSizeMu ();
-  double sigma = GetEmbeddedObjectSizeSigma ();
-  NS_LOG_INFO (this << " EmbeddedObjectSize Mu= " << mu << " Sigma= " << sigma);
-  m_embeddedObjectSizeRng->SetAttribute ("Mu", DoubleValue (mu));
-  m_embeddedObjectSizeRng->SetAttribute ("Sigma", DoubleValue (sigma));
+  NS_LOG_FUNCTION (this << max);
+  m_numOfEmbeddedObjectsRng->SetAttribute ("Bound",
+                                           DoubleValue (static_cast<double> (max)));
+}
+
+
+void
+HttpVariables::SetNumOfEmbeddedObjectsParetoIndex (double paretoIndex)
+{
+  NS_LOG_FUNCTION (this << paretoIndex);
+  m_numOfEmbeddedObjectsRng->SetAttribute ("Shape", DoubleValue (paretoIndex));
+}
+
+
+double
+HttpVariables::GetNumOfEmbeddedObjectsMean () const
+{
+  return m_numOfEmbeddedObjectsRng->GetMean ();
+}
+
+
+// READING TIME ATTRIBUTES SETTER AND GETTER METHODS //////////////////////////
+
+
+void
+HttpVariables::SetReadingTimeMean (Time mean)
+{
+  NS_LOG_FUNCTION (this << mean);
+  m_readingTimeRng->SetAttribute ("Mean", DoubleValue (mean.GetSeconds ()));
+}
+
+
+Time
+HttpVariables::GetReadingTimeMean () const
+{
+  return Seconds (m_readingTimeRng->GetMean ());
+}
+
+
+// PARSING TIME ATTRIBUTES SETTER AND GETTER METHODS //////////////////////////
+
+
+void
+HttpVariables::SetParsingTimeMean (Time mean)
+{
+  NS_LOG_FUNCTION (this << mean);
+  m_parsingTimeRng->SetAttribute ("Mean", DoubleValue (mean.GetSeconds ()));
+}
+
+
+Time
+HttpVariables::GetParsingTimeMean () const
+{
+  return Seconds (m_parsingTimeRng->GetMean ());
 }
 
 

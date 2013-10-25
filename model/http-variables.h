@@ -23,10 +23,48 @@
 #define HTTP_VARIABLES_H
 
 #include <ns3/object.h>
+#include <ns3/nstime.h>
 #include <ns3/random-variable-stream.h>
 
 
 namespace ns3 {
+
+
+/**
+ * \brief Wrapper of LogNormalRandomVariable for use in HTTP traffic model.
+ *
+ * Provides configurability using mean and standard deviation. In addition,
+ * returned values are truncated using a given range.
+ */
+class HttpLogNormalVariable : public LogNormalRandomVariable
+{
+public:
+  HttpLogNormalVariable ();
+  static TypeId GetTypeId ();
+
+  uint32_t GetTruncatedInteger ();
+
+  void SetMin (uint32_t min);
+  uint32_t GetMin () const;
+
+  void SetMax (uint32_t max);
+  uint32_t GetMax () const;
+
+  void SetMean (uint32_t mean);
+  uint32_t GetMean () const;
+
+  void SetStdDev (uint32_t stdDev);
+  uint32_t GetStdDev () const;
+
+private:
+  void RefreshBaseParameters ();
+
+  uint32_t m_min;
+  uint32_t m_max;
+  uint32_t m_mean;
+  uint32_t m_stdDev;
+
+}; // end of `class HttpLogNormalVariable`
 
 
 /**
@@ -38,97 +76,66 @@ public:
   HttpVariables ();
   static TypeId GetTypeId ();
 
+  // THE MORE USEFUL METHODS
+
   bool IsPersistentMode ();
   uint32_t GetMtuSize ();
   uint32_t GetMainObjectSize ();
+  uint32_t GetMainObjectSizeKbytes ();
   uint32_t GetEmbeddedObjectSize ();
-
-  // ATTRIBUTES SETTER AND GETTER METHODS
+  uint32_t GetEmbeddedObjectSizeKbytes ();
+  uint32_t GetNumOfEmbeddedObjects ();
+  Time GetReadingTime ();
+  double GetReadingTimeSeconds ();
+  Time GetParsingTime ();
+  double GetParsingTimeSeconds ();
 
   void SetStream (int64_t stream);
-  int64_t GetStream () const;
 
   // MAIN OBJECT SIZE ATTRIBUTES SETTER AND GETTER METHODS
 
   void SetMainObjectSizeMean (uint32_t mean);
-  uint32_t GetMainObjectSizeMean () const;
-
   void SetMainObjectSizeStdDev (uint32_t stdDev);
-  uint32_t GetMainObjectSizeStdDev () const;
-
   void SetMainObjectSizeMin (uint32_t min);
-  uint32_t GetMainObjectSizeMin () const;
-
   void SetMainObjectSizeMax (uint32_t max);
-  uint32_t GetMainObjectSizeMax () const;
-
-  /**
-   * \f$ \mu = ln(mean) - \frac{1}{2}ln\left(1+\frac{stddev^2}{mean^2}\right) \f$
-   */
-  double GetMainObjectSizeMu () const;
-
-  /**
-   * \f$ \sigma = \sqrt{ln\left(1+\frac{stddev^2}{mean^2}\right)} \f$
-   */
-  double GetMainObjectSizeSigma () const;
+  uint32_t GetMainObjectSizeMean () const;
 
   // EMBEDDED OBJECT SIZE ATTRIBUTES SETTER AND GETTER METHODS
 
   void SetEmbeddedObjectSizeMean (uint32_t mean);
-  uint32_t GetEmbeddedObjectSizeMean () const;
-
   void SetEmbeddedObjectSizeStdDev (uint32_t stdDev);
-  uint32_t GetEmbeddedObjectSizeStdDev () const;
-
   void SetEmbeddedObjectSizeMin (uint32_t min);
-  uint32_t GetEmbeddedObjectSizeMin () const;
-
   void SetEmbeddedObjectSizeMax (uint32_t max);
-  uint32_t GetEmbeddedObjectSizeMax () const;
-
-  /**
-   * \f$ \mu = ln(mean) - \frac{1}{2}ln\left(1+\frac{stddev^2}{mean^2}\right) \f$
-   */
-  double GetEmbeddedObjectSizeMu () const;
-
-  /**
-   * \f$ \sigma = \sqrt{ln\left(1+\frac{stddev^2}{mean^2}\right)} \f$
-   */
-  double GetEmbeddedObjectSizeSigma () const;
+  uint32_t GetEmbeddedObjectSizeMean () const;
 
   // NUMBER OF EMBEDDED OBJECTS ATTRIBUTES SETTER AND GETTER METHODS
 
-  void SetNumEmbeddedObjectsMean (uint32_t mean);
-  uint32_t GetNumEmbeddedObjectsMean () const;
+  void SetNumOfEmbeddedObjectsMean (double mean);
+  void SetNumOfEmbeddedObjectsMax (uint32_t max);
+  void SetNumOfEmbeddedObjectsParetoIndex (double paretoIndex);
+  double GetNumOfEmbeddedObjectsMean () const;
+
+  // READING TIME SETTER AND GETTER METHODS
+
+  void SetReadingTimeMean (Time mean);
+  Time GetReadingTimeMean () const;
+
+  // PARSING TIME SETTER AND GETTER METHODS
+
+  void SetParsingTimeMean (Time mean);
+  Time GetParsingTimeMean () const;
 
 private:
-
-  // INTERNAL METHODS
-
-  void RefreshMainObjectSizeDistribution ();
-  void RefreshEmbeddedObjectSizeDistribution ();
-  //void RefreshNumEmbeddedObjectsDistribution ();
-
-  // ATTRIBUTES
-
-  int64_t m_stream;
-  uint32_t m_mainObjectSizeMean;
-  uint32_t m_mainObjectSizeStdDev;
-  uint32_t m_mainObjectSizeMin;
-  uint32_t m_mainObjectSizeMax;
-  uint32_t m_embeddedObjectSizeMean;
-  uint32_t m_embeddedObjectSizeStdDev;
-  uint32_t m_embeddedObjectSizeMin;
-  uint32_t m_embeddedObjectSizeMax;
-  uint32_t m_numEmbeddedObjectsMean;
 
   // RANDOM NUMBER VARIABLES
 
   Ptr<UniformRandomVariable> m_httpVersionRng;
   Ptr<UniformRandomVariable> m_mtuSizeRng;
-  Ptr<LogNormalRandomVariable> m_mainObjectSizeRng;
-  Ptr<LogNormalRandomVariable> m_embeddedObjectSizeRng;
-  //Ptr<ParetoRandomVariable> m_numEmbeddedObjectsRng;
+  Ptr<HttpLogNormalVariable> m_mainObjectSizeRng;
+  Ptr<HttpLogNormalVariable> m_embeddedObjectSizeRng;
+  Ptr<ParetoRandomVariable> m_numOfEmbeddedObjectsRng;
+  Ptr<ExponentialRandomVariable> m_readingTimeRng;
+  Ptr<ExponentialRandomVariable> m_parsingTimeRng;
 
 }; // end of `class HttpVariables`
 

@@ -23,7 +23,11 @@
 #include <ns3/object.h>
 #include <ns3/log.h>
 #include <ns3/callback.h>
+#include <ns3/uinteger.h>
+#include <ns3/double.h>
 #include <fstream>
+#include <cmath>
+
 
 using namespace ns3;
 
@@ -32,7 +36,7 @@ template<typename T> void
 PlotHistogram (Callback<T> valueStream, std::string name,
                std::string plotTitle, std::string axisLabel,
                uint32_t nSamples, uint32_t resolution,
-               T min, T max, T mean)
+               T min, T max, double mean)
 {
   T binWidth = (max - min) / static_cast<T> (resolution);
   PlotHistogram<T> (valueStream, name, plotTitle, axisLabel, nSamples, binWidth,
@@ -43,7 +47,7 @@ PlotHistogram (Callback<T> valueStream, std::string name,
 template<typename T> void
 PlotHistogram (Callback<T> valueStream, std::string name,
                std::string plotTitle, std::string axisLabel,
-               uint32_t nSamples, T binWidth, T mean)
+               uint32_t nSamples, T binWidth, double mean)
 {
   std::string plotFileName = name + ".plt";
   std::ofstream ofs (plotFileName.c_str ());
@@ -59,7 +63,7 @@ PlotHistogram (Callback<T> valueStream, std::string name,
   ofs << "set title '" << plotTitle << "'" << std::endl;
   ofs << "set xlabel '" << axisLabel << "'" << std::endl;
   ofs << "set ylabel 'Frequency (out of " << nSamples << " samples)'" << std::endl;
-  //ofs << "set xrange [" << minX << ":" << maxX << "]" << std::endl;
+  ofs << "set xrange [0:" << 2 * exp (1) * mean << "]" << std::endl;
   ofs << "set yrange [0:]" << std::endl;
 
   ofs << "set tics out nomirror" << std::endl;
@@ -99,26 +103,48 @@ main (int argc, char *argv[])
   Ptr<HttpVariables> httpVariables = CreateObject<HttpVariables> ();
   //httpVariables->SetStream (99);
 
-  /*
+  UintegerValue uintMean;
+  httpVariables->GetAttribute ("MainObjectSizeMean", uintMean);
   PlotHistogram<uint32_t> (MakeCallback (&HttpVariables::GetMainObjectSize,
                                          httpVariables),
                            "main-object-size",
                            "Histogram of main object size in HTTP traffic model",
-                           "Main object size (in bytes)", 1000, 2000,
-                           httpVariables->GetMainObjectSizeMean ());
+                           "Main object size (in bytes)",
+                           1000, 1000, static_cast<double> (uintMean.Get ()));
 
+  httpVariables->GetAttribute ("EmbeddedObjectSizeMean", uintMean);
   PlotHistogram<uint32_t> (MakeCallback (&HttpVariables::GetEmbeddedObjectSize,
                                          httpVariables),
                            "embedded-object-size",
                            "Histogram of embedded object size in HTTP traffic model",
-                           "Embedded object size (in bytes)", 1000, 2000,
-                           httpVariables->GetEmbeddedObjectSizeMean ());
-  */
+                           "Embedded object size (in bytes)",
+                           1000, 1000, static_cast<double> (uintMean.Get ()));
 
-  for (uint32_t i = 0; i < 20; i++)
-    {
-      std::cout << httpVariables->GetMtuSize () << std::endl;
-    }
+  DoubleValue doubleMean;
+  httpVariables->GetAttribute ("NumOfEmbeddedObjectsMean", doubleMean);
+  PlotHistogram<uint32_t> (MakeCallback (&HttpVariables::GetNumOfEmbeddedObjects,
+                                         httpVariables),
+                          "num-of-embedded-objects",
+                          "Histogram of number of embedded objects in HTTP traffic model",
+                          "Number of embedded objects per web page",
+                          1000, 1, doubleMean.Get ());
+
+  TimeValue timeMean;
+  httpVariables->GetAttribute ("ReadingTimeMean", timeMean);
+  PlotHistogram<double> (MakeCallback (&HttpVariables::GetReadingTimeSeconds,
+                                       httpVariables),
+                         "reading-time",
+                         "Histogram of reading time in HTTP traffic model",
+                         "Reading time (in seconds)",
+                         1000, 1.0, timeMean.Get ().GetSeconds ());
+
+  httpVariables->GetAttribute ("ParsingTimeMean", timeMean);
+  PlotHistogram<double> (MakeCallback (&HttpVariables::GetParsingTimeSeconds,
+                                       httpVariables),
+                         "parsing-time",
+                         "Histogram of parsing time in HTTP traffic model",
+                         "Parsing time (in seconds)",
+                         1000, 0.01, timeMean.Get ().GetSeconds ());
 
   return 0;
 }
