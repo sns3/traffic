@@ -231,6 +231,8 @@ HttpClient::StartApplication ()
                                                   this));
       m_socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
                                                this));
+      m_socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
+                                               this));
     } // end of `if (m_state == NOT_STARTED)`
   else
     {
@@ -260,6 +262,8 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
       NS_ASSERT_MSG (m_socket == socket, "Invalid socket");
       socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
                                              this));
+      socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
+                                             this));
       Simulator::ScheduleNow (&HttpClient::RequestMainObject, this);
     }
   else
@@ -277,33 +281,8 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
 
   if (m_state == CONNECTING)
     {
-      /// \todo Maybe retrying need to be asynchronous? (e.g., not blocking)
-      if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
-        {
-          Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-          InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                            m_remoteServerPort);
-          NS_LOG_INFO (this << " connecting to " << ipv4
-                            << " port " << m_remoteServerPort
-                            << " / " << inetSocket);
-          int ret = m_socket->Connect (inetSocket);
-          NS_LOG_DEBUG (this << " Connect() return value= " << ret
-                             << " GetErrNo= " << m_socket->GetErrno ());
-          NS_UNUSED (ret);
-        }
-      else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
-        {
-          Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-          Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                               m_remoteServerPort);
-          NS_LOG_INFO (this << " retrying connection to " << ipv6
-                            << " port " << m_remoteServerPort
-                            << " / " << inet6Socket);
-          int ret = m_socket->Connect (inet6Socket);
-          NS_LOG_DEBUG (this << " Connect() return value= " << ret
-                             << " GetErrNo= " << m_socket->GetErrno ());
-          NS_UNUSED (ret);
-        }
+      /// \todo Add delay before retrying?
+      Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
     }
   else
     {
@@ -318,20 +297,90 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  switch (m_state)
-  {
-    case EXPECTING_MAIN_OBJECT:
-      ReceiveMainObject (socket);
-      break;
-    case EXPECTING_EMBEDDED_OBJECT:
-      ReceiveEmbeddedObject (socket);
-      break;
-    default:
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
-                        << " for ReceivedData");
-      break;
-  }
+  Ptr<Packet> packet;
+  Address from;
+
+  while ((packet = socket->RecvFrom (from)))
+    {
+      if (packet->GetSize () == 0)
+        {
+          break; // EOF
+        }
+
+      if (InetSocketAddress::IsMatchingType (from))
+        {
+          NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
+                            << " received from " << InetSocketAddress::ConvertFrom (from).GetIpv4 ()
+                            << " port " << InetSocketAddress::ConvertFrom (from).GetPort ()
+                            << " / " << InetSocketAddress::ConvertFrom (from));
+        }
+      else if (Inet6SocketAddress::IsMatchingType (from))
+        {
+          NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
+                            << " received from " << Inet6SocketAddress::ConvertFrom (from).GetIpv6 ()
+                            << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
+                            << " / " << InetSocketAddress::ConvertFrom (from));
+        }
+
+      switch (m_state)
+      {
+        case EXPECTING_MAIN_OBJECT:
+          ReceiveMainObject (packet);
+          break;
+        case EXPECTING_EMBEDDED_OBJECT:
+          ReceiveEmbeddedObject (packet);
+          break;
+        default:
+          NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+                            << " for ReceivedData");
+          break;
+      }
+
+    } // end of `while ((packet = socket->RecvFrom (from)))`
+
+} // end of `void ReceivedDataCallback (Ptr<Socket> socket)`
+
+
+void
+HttpClient::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
+{
+  NS_LOG_FUNCTION (this << socket << availableBufferSize);
 }
+
+
+void
+HttpClient::RetryConnection ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
+    {
+      Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+      InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                        m_remoteServerPort);
+      NS_LOG_INFO (this << " connecting to " << ipv4
+                        << " port " << m_remoteServerPort
+                        << " / " << inetSocket);
+      int ret = m_socket->Connect (inetSocket);
+      NS_LOG_DEBUG (this << " Connect() return value= " << ret
+                         << " GetErrNo= " << m_socket->GetErrno ());
+      NS_UNUSED (ret);
+    }
+  else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
+    {
+      Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+      Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                           m_remoteServerPort);
+      NS_LOG_INFO (this << " retrying connection to " << ipv6
+                        << " port " << m_remoteServerPort
+                        << " / " << inet6Socket);
+      int ret = m_socket->Connect (inet6Socket);
+      NS_LOG_DEBUG (this << " Connect() return value= " << ret
+                         << " GetErrNo= " << m_socket->GetErrno ());
+      NS_UNUSED (ret);
+    }
+
+} // end of `void RetryConnection ()`
 
 
 void
@@ -352,7 +401,8 @@ HttpClient::RequestMainObject ()
 
       if ((unsigned) actualBytes != m_requestSize)
         {
-          NS_LOG_INFO (this << " failed to send request for main object,"
+          NS_LOG_INFO (this << " failed to send request for embedded object,"
+                            << " GetErrNo= " << m_socket->GetErrno () << ","
                             << " waiting for another Tx opportunity");
           /// \todo What to do if it fails here?
         }
@@ -389,11 +439,13 @@ HttpClient::RequestEmbeddedObject ()
       if ((unsigned) actualBytes != m_requestSize)
         {
           NS_LOG_INFO (this << " failed to send request for embedded object,"
+                            << " GetErrNo= " << m_socket->GetErrno () << ","
                             << " waiting for another Tx opportunity");
           /// \todo What to do if it fails here?
         }
-      else if (m_state == PARSING_MAIN_OBJECT)
+      else
         {
+          m_embeddedObjectsToBeRequested--;
           SwitchToState (EXPECTING_EMBEDDED_OBJECT);
         }
     }
@@ -407,65 +459,43 @@ HttpClient::RequestEmbeddedObject ()
 
 
 void
-HttpClient::ReceiveMainObject (Ptr<Socket> socket)
+HttpClient::ReceiveMainObject (Ptr<Packet> packet)
 {
-  NS_LOG_FUNCTION (this << socket);
+  NS_LOG_FUNCTION (this << packet);
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
-      Ptr<Packet> packet;
-      Address from;
+      Ptr<Packet> packetCopy = packet->Copy ();
+      HttpEntityHeader httpEntity;
+      packetCopy->RemoveHeader (httpEntity);
 
-      while ((packet = socket->RecvFrom (from)))
+      if (httpEntity.GetContentType () == HttpEntityHeader::MAIN_OBJECT)
         {
-          if (packet->GetSize () == 0)
-            {
-              break; // EOF
-            }
+          m_rxMainObjectPacketTrace (packet);
+          uint32_t contentLength = httpEntity.GetContentLength ();
+          NS_LOG_DEBUG (this << " received a main object packet"
+                             << " with Content-Length= " << contentLength);
 
-          if (InetSocketAddress::IsMatchingType (from))
+          if (contentLength > packet->GetSize ())
             {
-              NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
-                                << " received from " << InetSocketAddress::ConvertFrom (from).GetIpv4 ()
-                                << " port " << InetSocketAddress::ConvertFrom (from).GetPort ()
-                                << " / " << InetSocketAddress::ConvertFrom (from));
-            }
-          else if (Inet6SocketAddress::IsMatchingType (from))
-            {
-              NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
-                                << " received from " << Inet6SocketAddress::ConvertFrom (from).GetIpv6 ()
-                                << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
-                                << " / " << InetSocketAddress::ConvertFrom (from));
-            }
-
-          Ptr<Packet> packetCopy = packet->Copy ();
-          HttpEntityHeader httpEntity;
-          packetCopy->RemoveHeader (httpEntity);
-
-          if (httpEntity.GetContentType () == HttpEntityHeader::MAIN_OBJECT)
-            {
-              m_rxMainObjectPacketTrace (packet);
-              uint32_t contentLength = httpEntity.GetContentLength ();
-              NS_LOG_DEBUG (this << " received a main object packet"
-                                 << " with Content-Length= " << contentLength);
-
-              if (contentLength > packet->GetSize ())
-                {
-                  // there are more packets of this main object
-                }
-              else
-                {
-                  // this is the last packet of this main object
-                  m_rxMainObjectTrace (packet);
-                  EnterParsingTime ();
-                }
+              /*
+               * There are more packets of this main object, so just stay still
+               * and wait until they arrive.
+               */
             }
           else
             {
-              NS_LOG_WARN (this << " Invalid packet header");
+              // this is the last packet of this main object
+              // acknowledge the reception of a whole main object
+              NS_LOG_INFO (this << " finished receiving a main object");
+              m_rxMainObjectTrace (packet);
+              EnterParsingTime ();
             }
-
-        } // end of `while ((packet = socket->RecvFrom (from)))`
+        }
+      else
+        {
+          NS_LOG_WARN (this << " Invalid packet header");
+        }
 
     } // end of `if (m_state == EXPECTING_MAIN_OBJECT)`
   else
@@ -474,68 +504,62 @@ HttpClient::ReceiveMainObject (Ptr<Socket> socket)
                         << " for ReceiveMainObject");
     }
 
-} // end of `void ReceiveMainObject (Ptr<Socket> socket)`
+} // end of `void ReceiveMainObject (Ptr<Packet> packet)`
 
 
 void
-HttpClient::ReceiveEmbeddedObject (Ptr<Socket> socket)
+HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
 {
-  NS_LOG_FUNCTION (this << socket);
+  NS_LOG_FUNCTION (this << packet);
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT)
     {
-      Ptr<Packet> packet;
-      Address from;
+      Ptr<Packet> packetCopy = packet->Copy ();
+      HttpEntityHeader httpEntity;
+      packetCopy->RemoveHeader (httpEntity);
 
-      while ((packet = socket->RecvFrom (from)))
+      if (httpEntity.GetContentType () == HttpEntityHeader::EMBEDDED_OBJECT)
         {
-          if (packet->GetSize () == 0)
-            {
-              break; // EOF
-            }
+          m_rxEmbeddedObjectPacketTrace (packet);
+          uint32_t contentLength = httpEntity.GetContentLength ();
+          NS_LOG_DEBUG (this << " received an embedded object packet"
+                             << " with Content-Length= " << contentLength);
 
-          if (InetSocketAddress::IsMatchingType (from))
+          if (contentLength > packet->GetSize ())
             {
-              NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
-                                << " received from " << InetSocketAddress::ConvertFrom (from).GetIpv4 ()
-                                << " port " << InetSocketAddress::ConvertFrom (from).GetPort ()
-                                << " / " << InetSocketAddress::ConvertFrom (from));
-            }
-          else if (Inet6SocketAddress::IsMatchingType (from))
-            {
-              NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
-                                << " received from " << Inet6SocketAddress::ConvertFrom (from).GetIpv6 ()
-                                << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
-                                << " / " << InetSocketAddress::ConvertFrom (from));
-            }
-
-          Ptr<Packet> packetCopy = packet->Copy ();
-          HttpEntityHeader httpEntity;
-          packetCopy->RemoveHeader (httpEntity);
-
-          if (httpEntity.GetContentType () == HttpEntityHeader::EMBEDDED_OBJECT)
-            {
-              m_rxEmbeddedObjectPacketTrace (packet);
-              uint32_t contentLength = httpEntity.GetContentLength ();
-              NS_LOG_DEBUG (this << " received an embedded object packet"
-                                 << " with Content-Length= " << contentLength);
-
-              if (contentLength > packet->GetSize ())
-                {
-                  // there are more packets of this embedded object
-                }
-              else
-                {
-                  // this is the last packet of this embedded object
-                  m_rxEmbeddedObjectTrace (packet);
-                }
+              /*
+               * There are more packets of this main object, so just stay still
+               * and wait until they arrive.
+               */
             }
           else
             {
-              NS_LOG_WARN (this << " Invalid packet header");
-            }
+              // this is the last packet of this embedded object
+              // acknowledge the reception of a whole embedded object
+              NS_LOG_INFO (this << " finished receiving an embedded object");
+              m_rxEmbeddedObjectTrace (packet);
 
-        } // end of `while ((packet = socket->RecvFrom (from)))`
+              if (m_embeddedObjectsToBeRequested > 0)
+                {
+                  NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
+                                    << " more embedded object(s) to be requested");
+                  Simulator::ScheduleNow (&HttpClient::RequestEmbeddedObject,
+                                          this);
+                }
+              else
+                {
+                  /*
+                   * There is no more embedded object, the web page has been
+                   * downloaded completely. Now is the time to read it.
+                   */
+                  EnterReadingTime ();
+                }
+            }
+        }
+      else
+        {
+          NS_LOG_WARN (this << " Invalid packet header");
+        }
 
     } // end of `if (m_state == EXPECTING_EMBEDDED_OBJECT)`
   else
@@ -544,7 +568,7 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Socket> socket)
                    << " for ReceiveEmbeddedObject");
     }
 
-} // end of `void ReceiveEmbeddedObject (Ptr<Socket> socket)`
+} // end of `void ReceiveEmbeddedObject (Ptr<Packet> packet)`
 
 
 void

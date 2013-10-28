@@ -70,6 +70,7 @@ public:
 
 private:
   void Initialize ();
+  void Plot ();
 
   void TxMainObjectRequestCallback (Ptr<const Packet> packet);
   void TxEmbeddedObjectRequestCallback (Ptr<const Packet> packet);

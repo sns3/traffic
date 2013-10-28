@@ -70,15 +70,19 @@ protected:
   void ConnectionSucceededCallback (Ptr<Socket> socket);
   void ConnectionFailedCallback (Ptr<Socket> socket);
   void ReceivedDataCallback (Ptr<Socket> socket);
+  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
 private:
+  void RetryConnection ();
+
   void RequestMainObject ();
   void RequestEmbeddedObject ();
-  void ReceiveMainObject (Ptr<Socket> socket);
-  void ReceiveEmbeddedObject (Ptr<Socket> socket);
+  void ReceiveMainObject (Ptr<Packet> packet);
+  void ReceiveEmbeddedObject (Ptr<Packet> packet);
   void EnterParsingTime ();
   void ParseMainObject ();
   void EnterReadingTime ();
+
   void SwitchToState (State_t state);
 
   State_t m_state;

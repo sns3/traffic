@@ -36,7 +36,7 @@ namespace ns3 {
 
 HttpClientHelper::HttpClientHelper (std::string protocol, Address address)
 {
-  m_factory.SetTypeId ("ns3::HttpServer");
+  m_factory.SetTypeId ("ns3::HttpClient");
   m_factory.Set ("Protocol", StringValue (protocol));
   m_factory.Set ("RemoteServerAddress", AddressValue (address));
 }

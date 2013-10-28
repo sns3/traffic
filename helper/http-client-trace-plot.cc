@@ -68,42 +68,9 @@ HttpClientTracePlot::HttpClientTracePlot (Ptr<HttpClient> httpClient,
 
 HttpClientTracePlot::~HttpClientTracePlot ()
 {
-  NS_LOG_FUNCTION (this << m_outputName);
+  NS_LOG_FUNCTION (this);
 
-  Gnuplot plot (m_outputName + ".png");
-  //plot.SetTitle ("HTTP Packet Trace");
-  plot.SetTerminal ("png");
-  plot.SetLegend ("Time (in seconds)", "Bytes transmitted");
-
-  if (m_isRequestExist)
-    {
-      plot.AddDataset (m_request);
-    }
-
-  if (m_isResponseMainObjectExist)
-    {
-      plot.AddDataset (m_responseMainObject);
-    }
-
-  if (m_isResponseEmbeddedObjectExist)
-    {
-      plot.AddDataset (m_responseEmbeddedObject);
-    }
-
-  if (m_isMainObjectAckExist)
-    {
-      plot.AddDataset (m_mainObjectAck);
-    }
-
-  if (m_isEmbeddedObjectAckExist)
-    {
-      plot.AddDataset (m_embeddedObjectAck);
-    }
-
-  std::string plotFileName = m_outputName + ".plt";
-  std::ofstream plotFile (plotFileName.c_str ());
-  plot.GenerateOutput (plotFile);
-  plotFile.close ();
+  Plot ();
 }
 
 
@@ -188,7 +155,50 @@ HttpClientTracePlot::Initialize ()
   m_isMainObjectAckExist = false;
   m_isEmbeddedObjectAckExist = false;
 
-}
+} // end of `void Initialize ()`
+
+
+void
+HttpClientTracePlot::Plot ()
+{
+  NS_LOG_FUNCTION (this << m_outputName);
+
+  Gnuplot plot (m_outputName + ".png");
+  //plot.SetTitle ("HTTP Packet Trace");
+  plot.SetTerminal ("png");
+  plot.SetLegend ("Time (in seconds)", "Bytes transmitted");
+
+  if (m_isRequestExist)
+    {
+      plot.AddDataset (m_request);
+    }
+
+  if (m_isResponseMainObjectExist)
+    {
+      plot.AddDataset (m_responseMainObject);
+    }
+
+  if (m_isResponseEmbeddedObjectExist)
+    {
+      plot.AddDataset (m_responseEmbeddedObject);
+    }
+
+  if (m_isMainObjectAckExist)
+    {
+      plot.AddDataset (m_mainObjectAck);
+    }
+
+  if (m_isEmbeddedObjectAckExist)
+    {
+      plot.AddDataset (m_embeddedObjectAck);
+    }
+
+  std::string plotFileName = m_outputName + ".plt";
+  std::ofstream plotFile (plotFileName.c_str ());
+  plot.GenerateOutput (plotFile);
+  plotFile.close ();
+
+} // end of `void Plot ()`
 
 
 void

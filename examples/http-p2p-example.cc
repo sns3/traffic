@@ -34,23 +34,8 @@ int
 main (int argc, char *argv[])
 {
   LogComponentEnableAll (LOG_PREFIX_ALL);
-  LogComponentEnable ("HttpEntityHeader", LOG_LEVEL_ALL);
   LogComponentEnable ("HttpClient", LOG_LEVEL_ALL);
   LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
-  LogComponentEnable ("HttpClientTracePlot", LOG_LEVEL_ALL);
-  //LogComponentEnableAll (LOG_LEVEL_ALL);
-  LogComponentDisable ("ObjectBase", LOG_LEVEL_ALL);
-  LogComponentDisable ("Object", LOG_LEVEL_ALL);
-  LogComponentDisable ("TypeID", LOG_LEVEL_ALL);
-//  LogComponentEnable ("TcpNewReno", LOG_LEVEL_ALL);
-//  LogComponentEnable ("TcpSocketBase", LOG_LEVEL_ALL);
-//  LogComponentEnable ("Socket", LOG_LEVEL_ALL);
-//  LogComponentEnable ("PacketSocket", LOG_LEVEL_ALL);
-//  LogComponentEnable ("Node", LOG_LEVEL_ALL);
-//  LogComponentEnable ("PacketSink", LOG_LEVEL_ALL);
-//  LogComponentEnable ("BulkSendApplication", LOG_LEVEL_ALL);
-//  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_ALL);
-//  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_ALL);
 
   NodeContainer nodes;
   nodes.Create (2);
@@ -71,21 +56,18 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer interfaces = address.Assign (devices);
   Ipv4Address serverAddress = interfaces.GetAddress (1);
 
-  Ptr<HttpClient> httpClient = CreateObject<HttpClient> ();
-  httpClient->SetAttribute ("RemoteServerAddress",
-                            AddressValue (serverAddress));
-  httpClient->SetStartTime (Seconds (5.0));
-  nodes.Get (0)->AddApplication (httpClient);
+  HttpClientHelper httpClientHelper ("ns3::TcpSocketFactory", serverAddress);
+  ApplicationContainer clientApps = httpClientHelper.Install (nodes.Get (0));
+  clientApps.Start (Seconds (1.0));
 
-  Ptr<HttpServer> httpServer = CreateObject<HttpServer> ();
-  httpServer->SetAttribute ("LocalAddress",
-                            AddressValue (serverAddress));
-  httpServer->SetStartTime (Seconds (1.0));
-  nodes.Get (1)->AddApplication (httpServer);
+  HttpServerHelper httpServerHelper ("ns3::TcpSocketFactory", serverAddress);
+  ApplicationContainer serverApps = httpServerHelper.Install (nodes.Get (1));
+  serverApps.Start (Seconds (0.0));
 
-  Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (httpClient);
+  Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (
+    clientApps.Get (0)->GetObject<HttpClient> ());
 
-  Simulator::Stop (Seconds (20.0));
+  Simulator::Stop (Seconds (1000.0));
   Simulator::Run ();
   Simulator::Destroy ();
 

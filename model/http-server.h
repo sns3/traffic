@@ -67,6 +67,7 @@ protected:
   bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
   void NewConnectionCreatedCallback (Ptr<Socket> socket, const Address & address);
   void ReceivedDataCallback (Ptr<Socket> socket);
+  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
 private:
   void ServeMainObject (Ptr<Socket> socket);

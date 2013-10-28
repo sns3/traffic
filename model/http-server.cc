@@ -209,6 +209,8 @@ HttpServer::StartApplication ()
                                                         this));
       m_initialSocket->SetRecvCallback (MakeCallback (&HttpServer::ReceivedDataCallback,
                                                       this));
+      m_initialSocket->SetSendCallback (MakeCallback (&HttpServer::SendCallback,
+                                                      this));
       SwitchToState (WAITING_CONNECTION_REQUEST);
 
     } // end of `if (m_state == NOT_STARTED)`
@@ -258,6 +260,8 @@ HttpServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
 {
   NS_LOG_FUNCTION (this << socket << address);
   socket->SetRecvCallback (MakeCallback (&HttpServer::ReceivedDataCallback,
+                                         this));
+  socket->SetSendCallback (MakeCallback (&HttpServer::SendCallback,
                                          this));
   m_acceptedSockets.push_back (socket);
   SwitchToState (CONNECTED);
@@ -320,14 +324,9 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
 
 
 void
-HttpServer::SwitchToState (HttpServer::State_t state)
+HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
 {
-  std::string oldState = GetStateString ();
-  std::string newState = GetStateString (state);
-  NS_LOG_FUNCTION (this << oldState << newState);
-  m_state = state;
-  NS_LOG_INFO (this << " HttpServer " << oldState << " --> " << newState);
-  m_stateTransitionTrace (oldState, newState);
+  NS_LOG_FUNCTION (this << socket << availableBufferSize);
 }
 
 
@@ -364,14 +363,15 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
         }
       else
         {
-          NS_LOG_INFO (this << " failed to send request for main object,"
+          NS_LOG_INFO (this << " failed to send request for embedded object,"
+                            << " GetErrNo= " << socket->GetErrno () << ","
                             << " waiting for another Tx opportunity");
           remainingObjectSize = 0; // this exits the `while (objectSize > 0)`
         }
 
-    }
+    } // end of `while (remainingObjectSize > 0)`
 
-  NS_LOG_INFO (this << " finished sending main object");
+  NS_LOG_INFO (this << " finished sending a main object");
 
 } // end of `void ServeMainObject (Ptr<Socket> socket)`
 
@@ -380,6 +380,57 @@ void
 HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this);
+  uint32_t remainingObjectSize = m_httpVariables->GetEmbeddedObjectSize ();
+  NS_LOG_INFO (this << " embedded object to be served is "
+                    << remainingObjectSize << " bytes");
+  uint32_t packetSize;
+
+  while (remainingObjectSize > 0)
+    {
+      HttpEntityHeader httpEntity;
+      httpEntity.SetContentLength (remainingObjectSize);
+      httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
+
+      packetSize = (remainingObjectSize < m_mtuSize) ? remainingObjectSize
+                                                     : m_mtuSize;
+      Ptr<Packet> packet = Create<Packet> (packetSize - httpEntity.GetSerializedSize ());
+      packet->AddHeader (httpEntity);
+      NS_LOG_INFO (this << " created packet " << packet << " of "
+                        << packetSize << " bytes");
+      m_txTrace (packet);
+      int actualSent = socket->Send (packet);
+      NS_LOG_DEBUG (this << " Send() return value= " << actualSent);
+
+      if ((unsigned) actualSent == packetSize)
+        {
+          remainingObjectSize = remainingObjectSize - actualSent;
+          NS_LOG_INFO (this << " remaining embedded object to be transmitted "
+                            << remainingObjectSize << " bytes");
+        }
+      else
+        {
+          NS_LOG_INFO (this << " failed to send request for embedded object,"
+                            << " GetErrNo= " << socket->GetErrno () << ","
+                            << " waiting for another Tx opportunity");
+          remainingObjectSize = 0; // this exits the `while (objectSize > 0)`
+        }
+
+    } // end of `while (remainingObjectSize > 0)`
+
+  NS_LOG_INFO (this << " finished sending an embedded object");
+
+} // end of `void ServeEmbeddedObject (Ptr<Socket> socket)`
+
+
+void
+HttpServer::SwitchToState (HttpServer::State_t state)
+{
+  std::string oldState = GetStateString ();
+  std::string newState = GetStateString (state);
+  NS_LOG_FUNCTION (this << oldState << newState);
+  m_state = state;
+  NS_LOG_INFO (this << " HttpServer " << oldState << " --> " << newState);
+  m_stateTransitionTrace (oldState, newState);
 }
 
 
