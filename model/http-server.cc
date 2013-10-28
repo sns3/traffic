@@ -50,7 +50,7 @@ HttpServer::HttpServer ()
   NS_LOG_FUNCTION (this);
 
   //m_mtuSize = m_httpVariables->GetMtuSize ();
-  m_mtuSize = 536;
+  m_mtuSize = 536; /// \todo Find out why 1460 doesn't work
   NS_LOG_INFO (this << " MTU size for this server application is "
                     << m_mtuSize << " bytes");
 }

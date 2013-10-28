@@ -260,7 +260,7 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
       NS_ASSERT_MSG (m_socket == socket, "Invalid socket");
       socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
                                              this));
-      RequestMainObject ();
+      Simulator::ScheduleNow (&HttpClient::RequestMainObject, this);
     }
   else
     {
@@ -277,7 +277,7 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
 
   if (m_state == CONNECTING)
     {
-      // retry
+      /// \todo Maybe retrying need to be asynchronous? (e.g., not blocking)
       if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
         {
           Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);

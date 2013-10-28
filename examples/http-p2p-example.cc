@@ -37,6 +37,7 @@ main (int argc, char *argv[])
   LogComponentEnable ("HttpEntityHeader", LOG_LEVEL_ALL);
   LogComponentEnable ("HttpClient", LOG_LEVEL_ALL);
   LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
+  LogComponentEnable ("HttpClientTracePlot", LOG_LEVEL_ALL);
   //LogComponentEnableAll (LOG_LEVEL_ALL);
   LogComponentDisable ("ObjectBase", LOG_LEVEL_ALL);
   LogComponentDisable ("Object", LOG_LEVEL_ALL);
@@ -70,7 +71,6 @@ main (int argc, char *argv[])
   Ipv4InterfaceContainer interfaces = address.Assign (devices);
   Ipv4Address serverAddress = interfaces.GetAddress (1);
 
-
   Ptr<HttpClient> httpClient = CreateObject<HttpClient> ();
   httpClient->SetAttribute ("RemoteServerAddress",
                             AddressValue (serverAddress));
@@ -83,36 +83,8 @@ main (int argc, char *argv[])
   httpServer->SetStartTime (Seconds (1.0));
   nodes.Get (1)->AddApplication (httpServer);
 
+  Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (httpClient);
 
-  /*
-  Ptr<BulkSendApplication> sender = CreateObject<BulkSendApplication> ();
-  sender->SetAttribute ("Remote",
-                        AddressValue (serverAddress));
-  sender->SetStartTime (Seconds (5.0));
-  nodes.Get (0)->AddApplication (sender);
-
-  Ptr<PacketSink> receiver = CreateObject<PacketSink> ();
-  receiver->SetAttribute ("Local",
-                          AddressValue (serverAddress));
-  receiver->SetStartTime (Seconds (1.0));
-  nodes.Get (1)->AddApplication (receiver);
-  */
-  /*
-  UdpEchoServerHelper echoServer (9);
-
-  ApplicationContainer serverApps = echoServer.Install (nodes.Get (1));
-  serverApps.Start (Seconds (1.0));
-  serverApps.Stop (Seconds (10.0));
-
-  UdpEchoClientHelper echoClient (interfaces.GetAddress (1), 9);
-  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
-  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
-  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
-
-  ApplicationContainer clientApps = echoClient.Install (nodes.Get (0));
-  clientApps.Start (Seconds (2.0));
-  clientApps.Stop (Seconds (10.0));
-  */
   Simulator::Stop (Seconds (20.0));
   Simulator::Run ();
   Simulator::Destroy ();
