@@ -89,13 +89,6 @@ HttpServer::GetTypeId ()
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpServer::m_protocol),
                    MakeTypeIdChecker ())
-    .AddAttribute ("ResponseDelay",
-                   "The constant delay time between a reception of an HTTP request "
-                   "and the send out of the HTTP response by this application "
-                   "(not applicable at the moment)",
-                   TimeValue (MilliSeconds (10)),
-                   MakeTimeAccessor (&HttpServer::m_responseDelay),
-                   MakeTimeChecker ())
     .AddTraceSource ("Tx",
                      "A new packet is created and is sent",
                      MakeTraceSourceAccessor (&HttpServer::m_txTrace))
@@ -369,25 +362,34 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
                             << " / " << InetSocketAddress::ConvertFrom (from));
         }
 
+      m_rxTrace (packet, from);
+
       HttpEntityHeader httpEntity;
       packet->RemoveHeader (httpEntity);
+      Time delay;
 
       switch (httpEntity.GetContentType ())
       {
         case HttpEntityHeader::MAIN_OBJECT:
-          /// \todo Add a response delay here
-          Simulator::ScheduleNow (&HttpServer::ServeMainObject, this, socket);
+          delay = m_httpVariables->GetMainObjectGenerationDelay ();
+          NS_LOG_INFO (this << " will finish generating a main object in "
+                            << delay.GetSeconds () << " seconds");
+          Simulator::Schedule (delay, &HttpServer::ServeMainObject,
+                               this, socket);
           break;
+
         case HttpEntityHeader::EMBEDDED_OBJECT:
-          /// \todo Add a response delay here
-          Simulator::ScheduleNow (&HttpServer::ServeEmbeddedObject, this, socket);
+          delay = m_httpVariables->GetEmbeddedObjectGenerationDelay ();
+          NS_LOG_INFO (this << " will finish generating an embedded object in "
+                            << delay.GetSeconds () << " seconds");
+          Simulator::Schedule (delay, &HttpServer::ServeEmbeddedObject,
+                               this, socket);
           break;
+
         default:
           NS_LOG_WARN (this << " Invalid packet header");
           break;
       }
-
-      m_rxTrace (packet, from);
 
     } // end of `while ((packet = socket->RecvFrom (from)))`
 

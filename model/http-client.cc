@@ -84,12 +84,6 @@ HttpClient::GetTypeId ()
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpClient::m_protocol),
                    MakeTypeIdChecker ())
-    .AddAttribute ("RequestSize",
-                   "The constant size (in bytes) of the HTTP request packet "
-                   "produced by this application",
-                   UintegerValue (350),
-                   MakeUintegerAccessor (&HttpClient::m_requestSize),
-                   MakeUintegerChecker<uint16_t> ())
     .AddTraceSource ("TxMainObjectRequest",
                      "Sent a request for a main object",
                      MakeTraceSourceAccessor (&HttpClient::m_txMainObjectRequestTrace))
@@ -415,7 +409,8 @@ HttpClient::RequestMainObject ()
       HttpEntityHeader httpEntity;
       httpEntity.SetContentLength (0); // request does not need content length
       httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
-      Ptr<Packet> packet = Create<Packet> (m_requestSize - httpEntity.GetSerializedSize ());
+      uint32_t requestSize = m_httpVariables->GetRequestSize ();
+      Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
       packet->AddHeader (httpEntity);
       m_txMainObjectRequestTrace (packet);
       int actualBytes = m_socket->Send (packet);
@@ -423,7 +418,7 @@ HttpClient::RequestMainObject ()
                          << " of " << packet->GetSize () << " bytes,"
                          << " return value= " << actualBytes);
 
-      if ((unsigned) actualBytes != m_requestSize)
+      if ((unsigned) actualBytes != requestSize)
         {
           NS_LOG_INFO (this << " failed to send request for embedded object,"
                             << " GetErrNo= " << m_socket->GetErrno () << ","
@@ -454,7 +449,8 @@ HttpClient::RequestEmbeddedObject ()
       HttpEntityHeader httpEntity;
       httpEntity.SetContentLength (0); // request does not need content length
       httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
-      Ptr<Packet> packet = Create<Packet> (m_requestSize - httpEntity.GetSerializedSize ());
+      uint32_t requestSize = m_httpVariables->GetRequestSize ();
+      Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
       packet->AddHeader (httpEntity);
       m_txEmbeddedObjectRequestTrace (packet);
       int actualBytes = m_socket->Send (packet);
@@ -462,7 +458,7 @@ HttpClient::RequestEmbeddedObject ()
                          << " of " << packet->GetSize () << " bytes,"
                          << " return value= " << actualBytes);
 
-      if ((unsigned) actualBytes != m_requestSize)
+      if ((unsigned) actualBytes != requestSize)
         {
           NS_LOG_INFO (this << " failed to send request for embedded object,"
                             << " GetErrNo= " << m_socket->GetErrno () << ","

@@ -34,8 +34,8 @@ using namespace ns3;
 
 /**
  * \ingroup traffic
- * \brief Example script for plotting histograms of the random variable
- *        distributions used in HTTP traffic model.
+ * \brief Example script for plotting histograms from some of the random
+ *        variable distributions used in HTTP traffic model.
  *
  * The script repeatedly draws random samples from the distributions and then
  * plot a histogram for each distribution. By default, 100 000 samples are

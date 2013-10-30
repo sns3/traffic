@@ -92,7 +92,6 @@ private:
   Address m_localAddress;
   uint16_t m_localPort;
   TypeId m_protocol;
-  Time m_responseDelay;
   TracedCallback<Ptr<const Packet> > m_txTrace;
   TracedCallback<Ptr<const Packet>, const Address & > m_rxTrace;
   TracedCallback<std::string, std::string> m_stateTransitionTrace;

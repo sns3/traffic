@@ -80,8 +80,14 @@ public:
 
   bool IsPersistentMode ();
   uint32_t GetMtuSize ();
+  uint32_t GetRequestSize ();
+  uint32_t GetRequestSizeKbytes ();
+  Time GetMainObjectGenerationDelay ();
+  double GetMainObjectGenerationDelaySeconds ();
   uint32_t GetMainObjectSize ();
   uint32_t GetMainObjectSizeKbytes ();
+  Time GetEmbeddedObjectGenerationDelay ();
+  double GetEmbeddedObjectGenerationDelaySeconds ();
   uint32_t GetEmbeddedObjectSize ();
   uint32_t GetEmbeddedObjectSizeKbytes ();
   uint32_t GetNumOfEmbeddedObjects ();
@@ -92,7 +98,15 @@ public:
 
   void SetStream (int64_t stream);
 
-  // MAIN OBJECT SIZE ATTRIBUTES SETTER AND GETTER METHODS
+  // REQUEST SIZE SETTER METHODS
+
+  void SetRequestSize (uint32_t constant);
+
+  // MAIN OBJECT GENERATION DELAY SETTER METHODS
+
+  void SetMainObjectGenerationDelay (Time constant);
+
+  // MAIN OBJECT SIZE ATTRIBUTES SETTER METHODS
 
   void SetMainObjectSizeMean (uint32_t mean);
   void SetMainObjectSizeStdDev (uint32_t stdDev);
@@ -100,7 +114,11 @@ public:
   void SetMainObjectSizeMax (uint32_t max);
   uint32_t GetMainObjectSizeMean () const;
 
-  // EMBEDDED OBJECT SIZE ATTRIBUTES SETTER AND GETTER METHODS
+  // EMBEDDED OBJECT GENERATION DELAY SETTER METHODS
+
+  void SetEmbeddedObjectGenerationDelay (Time constant);
+
+  // EMBEDDED OBJECT SIZE ATTRIBUTES SETTER METHODS
 
   void SetEmbeddedObjectSizeMean (uint32_t mean);
   void SetEmbeddedObjectSizeStdDev (uint32_t stdDev);
@@ -108,19 +126,19 @@ public:
   void SetEmbeddedObjectSizeMax (uint32_t max);
   uint32_t GetEmbeddedObjectSizeMean () const;
 
-  // NUMBER OF EMBEDDED OBJECTS ATTRIBUTES SETTER AND GETTER METHODS
+  // NUMBER OF EMBEDDED OBJECTS ATTRIBUTES SETTER METHODS
 
   void SetNumOfEmbeddedObjectsMean (double mean);
   void SetNumOfEmbeddedObjectsMax (uint32_t max);
   void SetNumOfEmbeddedObjectsParetoIndex (double paretoIndex);
   double GetNumOfEmbeddedObjectsMean () const;
 
-  // READING TIME SETTER AND GETTER METHODS
+  // READING TIME SETTER METHODS
 
   void SetReadingTimeMean (Time mean);
   Time GetReadingTimeMean () const;
 
-  // PARSING TIME SETTER AND GETTER METHODS
+  // PARSING TIME SETTER METHODS
 
   void SetParsingTimeMean (Time mean);
   Time GetParsingTimeMean () const;
@@ -131,7 +149,10 @@ private:
 
   Ptr<UniformRandomVariable> m_httpVersionRng;
   Ptr<UniformRandomVariable> m_mtuSizeRng;
+  Ptr<ConstantRandomVariable> m_requestSizeRng;
+  Ptr<ConstantRandomVariable> m_mainObjectGenerationDelayRng;
   Ptr<HttpLogNormalVariable> m_mainObjectSizeRng;
+  Ptr<ConstantRandomVariable> m_embeddedObjectGenerationDelayRng;
   Ptr<HttpLogNormalVariable> m_embeddedObjectSizeRng;
   Ptr<ParetoRandomVariable> m_numOfEmbeddedObjectsRng;
   Ptr<ExponentialRandomVariable> m_readingTimeRng;

@@ -164,7 +164,10 @@ NS_OBJECT_ENSURE_REGISTERED (HttpVariables);
 HttpVariables::HttpVariables ()
   : m_httpVersionRng (CreateObject<UniformRandomVariable> ()),
     m_mtuSizeRng (CreateObject<UniformRandomVariable> ()),
+    m_requestSizeRng (CreateObject<ConstantRandomVariable> ()),
+    m_mainObjectGenerationDelayRng (CreateObject<ConstantRandomVariable> ()),
     m_mainObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
+    m_embeddedObjectGenerationDelayRng (CreateObject<ConstantRandomVariable> ()),
     m_embeddedObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
     m_numOfEmbeddedObjectsRng (CreateObject<ParetoRandomVariable> ()),
     m_readingTimeRng (CreateObject<ExponentialRandomVariable> ()),
@@ -186,6 +189,20 @@ HttpVariables::GetTypeId ()
                    IntegerValue (-1),
                    MakeIntegerAccessor (&HttpVariables::SetStream),
                    MakeIntegerChecker<int64_t> ())
+
+    // REQUEST SIZE
+    .AddAttribute ("RequestSize",
+                   "The constant size of HTTP request packet (in bytes).",
+                   UintegerValue (350),
+                   MakeUintegerAccessor (&HttpVariables::SetRequestSize),
+                   MakeUintegerChecker<uint32_t> ())
+
+    // MAIN OBJECT GENERATION DELAY
+    .AddAttribute ("MainObjectGenerationDelay",
+                   "The constant time needed by HTTP server to generate a main object as a response.",
+                   TimeValue (MilliSeconds (0)),
+                   MakeTimeAccessor (&HttpVariables::SetMainObjectGenerationDelay),
+                   MakeTimeChecker ())
 
     // MAIN OBJECT SIZE
     .AddAttribute ("MainObjectSizeMean",
@@ -209,6 +226,13 @@ HttpVariables::GetTypeId ()
                    UintegerValue (2000000), // 2 MB
                    MakeUintegerAccessor (&HttpVariables::SetMainObjectSizeMax),
                    MakeUintegerChecker<uint32_t> ())
+
+    // EMBEDDED OBJECT GENERATION DELAY
+    .AddAttribute ("EmbeddedObjectGenerationDelay",
+                   "The constant time needed by HTTP server to generate an embedded object as a response.",
+                   TimeValue (MilliSeconds (0)),
+                   MakeTimeAccessor (&HttpVariables::SetEmbeddedObjectGenerationDelay),
+                   MakeTimeChecker ())
 
     // EMBEDDED OBJECT SIZE
     .AddAttribute ("EmbeddedObjectSizeMean",
@@ -299,6 +323,34 @@ HttpVariables::GetMtuSize ()
 
 
 uint32_t
+HttpVariables::GetRequestSize ()
+{
+  return m_requestSizeRng->GetInteger ();
+}
+
+
+uint32_t
+HttpVariables::GetRequestSizeKbytes ()
+{
+  return m_requestSizeRng->GetInteger () / 1000;
+}
+
+
+Time
+HttpVariables::GetMainObjectGenerationDelay ()
+{
+  return Seconds (m_mainObjectGenerationDelayRng->GetValue ());
+}
+
+
+double
+HttpVariables::GetMainObjectGenerationDelaySeconds ()
+{
+  return m_mainObjectGenerationDelayRng->GetValue ();
+}
+
+
+uint32_t
 HttpVariables::GetMainObjectSize ()
 {
   return m_mainObjectSizeRng->GetTruncatedInteger ();
@@ -309,6 +361,20 @@ uint32_t
 HttpVariables::GetMainObjectSizeKbytes ()
 {
   return m_mainObjectSizeRng->GetTruncatedInteger () / 1000;
+}
+
+
+Time
+HttpVariables::GetEmbeddedObjectGenerationDelay ()
+{
+  return Seconds (m_embeddedObjectGenerationDelayRng->GetValue ());
+}
+
+
+double
+HttpVariables::GetEmbeddedObjectGenerationDelaySeconds ()
+{
+  return m_embeddedObjectGenerationDelayRng->GetValue ();
 }
 
 
@@ -367,11 +433,38 @@ HttpVariables::SetStream (int64_t stream)
   NS_LOG_FUNCTION (this << stream);
   m_httpVersionRng->SetStream (stream);
   m_mtuSizeRng->SetStream (stream);
+  m_requestSizeRng->SetStream (stream);
+  m_mainObjectGenerationDelayRng->SetStream (stream);
   m_mainObjectSizeRng->SetStream (stream);
+  m_embeddedObjectGenerationDelayRng->SetStream (stream);
   m_embeddedObjectSizeRng->SetStream (stream);
   m_numOfEmbeddedObjectsRng->SetStream (stream);
   m_readingTimeRng->SetStream (stream);
   m_parsingTimeRng->SetStream (stream);
+}
+
+
+// REQUEST SIZE SETTER METHODS ////////////////////////////////////////////////
+
+
+void
+HttpVariables::SetRequestSize (uint32_t constant)
+{
+  NS_LOG_FUNCTION (this << constant);
+  m_requestSizeRng->SetAttribute ("Constant",
+                                  DoubleValue (static_cast<double> (constant)));
+}
+
+
+// MAIN OBJECT GENERATION DELAY SETTER METHODS ////////////////////////////////
+
+
+void
+HttpVariables::SetMainObjectGenerationDelay (Time constant)
+{
+  NS_LOG_FUNCTION (this << constant.GetSeconds ());
+  m_mainObjectGenerationDelayRng->SetAttribute ("Constant",
+                                                DoubleValue (constant.GetSeconds ()));
 }
 
 
@@ -414,6 +507,18 @@ uint32_t
 HttpVariables::GetMainObjectSizeMean () const
 {
   return m_mainObjectSizeRng->GetMean ();
+}
+
+
+// EMBEDDED OBJECT GENERATION DELAY SETTER METHODS ////////////////////////////
+
+
+void
+HttpVariables::SetEmbeddedObjectGenerationDelay (Time constant)
+{
+  NS_LOG_FUNCTION (this << constant.GetSeconds ());
+  m_embeddedObjectGenerationDelayRng->SetAttribute ("Constant",
+                                                    DoubleValue (constant.GetSeconds ()));
 }
 
 
@@ -500,7 +605,7 @@ HttpVariables::GetNumOfEmbeddedObjectsMean () const
 void
 HttpVariables::SetReadingTimeMean (Time mean)
 {
-  NS_LOG_FUNCTION (this << mean);
+  NS_LOG_FUNCTION (this << mean.GetSeconds ());
   m_readingTimeRng->SetAttribute ("Mean", DoubleValue (mean.GetSeconds ()));
 }
 
@@ -518,7 +623,7 @@ HttpVariables::GetReadingTimeMean () const
 void
 HttpVariables::SetParsingTimeMean (Time mean)
 {
-  NS_LOG_FUNCTION (this << mean);
+  NS_LOG_FUNCTION (this << mean.GetSeconds ());
   m_parsingTimeRng->SetAttribute ("Mean", DoubleValue (mean.GetSeconds ()));
 }
 

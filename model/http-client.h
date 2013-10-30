@@ -97,7 +97,6 @@ private:
   Address m_remoteServerAddress;
   uint16_t m_remoteServerPort;
   TypeId m_protocol;
-  uint16_t m_requestSize;
   TracedCallback<Ptr<const Packet> > m_txMainObjectRequestTrace;
   TracedCallback<Ptr<const Packet> > m_txEmbeddedObjectRequestTrace;
   TracedCallback<Ptr<const Packet> > m_rxMainObjectPacketTrace;
