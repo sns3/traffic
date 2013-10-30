@@ -471,8 +471,8 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  uint32_t objectSize = m_httpVariables->GetEmbeddedObjectSize ();
-  NS_LOG_INFO (this << " embedded object to be served is "
+  uint32_t objectSize = m_httpVariables->GetMainObjectSize ();
+  NS_LOG_INFO (this << " main object to be served is "
                     << objectSize << " bytes");
 
   HttpEntityHeader txInfo;
@@ -538,7 +538,11 @@ HttpServer::Serve (Ptr<Socket> socket, HttpEntityHeader txInfo)
 
   while (remainingBytes > 0)
     {
-      contentSize = std::min (remainingBytes, m_mtuSize - headerSize);
+      NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
+                         << " bytes available for Tx");
+      contentSize = std::min (remainingBytes,
+                              //socket->GetTxAvailable () - headerSize);
+                              m_mtuSize - headerSize);
       NS_ASSERT_MSG (contentSize > 0,
                      "Invalid size of packet content: " << contentSize);
 

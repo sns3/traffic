@@ -629,7 +629,7 @@ HttpClient::ParseMainObject ()
     {
       m_embeddedObjectsToBeRequested = m_httpVariables->GetNumOfEmbeddedObjects ();
       NS_LOG_INFO (this << " parsing has determined "
-                        << m_embeddedObjectsToBeRequested << " embedded objects"
+                        << m_embeddedObjectsToBeRequested << " embedded object(s)"
                         << " in the main object");
 
       if (m_embeddedObjectsToBeRequested > 0)
