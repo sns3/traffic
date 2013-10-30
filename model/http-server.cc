@@ -337,6 +337,7 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
   uint32_t remainingObjectSize = m_httpVariables->GetMainObjectSize ();
   NS_LOG_INFO (this << " main object to be served is "
                     << remainingObjectSize << " bytes");
+  uint32_t contentSize;
   uint32_t packetSize;
 
   while (remainingObjectSize > 0)
@@ -345,10 +346,14 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
       httpEntity.SetContentLength (remainingObjectSize);
       httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
 
-      packetSize = (remainingObjectSize < m_mtuSize) ? remainingObjectSize
-                                                     : m_mtuSize;
-      Ptr<Packet> packet = Create<Packet> (packetSize - httpEntity.GetSerializedSize ());
+      contentSize = std::min (remainingObjectSize,
+                              m_mtuSize - httpEntity.GetSerializedSize ());
+      NS_ASSERT_MSG (contentSize > 0,
+                     "Invalid size of packet content: " << contentSize);
+
+      Ptr<Packet> packet = Create<Packet> (contentSize);
       packet->AddHeader (httpEntity);
+      packetSize = packet->GetSize ();
       NS_LOG_INFO (this << " created packet " << packet << " of "
                         << packetSize << " bytes");
       m_txTrace (packet);
@@ -357,7 +362,7 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
 
       if ((unsigned) actualSent == packetSize)
         {
-          remainingObjectSize = remainingObjectSize - actualSent;
+          remainingObjectSize = remainingObjectSize - contentSize;
           NS_LOG_INFO (this << " remaining main object to be transmitted "
                             << remainingObjectSize << " bytes");
         }
@@ -367,11 +372,12 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
                             << " GetErrNo= " << socket->GetErrno () << ","
                             << " waiting for another Tx opportunity");
           remainingObjectSize = 0; // this exits the `while (objectSize > 0)`
+          /// \todo Keep this number and recall it when later Tx opportunity arises
         }
 
     } // end of `while (remainingObjectSize > 0)`
 
-  NS_LOG_INFO (this << " finished sending a main object");
+  NS_LOG_INFO (this << " finished sending main object");
 
 } // end of `void ServeMainObject (Ptr<Socket> socket)`
 
@@ -383,6 +389,7 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
   uint32_t remainingObjectSize = m_httpVariables->GetEmbeddedObjectSize ();
   NS_LOG_INFO (this << " embedded object to be served is "
                     << remainingObjectSize << " bytes");
+  uint32_t contentSize;
   uint32_t packetSize;
 
   while (remainingObjectSize > 0)
@@ -391,10 +398,14 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
       httpEntity.SetContentLength (remainingObjectSize);
       httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
 
-      packetSize = (remainingObjectSize < m_mtuSize) ? remainingObjectSize
-                                                     : m_mtuSize;
-      Ptr<Packet> packet = Create<Packet> (packetSize - httpEntity.GetSerializedSize ());
+      contentSize = std::min (remainingObjectSize,
+                              m_mtuSize - httpEntity.GetSerializedSize ());
+      NS_ASSERT_MSG (contentSize > 0,
+                     "Invalid size of packet content: " << contentSize);
+
+      Ptr<Packet> packet = Create<Packet> (contentSize);
       packet->AddHeader (httpEntity);
+      packetSize = packet->GetSize ();
       NS_LOG_INFO (this << " created packet " << packet << " of "
                         << packetSize << " bytes");
       m_txTrace (packet);
@@ -403,7 +414,7 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
 
       if ((unsigned) actualSent == packetSize)
         {
-          remainingObjectSize = remainingObjectSize - actualSent;
+          remainingObjectSize = remainingObjectSize - contentSize;
           NS_LOG_INFO (this << " remaining embedded object to be transmitted "
                             << remainingObjectSize << " bytes");
         }
@@ -413,11 +424,12 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
                             << " GetErrNo= " << socket->GetErrno () << ","
                             << " waiting for another Tx opportunity");
           remainingObjectSize = 0; // this exits the `while (objectSize > 0)`
+          /// \todo Keep this number and recall it when later Tx opportunity arises
         }
 
     } // end of `while (remainingObjectSize > 0)`
 
-  NS_LOG_INFO (this << " finished sending an embedded object");
+  NS_LOG_INFO (this << " finished sending embedded object");
 
 } // end of `void ServeEmbeddedObject (Ptr<Socket> socket)`
 

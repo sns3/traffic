@@ -391,7 +391,7 @@ HttpClient::RequestMainObject ()
   if (m_state == CONNECTING || m_state == READING)
     {
       HttpEntityHeader httpEntity;
-      httpEntity.SetContentLength (0);
+      httpEntity.SetContentLength (0); // request does not need content length
       httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
       Ptr<Packet> packet = Create<Packet> (m_requestSize - httpEntity.GetSerializedSize ());
       packet->AddHeader (httpEntity);
@@ -428,7 +428,7 @@ HttpClient::RequestEmbeddedObject ()
   if (m_state == PARSING_MAIN_OBJECT || m_state == EXPECTING_EMBEDDED_OBJECT)
     {
       HttpEntityHeader httpEntity;
-      httpEntity.SetContentLength (0);
+      httpEntity.SetContentLength (0); // request does not need content length
       httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
       Ptr<Packet> packet = Create<Packet> (m_requestSize - httpEntity.GetSerializedSize ());
       packet->AddHeader (httpEntity);
@@ -476,7 +476,7 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
           NS_LOG_DEBUG (this << " received a main object packet"
                              << " with Content-Length= " << contentLength);
 
-          if (contentLength > packet->GetSize ())
+          if (contentLength > packetCopy->GetSize ())
             {
               /*
                * There are more packets of this main object, so just stay still
@@ -525,11 +525,11 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
           NS_LOG_DEBUG (this << " received an embedded object packet"
                              << " with Content-Length= " << contentLength);
 
-          if (contentLength > packet->GetSize ())
+          if (contentLength > packetCopy->GetSize ())
             {
               /*
-               * There are more packets of this main object, so just stay still
-               * and wait until they arrive.
+               * There are more packets of this embedded object, so just stay
+               * still and wait until they arrive.
                */
             }
           else
