@@ -26,6 +26,7 @@
 #include <ns3/address.h>
 #include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
+#include <map>
 
 
 namespace ns3 {
@@ -34,6 +35,7 @@ namespace ns3 {
 class Socket;
 class Packet;
 class HttpVariables;
+class HttpEntityHeader;
 
 
 class HttpServer : public Application
@@ -46,8 +48,7 @@ public:
   enum State_t
   {
     NOT_STARTED = 0,
-    WAITING_CONNECTION_REQUEST,
-    CONNECTED
+    STARTED
   };
 
   State_t GetState () const;
@@ -64,20 +65,26 @@ protected:
 
   // CALLBACK FUNCTIONS FROM SOCKET
 
-  bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
-  void NewConnectionCreatedCallback (Ptr<Socket> socket, const Address & address);
-  void ReceivedDataCallback (Ptr<Socket> socket);
-  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+  virtual bool ConnectionRequestCallback (Ptr<Socket> socket,
+                                          const Address & address);
+  virtual void NewConnectionCreatedCallback (Ptr<Socket> socket,
+                                             const Address & address);
+  virtual void NormalCloseCallback (Ptr<Socket> socket);
+  virtual void ErrorCloseCallback (Ptr<Socket> socket);
+  virtual void ReceivedDataCallback (Ptr<Socket> socket);
+  virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
 private:
   void ServeMainObject (Ptr<Socket> socket);
   void ServeEmbeddedObject (Ptr<Socket> socket);
+  uint32_t Serve (Ptr<Socket> socket, HttpEntityHeader txInfo);
+  void SaveTxBuffer (const Ptr<Socket> socket, const HttpEntityHeader txBuffer);
   void SwitchToState (State_t state);
 
   State_t m_state;
-  Ptr<Socket> m_initialSocket;
-  std::list<Ptr<Socket> > m_acceptedSockets;
   uint32_t m_mtuSize;
+  Ptr<Socket> m_initialSocket;
+  std::map<Ptr<Socket>, HttpEntityHeader> m_acceptedSocketTxBuffer;
 
   // ATTRIBUTES
 

@@ -67,10 +67,12 @@ protected:
 
   // CALLBACK FUNCTIONS FROM SOCKET
 
-  void ConnectionSucceededCallback (Ptr<Socket> socket);
-  void ConnectionFailedCallback (Ptr<Socket> socket);
-  void ReceivedDataCallback (Ptr<Socket> socket);
-  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+  virtual void ConnectionSucceededCallback (Ptr<Socket> socket);
+  virtual void ConnectionFailedCallback (Ptr<Socket> socket);
+  virtual void NormalCloseCallback (Ptr<Socket> socket);
+  virtual void ErrorCloseCallback (Ptr<Socket> socket);
+  virtual void ReceivedDataCallback (Ptr<Socket> socket);
+  virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
 private:
   void RetryConnection ();

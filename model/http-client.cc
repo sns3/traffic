@@ -229,6 +229,10 @@ HttpClient::StartApplication ()
                                                   this),
                                     MakeCallback (&HttpClient::ConnectionFailedCallback,
                                                   this));
+      m_socket->SetCloseCallbacks (MakeCallback (&HttpClient::NormalCloseCallback,
+                                                 this),
+                                   MakeCallback (&HttpClient::ErrorCloseCallback,
+                                                 this));
       m_socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
                                                this));
       m_socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
@@ -289,6 +293,24 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
       NS_LOG_WARN (this << " Invalid state " << GetStateString ()
                         << " for ConnectionFailed");
     }
+}
+
+
+void
+HttpClient::NormalCloseCallback (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
+}
+
+
+void
+HttpClient::ErrorCloseCallback (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
 }
 
 
@@ -397,7 +419,9 @@ HttpClient::RequestMainObject ()
       packet->AddHeader (httpEntity);
       m_txMainObjectRequestTrace (packet);
       int actualBytes = m_socket->Send (packet);
-      NS_LOG_DEBUG (this << " Send() return value= " << actualBytes);
+      NS_LOG_DEBUG (this << " Send() packet " << packet
+                         << " of " << packet->GetSize () << " bytes,"
+                         << " return value= " << actualBytes);
 
       if ((unsigned) actualBytes != m_requestSize)
         {
@@ -434,7 +458,9 @@ HttpClient::RequestEmbeddedObject ()
       packet->AddHeader (httpEntity);
       m_txEmbeddedObjectRequestTrace (packet);
       int actualBytes = m_socket->Send (packet);
-      NS_LOG_DEBUG (this << " Send() return value= " << actualBytes);
+      NS_LOG_DEBUG (this << " Send() packet " << packet
+                         << " of " << packet->GetSize () << " bytes,"
+                         << " return value= " << actualBytes);
 
       if ((unsigned) actualBytes != m_requestSize)
         {
