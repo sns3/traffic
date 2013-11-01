@@ -26,6 +26,7 @@
 #include <ns3/address.h>
 #include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
+#include <ns3/http-entity-header.h>
 #include <map>
 
 
@@ -35,7 +36,6 @@ namespace ns3 {
 class Socket;
 class Packet;
 class HttpVariables;
-class HttpEntityHeader;
 
 
 class HttpServer : public Application
@@ -48,7 +48,8 @@ public:
   enum State_t
   {
     NOT_STARTED = 0,
-    STARTED
+    STARTED,
+    STOPPED
   };
 
   State_t GetState () const;
@@ -77,24 +78,38 @@ protected:
 private:
   void ServeMainObject (Ptr<Socket> socket);
   void ServeEmbeddedObject (Ptr<Socket> socket);
-  uint32_t Serve (Ptr<Socket> socket, HttpEntityHeader txInfo);
-  void SaveTxBuffer (const Ptr<Socket> socket, const HttpEntityHeader txBuffer);
+  uint32_t Serve (Ptr<Socket> socket,
+                  HttpEntityHeader::ContentType_t contentType,
+                  uint32_t objectSize);
+  void SaveTxBuffer (const Ptr<Socket> socket,
+                     HttpEntityHeader::ContentType_t contentType,
+                     uint32_t objectSize);
   void SwitchToState (State_t state);
 
-  State_t m_state;
-  uint32_t m_mtuSize;
-  Ptr<Socket> m_initialSocket;
-  std::map<Ptr<Socket>, HttpEntityHeader> m_acceptedSocketTxBuffer;
+  State_t      m_state;
+  uint32_t     m_mtuSize;
+  Ptr<Socket>  m_initialSocket;
+
+  struct SocketInfo_t
+  {
+    EventId                          nextServe;
+    HttpEntityHeader::ContentType_t  txBufferContentType;
+    uint32_t                         txBufferContentLength;
+  };
+  std::map<Ptr<Socket>, SocketInfo_t> m_acceptedSockets;
 
   // ATTRIBUTES
 
-  Ptr<HttpVariables> m_httpVariables;
-  Address m_localAddress;
-  uint16_t m_localPort;
-  TypeId m_protocol;
-  TracedCallback<Ptr<const Packet> > m_txTrace;
-  TracedCallback<Ptr<const Packet>, const Address & > m_rxTrace;
-  TracedCallback<std::string, std::string> m_stateTransitionTrace;
+  Ptr<HttpVariables>  m_httpVariables;
+  Address             m_localAddress;
+  uint16_t            m_localPort;
+  TypeId              m_protocol;
+
+  // TRACE SOURCES
+
+  TracedCallback<Ptr<const Packet> >                   m_txTrace;
+  TracedCallback<Ptr<const Packet>, const Address & >  m_rxTrace;
+  TracedCallback<std::string, std::string>             m_stateTransitionTrace;
 
 }; // end of `class HttpServer`
 

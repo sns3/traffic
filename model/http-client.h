@@ -85,25 +85,37 @@ private:
   void ParseMainObject ();
   void EnterReadingTime ();
 
+  void CancelAllPendingEvents ();
+
   void SwitchToState (State_t state);
 
-  State_t m_state;
-  Ptr<Socket> m_socket;
-  uint32_t m_embeddedObjectsToBeRequested;
+  State_t      m_state;
+  Ptr<Socket>  m_socket;
+  uint32_t     m_embeddedObjectsToBeRequested;
 
   // ATTRIBUTES
 
-  Ptr<HttpVariables> m_httpVariables;
-  Address m_remoteServerAddress;
-  uint16_t m_remoteServerPort;
-  TypeId m_protocol;
-  TracedCallback<Ptr<const Packet> > m_txMainObjectRequestTrace;
-  TracedCallback<Ptr<const Packet> > m_txEmbeddedObjectRequestTrace;
-  TracedCallback<Ptr<const Packet> > m_rxMainObjectPacketTrace;
-  TracedCallback<Ptr<const Packet> > m_rxMainObjectTrace;
-  TracedCallback<Ptr<const Packet> > m_rxEmbeddedObjectPacketTrace;
-  TracedCallback<Ptr<const Packet> > m_rxEmbeddedObjectTrace;
-  TracedCallback<std::string, std::string> m_stateTransitionTrace;
+  Ptr<HttpVariables>  m_httpVariables;
+  Address             m_remoteServerAddress;
+  uint16_t            m_remoteServerPort;
+  TypeId              m_protocol;
+
+  // TRACE SOURCES
+
+  TracedCallback<Ptr<const Packet> >        m_txMainObjectRequestTrace;
+  TracedCallback<Ptr<const Packet> >        m_txEmbeddedObjectRequestTrace;
+  TracedCallback<Ptr<const Packet> >        m_rxMainObjectPacketTrace;
+  TracedCallback<Ptr<const Packet> >        m_rxMainObjectTrace;
+  TracedCallback<Ptr<const Packet> >        m_rxEmbeddedObjectPacketTrace;
+  TracedCallback<Ptr<const Packet> >        m_rxEmbeddedObjectTrace;
+  TracedCallback<std::string, std::string>  m_stateTransitionTrace;
+
+  // EVENTS
+
+  EventId m_eventRequestMainObject;
+  EventId m_eventRequestEmbeddedObject;
+  EventId m_eventRetryConnection;
+  EventId m_eventParseMainObject;
 
 }; // end of `class HttpClient`
 

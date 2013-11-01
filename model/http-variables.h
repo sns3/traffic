@@ -147,16 +147,16 @@ private:
 
   // RANDOM NUMBER VARIABLES
 
-  Ptr<UniformRandomVariable> m_httpVersionRng;
-  Ptr<UniformRandomVariable> m_mtuSizeRng;
-  Ptr<ConstantRandomVariable> m_requestSizeRng;
-  Ptr<ConstantRandomVariable> m_mainObjectGenerationDelayRng;
-  Ptr<HttpLogNormalVariable> m_mainObjectSizeRng;
-  Ptr<ConstantRandomVariable> m_embeddedObjectGenerationDelayRng;
-  Ptr<HttpLogNormalVariable> m_embeddedObjectSizeRng;
-  Ptr<ParetoRandomVariable> m_numOfEmbeddedObjectsRng;
-  Ptr<ExponentialRandomVariable> m_readingTimeRng;
-  Ptr<ExponentialRandomVariable> m_parsingTimeRng;
+  Ptr<UniformRandomVariable>      m_httpVersionRng;
+  Ptr<UniformRandomVariable>      m_mtuSizeRng;
+  Ptr<ConstantRandomVariable>     m_requestSizeRng;
+  Ptr<ConstantRandomVariable>     m_mainObjectGenerationDelayRng;
+  Ptr<HttpLogNormalVariable>      m_mainObjectSizeRng;
+  Ptr<ConstantRandomVariable>     m_embeddedObjectGenerationDelayRng;
+  Ptr<HttpLogNormalVariable>      m_embeddedObjectSizeRng;
+  Ptr<ParetoRandomVariable>       m_numOfEmbeddedObjectsRng;
+  Ptr<ExponentialRandomVariable>  m_readingTimeRng;
+  Ptr<ExponentialRandomVariable>  m_parsingTimeRng;
 
 }; // end of `class HttpVariables`
 

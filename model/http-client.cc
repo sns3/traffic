@@ -163,6 +163,12 @@ void
 HttpClient::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
+
+  if (!Simulator::IsFinished ()) // guard against canceling out-of-bound events
+    {
+      StopApplication ();
+    }
+
   Application::DoDispose (); // chain up
 }
 
@@ -234,7 +240,7 @@ HttpClient::StartApplication ()
     } // end of `if (m_state == NOT_STARTED)`
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for StartApplication");
     }
 
@@ -245,8 +251,17 @@ void
 HttpClient::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
-  /// \todo Cancel any remaining events?
-  /// \todo Close socket?
+
+  SwitchToState (STOPPED);
+
+  CancelAllPendingEvents ();
+  if (m_socket != 0)
+    {
+      m_socket->Close ();
+      m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+    }
+
 }
 
 
@@ -262,11 +277,25 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
                                              this));
       socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
                                              this));
-      Simulator::ScheduleNow (&HttpClient::RequestMainObject, this);
+
+      if (m_embeddedObjectsToBeRequested > 0)
+        {
+          /*
+           * The previous web session was interrupted and there are some
+           * embedded objects remaining.
+           */
+          m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+            &HttpClient::RequestEmbeddedObject, this);
+        }
+      else
+        {
+          m_eventRequestMainObject = Simulator::ScheduleNow (
+            &HttpClient::RequestMainObject, this);
+        }
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for ConnectionSucceeded");
     }
 }
@@ -279,12 +308,12 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
 
   if (m_state == CONNECTING)
     {
-      /// \todo Add delay before retrying?
-      Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
+      m_eventRetryConnection = Simulator::ScheduleNow (
+        &HttpClient::RetryConnection, this);
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for ConnectionFailed");
     }
 }
@@ -295,7 +324,9 @@ HttpClient::NormalCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
+  CancelAllPendingEvents ();
+  m_eventRetryConnection = Simulator::ScheduleNow (
+    &HttpClient::RetryConnection, this);
 }
 
 
@@ -304,7 +335,9 @@ HttpClient::ErrorCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  Simulator::ScheduleNow (&HttpClient::RetryConnection, this);
+  CancelAllPendingEvents ();
+  m_eventRetryConnection = Simulator::ScheduleNow (
+    &HttpClient::RetryConnection, this);
 }
 
 
@@ -347,7 +380,7 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
           ReceiveEmbeddedObject (packet);
           break;
         default:
-          NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+          NS_LOG_WARN (this << " invalid state " << GetStateString ()
                             << " for ReceivedData");
           break;
       }
@@ -381,6 +414,7 @@ HttpClient::RetryConnection ()
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
       NS_UNUSED (ret);
+      SwitchToState (CONNECTING);
     }
   else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
     {
@@ -394,6 +428,7 @@ HttpClient::RetryConnection ()
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
       NS_UNUSED (ret);
+      SwitchToState (CONNECTING);
     }
 
 } // end of `void RetryConnection ()`
@@ -432,7 +467,7 @@ HttpClient::RequestMainObject ()
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for RequestMainObject");
     }
 
@@ -446,34 +481,41 @@ HttpClient::RequestEmbeddedObject ()
 
   if (m_state == PARSING_MAIN_OBJECT || m_state == EXPECTING_EMBEDDED_OBJECT)
     {
-      HttpEntityHeader httpEntity;
-      httpEntity.SetContentLength (0); // request does not need content length
-      httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
-      uint32_t requestSize = m_httpVariables->GetRequestSize ();
-      Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
-      packet->AddHeader (httpEntity);
-      m_txEmbeddedObjectRequestTrace (packet);
-      int actualBytes = m_socket->Send (packet);
-      NS_LOG_DEBUG (this << " Send() packet " << packet
-                         << " of " << packet->GetSize () << " bytes,"
-                         << " return value= " << actualBytes);
-
-      if ((unsigned) actualBytes != requestSize)
+      if (m_embeddedObjectsToBeRequested > 0)
         {
-          NS_LOG_INFO (this << " failed to send request for embedded object,"
-                            << " GetErrNo= " << m_socket->GetErrno () << ","
-                            << " waiting for another Tx opportunity");
-          /// \todo What to do if it fails here?
+          HttpEntityHeader httpEntity;
+          httpEntity.SetContentLength (0); // request does not need content length
+          httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
+          uint32_t requestSize = m_httpVariables->GetRequestSize ();
+          Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
+          packet->AddHeader (httpEntity);
+          m_txEmbeddedObjectRequestTrace (packet);
+          int actualBytes = m_socket->Send (packet);
+          NS_LOG_DEBUG (this << " Send() packet " << packet
+                             << " of " << packet->GetSize () << " bytes,"
+                             << " return value= " << actualBytes);
+
+          if ((unsigned) actualBytes != requestSize)
+            {
+              NS_LOG_INFO (this << " failed to send request for embedded object,"
+                                << " GetErrNo= " << m_socket->GetErrno () << ","
+                                << " waiting for another Tx opportunity");
+              /// \todo What to do if it fails here?
+            }
+          else
+            {
+              m_embeddedObjectsToBeRequested--;
+              SwitchToState (EXPECTING_EMBEDDED_OBJECT);
+            }
         }
       else
         {
-          m_embeddedObjectsToBeRequested--;
-          SwitchToState (EXPECTING_EMBEDDED_OBJECT);
+          NS_LOG_WARN (this << " no embedded object to be requested");
         }
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for RequestEmbeddedObject");
     }
 
@@ -487,9 +529,9 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
-      Ptr<Packet> packetCopy = packet->Copy ();
+      Ptr<Packet> packetWorkingCopy = packet->Copy ();
       HttpEntityHeader httpEntity;
-      packetCopy->RemoveHeader (httpEntity);
+      packetWorkingCopy->RemoveHeader (httpEntity);
 
       if (httpEntity.GetContentType () == HttpEntityHeader::MAIN_OBJECT)
         {
@@ -498,7 +540,7 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
           NS_LOG_DEBUG (this << " received a main object packet"
                              << " with Content-Length= " << contentLength);
 
-          if (contentLength > packetCopy->GetSize ())
+          if (contentLength > packetWorkingCopy->GetSize ())
             {
               /*
                * There are more packets of this main object, so just stay still
@@ -516,13 +558,13 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
         }
       else
         {
-          NS_LOG_WARN (this << " Invalid packet header");
+          NS_LOG_WARN (this << " invalid packet header");
         }
 
     } // end of `if (m_state == EXPECTING_MAIN_OBJECT)`
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for ReceiveMainObject");
     }
 
@@ -536,9 +578,9 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT)
     {
-      Ptr<Packet> packetCopy = packet->Copy ();
+      Ptr<Packet> packetWorkingCopy = packet->Copy ();
       HttpEntityHeader httpEntity;
-      packetCopy->RemoveHeader (httpEntity);
+      packetWorkingCopy->RemoveHeader (httpEntity);
 
       if (httpEntity.GetContentType () == HttpEntityHeader::EMBEDDED_OBJECT)
         {
@@ -547,7 +589,7 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
           NS_LOG_DEBUG (this << " received an embedded object packet"
                              << " with Content-Length= " << contentLength);
 
-          if (contentLength > packetCopy->GetSize ())
+          if (contentLength > packetWorkingCopy->GetSize ())
             {
               /*
                * There are more packets of this embedded object, so just stay
@@ -565,8 +607,8 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
                 {
                   NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
                                     << " more embedded object(s) to be requested");
-                  Simulator::ScheduleNow (&HttpClient::RequestEmbeddedObject,
-                                          this);
+                  m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                    &HttpClient::RequestEmbeddedObject, this);
                 }
               else
                 {
@@ -580,13 +622,13 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
         }
       else
         {
-          NS_LOG_WARN (this << " Invalid packet header");
+          NS_LOG_WARN (this << " invalid packet header");
         }
 
     } // end of `if (m_state == EXPECTING_EMBEDDED_OBJECT)`
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                    << " for ReceiveEmbeddedObject");
     }
 
@@ -604,12 +646,13 @@ HttpClient::EnterParsingTime ()
       NS_LOG_INFO (this << " the parsing of this main object"
                         << " will complete in "
                         << parsingTime.GetSeconds () << " seconds");
-      Simulator::Schedule (parsingTime, &HttpClient::ParseMainObject, this);
+      m_eventParseMainObject = Simulator::Schedule (
+        parsingTime, &HttpClient::ParseMainObject, this);
       SwitchToState (PARSING_MAIN_OBJECT);
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                    << " for EnterParsingTime");
     }
 
@@ -630,7 +673,8 @@ HttpClient::ParseMainObject ()
 
       if (m_embeddedObjectsToBeRequested > 0)
         {
-          Simulator::ScheduleNow (&HttpClient::RequestEmbeddedObject, this);
+          m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+            &HttpClient::RequestEmbeddedObject, this);
         }
       else
         {
@@ -644,7 +688,7 @@ HttpClient::ParseMainObject ()
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                    << " for ParseMainObject");
     }
 }
@@ -661,13 +705,54 @@ HttpClient::EnterReadingTime ()
       NS_LOG_INFO (this << " will finish reading this web page in "
                         << readingTime.GetSeconds () << " seconds");
       // schedule a request of another main object once the reading time expires
-      Simulator::Schedule (readingTime, &HttpClient::RequestMainObject, this);
+      m_eventRequestMainObject = Simulator::Schedule (
+        readingTime, &HttpClient::RequestMainObject, this);
       SwitchToState (READING);
     }
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                    << " for EnterReadingTime");
+    }
+
+}
+
+
+void
+HttpClient::CancelAllPendingEvents ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (!Simulator::IsExpired (m_eventRequestMainObject))
+    {
+      NS_LOG_INFO (this << " canceling RequestMainObject which is due in "
+                        << Simulator::GetDelayLeft (m_eventRequestMainObject).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventRequestMainObject);
+    }
+
+  if (!Simulator::IsExpired (m_eventRequestEmbeddedObject))
+    {
+      NS_LOG_INFO (this << " canceling RequestEmbeddedObject which is due in "
+                        << Simulator::GetDelayLeft (m_eventRequestEmbeddedObject).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventRequestEmbeddedObject);
+    }
+
+  if (!Simulator::IsExpired (m_eventRetryConnection))
+    {
+      NS_LOG_INFO (this << " canceling RetryConnection which is due in "
+                        << Simulator::GetDelayLeft (m_eventRetryConnection).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventRetryConnection);
+    }
+
+  if (!Simulator::IsExpired (m_eventParseMainObject))
+    {
+      NS_LOG_INFO (this << " canceling ParseMainObject which is due in "
+                        << Simulator::GetDelayLeft (m_eventParseMainObject).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventParseMainObject);
     }
 
 }
