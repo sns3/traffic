@@ -36,13 +36,13 @@ namespace ns3 {
  * Provides configurability using mean and standard deviation. In addition,
  * returned values are truncated using a given range.
  */
-class HttpLogNormalVariable : public LogNormalRandomVariable
+class HttpBoundedLogNormalVariable : public LogNormalRandomVariable
 {
 public:
-  HttpLogNormalVariable ();
+  HttpBoundedLogNormalVariable ();
   static TypeId GetTypeId ();
 
-  uint32_t GetTruncatedInteger ();
+  uint32_t GetBoundedInteger ();
 
   void SetMin (uint32_t min);
   uint32_t GetMin () const;
@@ -64,7 +64,33 @@ private:
   uint32_t m_mean;
   uint32_t m_stdDev;
 
-}; // end of `class HttpLogNormalVariable`
+}; // end of `class HttpBoundedLogNormalVariable`
+
+
+/**
+ * \brief Wrapper of ParetoRandomVariable for use in HTTP traffic model.
+ *
+ * Provides configurability using the scale parameter. In addition, returned
+ * values are truncated within the range [scale, bound], and then normalized
+ * (i.e., substracted by the scale parameter).
+ */
+class HttpBoundedParetoVariable : public ParetoRandomVariable
+{
+public:
+  HttpBoundedParetoVariable ();
+  static TypeId GetTypeId ();
+
+  virtual uint32_t GetBoundedInteger ();
+
+  void SetScale (double scale);
+  double GetScale () const;
+
+private:
+  void RefreshBaseParameters ();
+
+  double m_scale;
+
+}; // end of `class HttpBoundedParetoVariable`
 
 
 /**
@@ -128,10 +154,11 @@ public:
 
   // NUMBER OF EMBEDDED OBJECTS ATTRIBUTES SETTER METHODS
 
-  void SetNumOfEmbeddedObjectsMean (double mean);
   void SetNumOfEmbeddedObjectsMax (uint32_t max);
-  void SetNumOfEmbeddedObjectsParetoIndex (double paretoIndex);
+  void SetNumOfEmbeddedObjectsShape (double shape);
+  void SetNumOfEmbeddedObjectsScale (double scale);
   double GetNumOfEmbeddedObjectsMean () const;
+  uint32_t GetNumOfEmbeddedObjectsMax () const;
 
   // READING TIME SETTER METHODS
 
@@ -147,16 +174,16 @@ private:
 
   // RANDOM NUMBER VARIABLES
 
-  Ptr<UniformRandomVariable>      m_httpVersionRng;
-  Ptr<UniformRandomVariable>      m_mtuSizeRng;
-  Ptr<ConstantRandomVariable>     m_requestSizeRng;
-  Ptr<ConstantRandomVariable>     m_mainObjectGenerationDelayRng;
-  Ptr<HttpLogNormalVariable>      m_mainObjectSizeRng;
-  Ptr<ConstantRandomVariable>     m_embeddedObjectGenerationDelayRng;
-  Ptr<HttpLogNormalVariable>      m_embeddedObjectSizeRng;
-  Ptr<ParetoRandomVariable>       m_numOfEmbeddedObjectsRng;
-  Ptr<ExponentialRandomVariable>  m_readingTimeRng;
-  Ptr<ExponentialRandomVariable>  m_parsingTimeRng;
+  Ptr<UniformRandomVariable>         m_httpVersionRng;
+  Ptr<UniformRandomVariable>         m_mtuSizeRng;
+  Ptr<ConstantRandomVariable>        m_requestSizeRng;
+  Ptr<ConstantRandomVariable>        m_mainObjectGenerationDelayRng;
+  Ptr<HttpBoundedLogNormalVariable>  m_mainObjectSizeRng;
+  Ptr<ConstantRandomVariable>        m_embeddedObjectGenerationDelayRng;
+  Ptr<HttpBoundedLogNormalVariable>  m_embeddedObjectSizeRng;
+  Ptr<HttpBoundedParetoVariable>     m_numOfEmbeddedObjectsRng;
+  Ptr<ExponentialRandomVariable>     m_readingTimeRng;
+  Ptr<ExponentialRandomVariable>     m_parsingTimeRng;
 
 }; // end of `class HttpVariables`
 

@@ -24,6 +24,7 @@
 #include <ns3/integer.h>
 #include <ns3/uinteger.h>
 #include <ns3/double.h>
+#include <ns3/rng-stream.h>
 #include <cmath>
 
 
@@ -32,13 +33,13 @@ NS_LOG_COMPONENT_DEFINE ("HttpVariables");
 namespace ns3 {
 
 
-// WRAPPER CLASSES ////////////////////////////////////////////////////////////
+// LOG NORMAL WRAPPER CLASS ///////////////////////////////////////////////////
 
 
-NS_OBJECT_ENSURE_REGISTERED (HttpLogNormalVariable);
+NS_OBJECT_ENSURE_REGISTERED (HttpBoundedLogNormalVariable);
 
 
-HttpLogNormalVariable::HttpLogNormalVariable ()
+HttpBoundedLogNormalVariable::HttpBoundedLogNormalVariable ()
   : LogNormalRandomVariable ()
 {
   NS_LOG_FUNCTION (this);
@@ -46,18 +47,18 @@ HttpLogNormalVariable::HttpLogNormalVariable ()
 
 
 TypeId
-HttpLogNormalVariable::GetTypeId ()
+HttpBoundedLogNormalVariable::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::HttpLogNormalVariable")
+  static TypeId tid = TypeId ("ns3::HttpBoundedLogNormalVariable")
     .SetParent<LogNormalRandomVariable> ()
-    .AddConstructor<HttpLogNormalVariable> ()
+    .AddConstructor<HttpBoundedLogNormalVariable> ()
   ;
   return tid;
 }
 
 
 uint32_t
-HttpLogNormalVariable::GetTruncatedInteger ()
+HttpBoundedLogNormalVariable::GetBoundedInteger ()
 {
   NS_LOG_FUNCTION (this);
   uint32_t ret;
@@ -71,7 +72,7 @@ HttpLogNormalVariable::GetTruncatedInteger ()
 
 
 void
-HttpLogNormalVariable::SetMin (uint32_t min)
+HttpBoundedLogNormalVariable::SetMin (uint32_t min)
 {
   NS_LOG_FUNCTION (this << min);
   m_min = min;
@@ -79,14 +80,14 @@ HttpLogNormalVariable::SetMin (uint32_t min)
 
 
 uint32_t
-HttpLogNormalVariable::GetMin () const
+HttpBoundedLogNormalVariable::GetMin () const
 {
   return m_min;
 }
 
 
 void
-HttpLogNormalVariable::SetMax (uint32_t max)
+HttpBoundedLogNormalVariable::SetMax (uint32_t max)
 {
   NS_LOG_FUNCTION (this << max);
   m_max = max;
@@ -94,14 +95,14 @@ HttpLogNormalVariable::SetMax (uint32_t max)
 
 
 uint32_t
-HttpLogNormalVariable::GetMax () const
+HttpBoundedLogNormalVariable::GetMax () const
 {
   return m_max;
 }
 
 
 void
-HttpLogNormalVariable::SetMean (uint32_t mean)
+HttpBoundedLogNormalVariable::SetMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
   if (mean == 0)
@@ -114,14 +115,14 @@ HttpLogNormalVariable::SetMean (uint32_t mean)
 
 
 uint32_t
-HttpLogNormalVariable::GetMean () const
+HttpBoundedLogNormalVariable::GetMean () const
 {
   return m_mean;
 }
 
 
 void
-HttpLogNormalVariable::SetStdDev (uint32_t stdDev)
+HttpBoundedLogNormalVariable::SetStdDev (uint32_t stdDev)
 {
   NS_LOG_FUNCTION (this << stdDev);
   m_stdDev = stdDev;
@@ -130,14 +131,14 @@ HttpLogNormalVariable::SetStdDev (uint32_t stdDev)
 
 
 uint32_t
-HttpLogNormalVariable::GetStdDev () const
+HttpBoundedLogNormalVariable::GetStdDev () const
 {
   return m_stdDev;
 }
 
 
 void
-HttpLogNormalVariable::RefreshBaseParameters ()
+HttpBoundedLogNormalVariable::RefreshBaseParameters ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -155,6 +156,94 @@ HttpLogNormalVariable::RefreshBaseParameters ()
 }
 
 
+// PARETO WRAPPER CLASS ///////////////////////////////////////////////////////
+
+
+NS_OBJECT_ENSURE_REGISTERED (HttpBoundedParetoVariable);
+
+
+HttpBoundedParetoVariable::HttpBoundedParetoVariable ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+TypeId
+HttpBoundedParetoVariable::GetTypeId ()
+{
+  static TypeId tid = TypeId ("ns3::HttpBoundedParetoVariable")
+    .SetParent<ParetoRandomVariable> ()
+    .AddConstructor<HttpBoundedParetoVariable> ()
+  ;
+  return tid;
+}
+
+
+uint32_t
+HttpBoundedParetoVariable::GetBoundedInteger ()
+{
+  NS_LOG_FUNCTION (this);
+
+  double upperBound = GetBound (); // extracting parameter value from parent class
+  if (upperBound <= m_scale)
+    {
+      NS_FATAL_ERROR ("Bound attribute in a bounded Pareto distribution"
+        << " must be greater than the scale parameter");
+    }
+
+  uint32_t ret;
+  do
+    {
+      ret = GetInteger (); // invoking a function of parent class
+    }
+  while ((ret < m_scale) || (ret > upperBound));
+
+  return ret - m_scale;
+}
+
+
+void
+HttpBoundedParetoVariable::SetScale (double scale)
+{
+  NS_LOG_FUNCTION (this << scale);
+
+  if (scale <= 0.0)
+    {
+      NS_FATAL_ERROR ("Scale parameter must be greater than zero");
+    }
+
+  m_scale = scale;
+  RefreshBaseParameters ();
+}
+
+
+double
+HttpBoundedParetoVariable::GetScale () const
+{
+  return m_scale;
+}
+
+
+void
+HttpBoundedParetoVariable::RefreshBaseParameters ()
+{
+  NS_LOG_FUNCTION (this);
+
+  double shape = GetShape (); // extracting parameter value from parent class
+  if (fabs (shape - 1.0) < 0.000001)
+    {
+      NS_FATAL_ERROR ("Shape parameter of a Pareto distribution must not equal to 1.0"
+        << " (the current value is " << shape << ")");
+    }
+
+  double mean = (shape * m_scale) / (shape - 1.0);
+  NS_LOG_INFO (this << " mean= " << mean);
+
+  // updating attribute of parent class
+  SetAttribute ("Mean", DoubleValue (mean));
+}
+
+
 // PRIMARY CLASS //////////////////////////////////////////////////////////////
 
 
@@ -162,16 +251,16 @@ NS_OBJECT_ENSURE_REGISTERED (HttpVariables);
 
 
 HttpVariables::HttpVariables ()
-  : m_httpVersionRng (CreateObject<UniformRandomVariable> ()),
-    m_mtuSizeRng (CreateObject<UniformRandomVariable> ()),
-    m_requestSizeRng (CreateObject<ConstantRandomVariable> ()),
-    m_mainObjectGenerationDelayRng (CreateObject<ConstantRandomVariable> ()),
-    m_mainObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
+  : m_httpVersionRng                   (CreateObject<UniformRandomVariable> ()),
+    m_mtuSizeRng                       (CreateObject<UniformRandomVariable> ()),
+    m_requestSizeRng                   (CreateObject<ConstantRandomVariable> ()),
+    m_mainObjectGenerationDelayRng     (CreateObject<ConstantRandomVariable> ()),
+    m_mainObjectSizeRng                (CreateObject<HttpBoundedLogNormalVariable> ()),
     m_embeddedObjectGenerationDelayRng (CreateObject<ConstantRandomVariable> ()),
-    m_embeddedObjectSizeRng (CreateObject<HttpLogNormalVariable> ()),
-    m_numOfEmbeddedObjectsRng (CreateObject<ParetoRandomVariable> ()),
-    m_readingTimeRng (CreateObject<ExponentialRandomVariable> ()),
-    m_parsingTimeRng (CreateObject<ExponentialRandomVariable> ())
+    m_embeddedObjectSizeRng            (CreateObject<HttpBoundedLogNormalVariable> ()),
+    m_numOfEmbeddedObjectsRng          (CreateObject<HttpBoundedParetoVariable> ()),
+    m_readingTimeRng                   (CreateObject<ExponentialRandomVariable> ()),
+    m_parsingTimeRng                   (CreateObject<ExponentialRandomVariable> ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -258,21 +347,21 @@ HttpVariables::GetTypeId ()
                    MakeUintegerChecker<uint32_t> ())
 
     // NUMBER OF EMBEDDED OBJECTS PER PAGE
-    .AddAttribute ("NumOfEmbeddedObjectsMean",
-                   "The mean of number of embedded objects per web page.",
-                   DoubleValue (5.55),
-                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMean,
-                                       &HttpVariables::GetNumOfEmbeddedObjectsMean),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("NumOfEmbeddedObjectsMax",
                    "The maximum value of number of embedded objects per web page.",
                    UintegerValue (55),
-                   MakeUintegerAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMax),
+                   MakeUintegerAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMax,
+                                         &HttpVariables::GetNumOfEmbeddedObjectsMax),
                    MakeUintegerChecker<uint32_t> ())
-    .AddAttribute ("NumOfEmbeddedObjectsParetoIndex",
-                   "The random distribution's Pareto index of number of embedded objects per web page.",
+    .AddAttribute ("NumOfEmbeddedObjectsShape",
+                   "The shape parameter of Pareto distribution for number of embedded objects per web page.",
                    DoubleValue (1.1),
-                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsParetoIndex),
+                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsShape),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("NumOfEmbeddedObjectsScale",
+                   "The scale parameter of Pareto distribution for number of embedded objects per web page.",
+                   DoubleValue (2.0),
+                   MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsScale),
                    MakeDoubleChecker<double> ())
 
     // READING TIME
@@ -353,14 +442,14 @@ HttpVariables::GetMainObjectGenerationDelaySeconds ()
 uint32_t
 HttpVariables::GetMainObjectSize ()
 {
-  return m_mainObjectSizeRng->GetTruncatedInteger ();
+  return m_mainObjectSizeRng->GetBoundedInteger ();
 }
 
 
 uint32_t
 HttpVariables::GetMainObjectSizeKbytes ()
 {
-  return m_mainObjectSizeRng->GetTruncatedInteger () / 1000;
+  return m_mainObjectSizeRng->GetBoundedInteger () / 1000;
 }
 
 
@@ -381,21 +470,21 @@ HttpVariables::GetEmbeddedObjectGenerationDelaySeconds ()
 uint32_t
 HttpVariables::GetEmbeddedObjectSize ()
 {
-  return m_embeddedObjectSizeRng->GetTruncatedInteger ();
+  return m_embeddedObjectSizeRng->GetBoundedInteger ();
 }
 
 
 uint32_t
 HttpVariables::GetEmbeddedObjectSizeKbytes ()
 {
-  return m_embeddedObjectSizeRng->GetTruncatedInteger () / 1000;
+  return m_embeddedObjectSizeRng->GetBoundedInteger () / 1000;
 }
 
 
 uint32_t
 HttpVariables::GetNumOfEmbeddedObjects ()
 {
-  return m_numOfEmbeddedObjectsRng->GetInteger ();
+  return m_numOfEmbeddedObjectsRng->GetBoundedInteger ();
 }
 
 
@@ -568,14 +657,6 @@ HttpVariables::GetEmbeddedObjectSizeMean () const
 
 
 void
-HttpVariables::SetNumOfEmbeddedObjectsMean (double mean)
-{
-  NS_LOG_FUNCTION (this << mean);
-  m_numOfEmbeddedObjectsRng->SetAttribute ("Mean", DoubleValue (mean));
-}
-
-
-void
 HttpVariables::SetNumOfEmbeddedObjectsMax (uint32_t max)
 {
   NS_LOG_FUNCTION (this << max);
@@ -585,18 +666,36 @@ HttpVariables::SetNumOfEmbeddedObjectsMax (uint32_t max)
 
 
 void
-HttpVariables::SetNumOfEmbeddedObjectsParetoIndex (double paretoIndex)
+HttpVariables::SetNumOfEmbeddedObjectsShape (double shape)
 {
-  NS_LOG_FUNCTION (this << paretoIndex);
-  m_numOfEmbeddedObjectsRng->SetAttribute ("Shape", DoubleValue (paretoIndex));
+  NS_LOG_FUNCTION (this << shape);
+  m_numOfEmbeddedObjectsRng->SetAttribute ("Shape", DoubleValue (shape));
+}
+
+
+void
+HttpVariables::SetNumOfEmbeddedObjectsScale (double scale)
+{
+  NS_LOG_FUNCTION (this << scale);
+  m_numOfEmbeddedObjectsRng->SetScale (scale);
 }
 
 
 double
 HttpVariables::GetNumOfEmbeddedObjectsMean () const
 {
+  // extract value from parent class
   return m_numOfEmbeddedObjectsRng->GetMean ();
 }
+
+
+uint32_t
+HttpVariables::GetNumOfEmbeddedObjectsMax () const
+{
+  // extract value from parent class
+  return static_cast<uint32_t> (m_numOfEmbeddedObjectsRng->GetBound ());
+}
+
 
 
 // READING TIME ATTRIBUTES SETTER AND GETTER METHODS //////////////////////////
