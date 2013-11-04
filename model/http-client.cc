@@ -22,6 +22,7 @@
 #include "http-client.h"
 #include <ns3/log.h>
 #include <ns3/simulator.h>
+#include <ns3/config.h>
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/http-variables.h>
@@ -80,7 +81,7 @@ HttpClient::GetTypeId ()
                    MakeUintegerAccessor (&HttpClient::m_remoteServerPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("Protocol",
-                   "The type of protocol to use",
+                   "The type of protocol to use (only ns3::TcpSocketFactory is valid for now)",
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpClient::m_protocol),
                    MakeTypeIdChecker ())
@@ -107,6 +108,20 @@ HttpClient::GetTypeId ()
                      MakeTraceSourceAccessor (&HttpClient::m_stateTransitionTrace))
   ;
   return tid;
+}
+
+
+Address
+HttpClient::GetRemoteServerAddress () const
+{
+  return m_remoteServerAddress;
+}
+
+
+uint16_t
+HttpClient::GetRemoteServerPort () const
+{
+  return m_remoteServerPort;
 }
 
 
@@ -182,8 +197,23 @@ HttpClient::StartApplication ()
     {
       if (m_socket == 0)
         {
-          NS_LOG_INFO (this << " creating a socket of " << m_protocol.GetName ());
+          if (m_protocol != TcpSocketFactory::GetTypeId ())
+            {
+              NS_FATAL_ERROR ("Socket other than "
+                << TcpSocketFactory::GetTypeId ().GetName ()
+                << " are not supported at the moment");
+            }
+
           m_socket = Socket::CreateSocket (GetNode (), m_protocol);
+#ifdef NS3_ASSERT_ENABLE
+          UintegerValue mtu;
+          m_socket->GetAttribute ("SegmentSize", mtu);
+          NS_LOG_INFO (this << " created socket " << m_socket
+                            << " of " << m_protocol.GetName ()
+                            << " with MTU of " << mtu.Get () << " bytes");
+          NS_UNUSED (mtu);
+#endif /* NS3_ASSERT_ENABLE */
+
           int ret;
 
           if (Ipv4Address::IsMatchingType (m_remoteServerAddress))

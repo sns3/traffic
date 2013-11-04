@@ -22,6 +22,7 @@
 #include "http-server.h"
 #include <ns3/log.h>
 #include <ns3/simulator.h>
+#include <ns3/config.h>
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/http-variables.h>
@@ -48,8 +49,7 @@ HttpServer::HttpServer ()
 {
   NS_LOG_FUNCTION (this);
 
-  //m_mtuSize = m_httpVariables->GetMtuSize ();
-  m_mtuSize = 536; /// \todo Find out why 1460 doesn't work
+  m_mtuSize = m_httpVariables->GetMtuSize ();
   NS_LOG_INFO (this << " MTU size for this server application is "
                     << m_mtuSize << " bytes");
 }
@@ -84,10 +84,19 @@ HttpServer::GetTypeId ()
                    MakeUintegerAccessor (&HttpServer::m_localPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("Protocol",
-                   "The type of protocol to use",
+                   "The type of protocol to use (only ns3::TcpSocketFactory is valid for now)",
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpServer::m_protocol),
                    MakeTypeIdChecker ())
+    .AddAttribute ("Mtu",
+                   "Maximum transmission unit (in bytes) of the TCP sockets "
+                   "used in this application, excluding the compulsory 40 "
+                   "bytes TCP header. Typical values are 1460 and 536 bytes. "
+                   "The attribute is read-only because the value is set randomly.",
+                   TypeId::ATTR_GET,
+                   UintegerValue (),
+                   MakeUintegerAccessor (&HttpServer::m_mtuSize),
+                   MakeUintegerChecker<uint32_t> ())
     .AddTraceSource ("Tx",
                      "A new packet is created and is sent",
                      MakeTraceSourceAccessor (&HttpServer::m_txTrace))
@@ -99,6 +108,27 @@ HttpServer::GetTypeId ()
                      MakeTraceSourceAccessor (&HttpServer::m_stateTransitionTrace))
   ;
   return tid;
+}
+
+
+uint32_t
+HttpServer::GetMtuSize () const
+{
+  return m_mtuSize;
+}
+
+
+Address
+HttpServer::GetAddress () const
+{
+  return m_localAddress;
+}
+
+
+uint16_t
+HttpServer::GetPort () const
+{
+  return m_localPort;
 }
 
 
@@ -162,9 +192,43 @@ HttpServer::StartApplication ()
     {
       if (m_initialSocket == 0)
         {
-          NS_LOG_INFO (this << " creating the initial socket of "
-                            << m_protocol.GetName ());
+          if (m_protocol != TcpSocketFactory::GetTypeId ())
+            {
+              NS_FATAL_ERROR ("Socket other than "
+                << TcpSocketFactory::GetTypeId ().GetName ()
+                << " are not supported at the moment");
+            }
+
+          // find the current default MTU value of TCP sockets
+          Ptr<const ns3::AttributeValue> previousSocketMtu;
+          TypeId tcpSocketTid = TypeId::LookupByName ("ns3::TcpSocket");
+          for (uint32_t i = 0; i < tcpSocketTid.GetAttributeN (); i++)
+            {
+              struct TypeId::AttributeInformation attrInfo = tcpSocketTid.GetAttribute (i);
+              if (attrInfo.name == "SegmentSize")
+                {
+                  previousSocketMtu = attrInfo.initialValue;
+                }
+            }
+
+          // change the default MTU value for all TCP sockets
+          Config::SetDefault ("ns3::TcpSocket::SegmentSize",
+                              UintegerValue (m_mtuSize));
+
+          // creating a TCP socket to connect to the server
           m_initialSocket = Socket::CreateSocket (GetNode (), m_protocol);
+#ifdef NS3_ASSERT_ENABLE
+          UintegerValue mtu;
+          m_initialSocket->GetAttribute ("SegmentSize", mtu);
+          NS_LOG_INFO (this << " created socket " << m_initialSocket
+                            << " of " << m_protocol.GetName ()
+                            << " with MTU of " << mtu.Get () << " bytes");
+          NS_UNUSED (mtu);
+#endif /* NS3_ASSERT_ENABLE */
+
+          Config::SetDefault ("ns3::TcpSocket::SegmentSize",
+                              *previousSocketMtu); // reset it back
+
           int ret;
 
           if (Ipv4Address::IsMatchingType (m_localAddress))
@@ -275,6 +339,14 @@ HttpServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
 {
   NS_LOG_FUNCTION (this << socket << address);
 
+#ifdef NS3_ASSERT_ENABLE
+  UintegerValue mtu;
+  socket->GetAttribute ("SegmentSize", mtu);
+  NS_LOG_INFO (this << " new connection from socket " << socket
+                    << " with MTU of " << mtu.Get () << " bytes");
+  NS_UNUSED (mtu);
+#endif /* NS3_ASSERT_ENABLE */
+
   socket->SetCloseCallbacks (MakeCallback (&HttpServer::NormalCloseCallback,
                                            this),
                              MakeCallback (&HttpServer::ErrorCloseCallback,
@@ -300,7 +372,6 @@ HttpServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
     {
       NS_LOG_WARN (this << " socket " << socket << " already exists");
     }
-
 }
 
 

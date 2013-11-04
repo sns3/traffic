@@ -45,6 +45,10 @@ public:
   virtual ~HttpServer ();
   static TypeId GetTypeId ();
 
+  uint32_t GetMtuSize () const;
+  Address GetAddress () const;
+  uint16_t GetPort () const;
+
   enum State_t
   {
     NOT_STARTED = 0,

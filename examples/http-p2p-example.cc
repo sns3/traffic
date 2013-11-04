@@ -33,9 +33,9 @@ NS_LOG_COMPONENT_DEFINE ("HttpP2pExample");
 int
 main (int argc, char *argv[])
 {
-  LogComponentEnableAll (LOG_PREFIX_ALL);
-  LogComponentEnable ("HttpClient", LOG_LEVEL_ALL);
-  LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
+  //LogComponentEnableAll (LOG_PREFIX_ALL);
+  //LogComponentEnable ("HttpClient", LOG_LEVEL_ALL);
+  //LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
 
   NodeContainer nodes;
   nodes.Create (2);
@@ -59,10 +59,12 @@ main (int argc, char *argv[])
   HttpClientHelper httpClientHelper ("ns3::TcpSocketFactory", serverAddress);
   ApplicationContainer clientApps = httpClientHelper.Install (nodes.Get (0));
   clientApps.Start (Seconds (1.0));
+  //clientApps.Stop (Seconds (20.0));
 
   HttpServerHelper httpServerHelper ("ns3::TcpSocketFactory", serverAddress);
   ApplicationContainer serverApps = httpServerHelper.Install (nodes.Get (1));
   serverApps.Start (Seconds (0.0));
+  //serverApps.Stop (Seconds (30.0));
 
   Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (
     clientApps.Get (0)->GetObject<HttpClient> ());

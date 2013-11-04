@@ -1,7 +1,7 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    obj = bld.create_ns3_program('http-p2p-example', ['traffic', 'point-to-point', 'applications'])
+    obj = bld.create_ns3_program('http-p2p-example', ['traffic', 'point-to-point'])
     obj.source = 'http-p2p-example.cc'
 
     obj = bld.create_ns3_program('http-variables-plot', ['traffic'])

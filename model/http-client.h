@@ -43,6 +43,9 @@ public:
   virtual ~HttpClient ();
   static TypeId GetTypeId ();
 
+  Address GetRemoteServerAddress () const;
+  uint16_t GetRemoteServerPort () const;
+
   enum State_t
   {
     NOT_STARTED = 0,
