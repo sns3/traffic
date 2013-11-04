@@ -43,8 +43,9 @@ public:
 
   enum ContentType_t
   {
-    MAIN_OBJECT,
-    EMBEDDED_OBJECT
+    NOT_SET,         ///< Integer equivalent = 0
+    MAIN_OBJECT,     ///< Integer equivalent = 1
+    EMBEDDED_OBJECT  ///< Integer equivalent = 2
   };
 
   void SetContentType (ContentType_t contentType);
@@ -53,8 +54,10 @@ public:
   void SetContentLength (uint32_t contentLength);
   uint32_t GetContentLength () const;
 
+  static uint32_t GetStaticSerializedSize ();
+
   // Inherited from Header base class
-  virtual uint32_t GetSerializedSize (void) const;
+  virtual uint32_t GetSerializedSize () const;
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
   virtual void Print (std::ostream &os) const;

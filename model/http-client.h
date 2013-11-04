@@ -25,6 +25,7 @@
 #include <ns3/application.h>
 #include <ns3/address.h>
 #include <ns3/traced-callback.h>
+#include <ns3/http-entity-header.h>
 
 
 namespace ns3 {
@@ -81,6 +82,8 @@ private:
   void RequestEmbeddedObject ();
   void ReceiveMainObject (Ptr<Packet> packet);
   void ReceiveEmbeddedObject (Ptr<Packet> packet);
+  uint32_t Receive (Ptr<Packet> packet,
+                    HttpEntityHeader::ContentType_t expectedContentType);
   void EnterParsingTime ();
   void ParseMainObject ();
   void EnterReadingTime ();
@@ -91,6 +94,7 @@ private:
 
   State_t      m_state;
   Ptr<Socket>  m_socket;
+  uint32_t     m_objectBytesToBeReceived;
   uint32_t     m_embeddedObjectsToBeRequested;
 
   // ATTRIBUTES

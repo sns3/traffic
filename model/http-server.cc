@@ -585,21 +585,28 @@ HttpServer::Serve (Ptr<Socket> socket,
                  "Invalid socket");
 
   uint32_t bytesTxed = 0;
-  uint32_t contentSize;
-  uint32_t packetSize;
+  uint32_t contentSize; // size of actual content
+  uint32_t headerSize = HttpEntityHeader::GetStaticSerializedSize ();
+  uint32_t packetSize; // contentSize + headerSize
 
-  while (objectSize > 0)
+  NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
+                     << " bytes available for Tx");
+
+  while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))
     {
-      HttpEntityHeader httpEntityHeader;
-      httpEntityHeader.SetContentType (contentType);
-      httpEntityHeader.SetContentLength (objectSize);
-      NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
-                         << " bytes available for Tx");
       contentSize = std::min (objectSize,
-                              //socket->GetTxAvailable () - httpEntityHeader.GetSerializedSize ());
-                              m_mtuSize - httpEntityHeader.GetSerializedSize ());
+                              socket->GetTxAvailable () - headerSize);
       NS_ASSERT_MSG (contentSize > 0,
                      "Invalid size of packet content: " << contentSize);
+      HttpEntityHeader httpEntityHeader;
+      httpEntityHeader.SetContentType (contentType);
+      httpEntityHeader.SetContentLength (objectSize); // contentSize is not used here
+      /*
+       * Content-Length above is the size of the whole object that remains.
+       * That's why objectSize is used here instead of contentSize. Thus it is
+       * always larger than the size of the packet that will be transmitted
+       * below.
+       */
       Ptr<Packet> packet = Create<Packet> (contentSize);
       packet->AddHeader (httpEntityHeader);
       packetSize = packet->GetSize ();
@@ -622,16 +629,25 @@ HttpServer::Serve (Ptr<Socket> socket,
         {
           NS_LOG_INFO (this << " failed to send object,"
                             << " GetErrNo= " << socket->GetErrno () << ","
-                            << " waiting for another Tx opportunity");
-          /*
-           * Save a record of the remains and suspend transmission. Transmission
-           * shall continue later in SendCallback when the socket becomes ready.
-           */
-          SaveTxBuffer (socket, contentType, objectSize);
-          objectSize = 0; // this exits the `while (remainingBytes > 0)`
+                            << " suspending transmission"
+                            << " and waiting for another Tx opportunity");
+          break; // this exits the `while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))`
         }
 
-    } // end of `while (remainingBytes > 0)`
+      NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
+                         << " bytes available for Tx");
+
+    } // end of `while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))`
+
+  if (objectSize > 0)
+    {
+      /*
+       * The whole object has only partially transmitted. Save a record of the
+       * remains to Tx buffer. Transmission shall continue later in SendCallback
+       * when the socket becomes ready.
+       */
+      SaveTxBuffer (socket, contentType, objectSize);
+    }
 
   return bytesTxed;
 

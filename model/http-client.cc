@@ -30,7 +30,6 @@
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
-#include <ns3/http-entity-header.h>
 #include <ns3/unused.h>
 
 
@@ -45,6 +44,7 @@ NS_OBJECT_ENSURE_REGISTERED (HttpClient);
 HttpClient::HttpClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
+    m_objectBytesToBeReceived (0),
     m_embeddedObjectsToBeRequested (0),
     m_httpVariables (CreateObject<HttpVariables> ())
 {
@@ -529,36 +529,28 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
-      Ptr<Packet> packetWorkingCopy = packet->Copy ();
-      HttpEntityHeader httpEntity;
-      packetWorkingCopy->RemoveHeader (httpEntity);
+      // m_objectBytesToBeReceived will be updated below
+      Receive (packet, HttpEntityHeader::MAIN_OBJECT);
+      m_rxMainObjectPacketTrace (packet);
 
-      if (httpEntity.GetContentType () == HttpEntityHeader::MAIN_OBJECT)
+      if (m_objectBytesToBeReceived > 0)
         {
-          m_rxMainObjectPacketTrace (packet);
-          uint32_t contentLength = httpEntity.GetContentLength ();
-          NS_LOG_DEBUG (this << " received a main object packet"
-                             << " with Content-Length= " << contentLength);
-
-          if (contentLength > packetWorkingCopy->GetSize ())
-            {
-              /*
-               * There are more packets of this main object, so just stay still
-               * and wait until they arrive.
-               */
-            }
-          else
-            {
-              // this is the last packet of this main object
-              // acknowledge the reception of a whole main object
-              NS_LOG_INFO (this << " finished receiving a main object");
-              m_rxMainObjectTrace (packet);
-              EnterParsingTime ();
-            }
+          /*
+           * There are more packets of this main object, so just stay still
+           * and wait until they arrive.
+           */
+          NS_LOG_INFO (this << " " << m_objectBytesToBeReceived << " byte(s)"
+                       << " remains from this chunk of main object");
         }
       else
         {
-          NS_LOG_WARN (this << " invalid packet header");
+          /*
+           * This is the last packet of this main object. Acknowledge the
+           * reception of a whole main object
+           */
+          NS_LOG_INFO (this << " finished receiving a main object");
+          m_rxMainObjectTrace (packet);
+          EnterParsingTime ();
         }
 
     } // end of `if (m_state == EXPECTING_MAIN_OBJECT)`
@@ -578,61 +570,132 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT)
     {
-      Ptr<Packet> packetWorkingCopy = packet->Copy ();
-      HttpEntityHeader httpEntity;
-      packetWorkingCopy->RemoveHeader (httpEntity);
+      // m_objectBytesToBeReceived will be updated below
+      Receive (packet, HttpEntityHeader::EMBEDDED_OBJECT);
+      m_rxEmbeddedObjectPacketTrace (packet);
 
-      if (httpEntity.GetContentType () == HttpEntityHeader::EMBEDDED_OBJECT)
+      if (m_objectBytesToBeReceived > 0)
         {
-          m_rxEmbeddedObjectPacketTrace (packet);
-          uint32_t contentLength = httpEntity.GetContentLength ();
-          NS_LOG_DEBUG (this << " received an embedded object packet"
-                             << " with Content-Length= " << contentLength);
-
-          if (contentLength > packetWorkingCopy->GetSize ())
-            {
-              /*
-               * There are more packets of this embedded object, so just stay
-               * still and wait until they arrive.
-               */
-            }
-          else
-            {
-              // this is the last packet of this embedded object
-              // acknowledge the reception of a whole embedded object
-              NS_LOG_INFO (this << " finished receiving an embedded object");
-              m_rxEmbeddedObjectTrace (packet);
-
-              if (m_embeddedObjectsToBeRequested > 0)
-                {
-                  NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
-                                    << " more embedded object(s) to be requested");
-                  m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                    &HttpClient::RequestEmbeddedObject, this);
-                }
-              else
-                {
-                  /*
-                   * There is no more embedded object, the web page has been
-                   * downloaded completely. Now is the time to read it.
-                   */
-                  EnterReadingTime ();
-                }
-            }
+          /*
+           * There are more packets of this embedded object, so just stay
+           * still and wait until they arrive.
+           */
+          NS_LOG_INFO (this << " " << m_objectBytesToBeReceived << " byte(s)"
+                       << " remains from this chunk of embedded object");
         }
       else
         {
-          NS_LOG_WARN (this << " invalid packet header");
-        }
+          /*
+           * This is the last packet of this embedded object. Acknowledge
+           * the reception of a whole embedded object
+           */
+          NS_LOG_INFO (this << " finished receiving an embedded object");
+          m_rxEmbeddedObjectTrace (packet);
+
+          if (m_embeddedObjectsToBeRequested > 0)
+            {
+              NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
+                           << " more embedded object(s) to be requested");
+              m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                &HttpClient::RequestEmbeddedObject, this);
+            }
+          else
+            {
+              /*
+               * There is no more embedded object, the web page has been
+               * downloaded completely. Now is the time to read it.
+               */
+              EnterReadingTime ();
+            }
+
+        } // end of else of `if (m_objectBytesToBeReceived > 0)`
 
     } // end of `if (m_state == EXPECTING_EMBEDDED_OBJECT)`
   else
     {
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
-                   << " for ReceiveEmbeddedObject");
+                        << " for ReceiveEmbeddedObject");
     }
 
 } // end of `void ReceiveEmbeddedObject (Ptr<Packet> packet)`
+
+
+uint32_t
+HttpClient::Receive (Ptr<Packet> packet,
+                     HttpEntityHeader::ContentType_t expectedContentType)
+{
+  NS_LOG_FUNCTION (this << packet << expectedContentType);
+
+  uint32_t rxSize; // the number of bytes to be received from this packet
+
+  if (packet->GetSize () < HttpEntityHeader::GetStaticSerializedSize ())
+    {
+      /*
+       * Which means that the packet does not contain any header. It is then
+       * regarded as a continuation of a previous packet. The whole packet is
+       * relevant to be received.
+       */
+      rxSize = packet->GetSize ();
+    }
+  else
+    {
+      // some header might exists in the packet, let's take a peek...
+      HttpEntityHeader httpEntity;
+      packet->PeekHeader (httpEntity);
+
+      if (httpEntity.GetContentType () == expectedContentType)
+        {
+          NS_LOG_DEBUG (this << " received a packet with Content-Length= "
+                             << httpEntity.GetContentLength ());
+
+          if (m_objectBytesToBeReceived > 0)
+            {
+              NS_LOG_WARN (this << " new chunk of object is received,"
+                                << " although we are still expecting "
+                                << m_objectBytesToBeReceived << " bytes"
+                                << " of the previous object");
+            }
+
+          m_objectBytesToBeReceived += httpEntity.GetContentLength ();
+          NS_ASSERT_MSG (packet->GetSize () >= httpEntity.GetSerializedSize (),
+                         "Received an invalid packet");
+          rxSize = packet->GetSize () - httpEntity.GetSerializedSize ();
+
+        }
+      else if (httpEntity.GetContentType () == HttpEntityHeader::NOT_SET)
+        {
+          /*
+           * This packet is a continuation of a previous packet. The packet
+           * does not contain any header, so the whole packet is relevant to be
+           * received.
+           */
+          rxSize = packet->GetSize ();
+        }
+      else
+        {
+          NS_LOG_WARN (this << " invalid packet header");
+          rxSize = 0; // don't receive anything from this packet
+        }
+
+    } // end of else of `if (packet->GetSize () < HttpEntityHeader::GetStaticSerializedSize ())`
+
+  if (m_objectBytesToBeReceived < rxSize)
+    {
+      NS_LOG_WARN (this << " the received packet is larger"
+                        << " (" << rxSize << " bytes of content)"
+                        << " than it is supposed to be"
+                        << " (" << m_objectBytesToBeReceived << " bytes)");
+      rxSize = m_objectBytesToBeReceived; // only receive as much as we had expected
+      m_objectBytesToBeReceived = 0; // stop expecting any more packet of this object
+    }
+  else
+    {
+      m_objectBytesToBeReceived -= rxSize;
+    }
+
+  return rxSize;
+
+} // end of `uint32_t Receive (packet, expectedHeader)`
 
 
 void
@@ -764,6 +827,18 @@ HttpClient::SwitchToState (HttpClient::State_t state)
   std::string oldState = GetStateString ();
   std::string newState = GetStateString (state);
   NS_LOG_FUNCTION (this << oldState << newState);
+
+  if ((state == EXPECTING_MAIN_OBJECT) || (state == EXPECTING_EMBEDDED_OBJECT))
+    {
+      if (m_objectBytesToBeReceived > 0)
+        {
+          NS_FATAL_ERROR ("Cannot start a new receiving session"
+            << " if the previous object"
+            << " (" << m_objectBytesToBeReceived << " bytes)"
+            << " is not completely received yet");
+        }
+    }
+
   m_state = state;
   NS_LOG_INFO (this << " HttpClient " << oldState << " --> " << newState);
   m_stateTransitionTrace (oldState, newState);

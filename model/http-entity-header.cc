@@ -32,7 +32,7 @@ NS_OBJECT_ENSURE_REGISTERED (HttpEntityHeader);
 
 
 HttpEntityHeader::HttpEntityHeader ()
-  : m_contentType (MAIN_OBJECT),
+  : m_contentType (NOT_SET),
     m_contentLength (0)
 {
   NS_LOG_FUNCTION (this);
@@ -56,11 +56,14 @@ HttpEntityHeader::SetContentType (HttpEntityHeader::ContentType_t contentType)
   NS_LOG_FUNCTION (this << static_cast<uint16_t> (contentType));
   switch (contentType)
   {
-    case MAIN_OBJECT:
+    case NOT_SET:
       m_contentType = 0;
       break;
-    case EMBEDDED_OBJECT:
+    case MAIN_OBJECT:
       m_contentType = 1;
+      break;
+    case EMBEDDED_OBJECT:
+      m_contentType = 2;
       break;
     default:
       NS_FATAL_ERROR ("Unknown Content-Type: " << contentType);
@@ -76,9 +79,12 @@ HttpEntityHeader::GetContentType () const
   switch (m_contentType)
   {
     case 0:
-      ret = MAIN_OBJECT;
+      ret = NOT_SET;
       break;
     case 1:
+      ret = MAIN_OBJECT;
+      break;
+    case 2:
       ret = EMBEDDED_OBJECT;
       break;
     default:
@@ -105,9 +111,16 @@ HttpEntityHeader::GetContentLength () const
 
 
 uint32_t
-HttpEntityHeader::GetSerializedSize () const
+HttpEntityHeader::GetStaticSerializedSize ()
 {
   return 6;
+}
+
+
+uint32_t
+HttpEntityHeader::GetSerializedSize () const
+{
+  return GetStaticSerializedSize ();
 }
 
 
