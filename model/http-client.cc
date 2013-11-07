@@ -81,7 +81,9 @@ HttpClient::GetTypeId ()
                    MakeUintegerAccessor (&HttpClient::m_remoteServerPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("Protocol",
-                   "The type of protocol to use (only ns3::TcpSocketFactory is valid for now)",
+                   "The type of protocol to use. The attribute is here to "
+                   "accommodate different protocols in the future. At the "
+                   "moment, only ns3::TcpSocketFactory is supported.",
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpClient::m_protocol),
                    MakeTypeIdChecker ())

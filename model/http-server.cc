@@ -39,12 +39,270 @@ NS_LOG_COMPONENT_DEFINE ("HttpServer");
 
 namespace ns3 {
 
+
+// HTTP SERVER TX BUFFER //////////////////////////////////////////////////////
+
+
+HttpServerTxBuffer::HttpServerTxBuffer ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+HttpServerTxBuffer::~HttpServerTxBuffer ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+bool
+HttpServerTxBuffer::IsSocketAvailable (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  return (it != m_txBuffer.end ());
+}
+
+
+void
+HttpServerTxBuffer::AddSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  NS_ASSERT_MSG (!IsSocketAvailable (socket),
+                 this << " cannot add socket " << socket
+                      << " because it has already added before");
+
+  TxBuffer_t txBuffer;
+  txBuffer.txBufferContentType = HttpEntityHeader::NOT_SET;
+  txBuffer.txBufferSize = 0;
+  txBuffer.hasTxedPartOfObject = false;
+  m_txBuffer.insert (std::pair<Ptr<Socket>, TxBuffer_t> (socket, txBuffer));
+}
+
+
+void
+HttpServerTxBuffer::CloseSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+
+  if (!Simulator::IsExpired (it->second.nextServe))
+    {
+      NS_LOG_INFO (this << " canceling a serving event which is due in "
+                        << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (it->second.nextServe);
+    }
+
+  it->first->Close ();
+  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+  m_txBuffer.erase (it);
+}
+
+
+void
+HttpServerTxBuffer::CloseAllSockets ()
+{
+  NS_LOG_FUNCTION (this);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  for (it = m_txBuffer.begin ();
+       it != m_txBuffer.end (); it++)
+    {
+      if (!Simulator::IsExpired (it->second.nextServe))
+        {
+          NS_LOG_INFO (this << " canceling a serving event which is due in "
+                            << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
+                            << " seconds");
+          Simulator::Cancel (it->second.nextServe);
+        }
+
+      it->first->Close ();
+      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+    }
+
+  m_txBuffer.clear ();
+}
+
+
+HttpEntityHeader::ContentType_t
+HttpServerTxBuffer::GetContentType (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.txBufferContentType;
+}
+
+
+uint32_t
+HttpServerTxBuffer::GetSize (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.txBufferSize;
+}
+
+
+bool
+HttpServerTxBuffer::HasTxedPartOfObject (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.hasTxedPartOfObject;
+}
+
+
+bool
+HttpServerTxBuffer::IsTxBufferEmpty (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return (it->second.txBufferSize == 0);
+}
+
+
+void
+HttpServerTxBuffer::WriteToTxBuffer (Ptr<Socket> socket,
+                                     HttpEntityHeader::ContentType_t contentType,
+                                     uint32_t objectSize)
+{
+  NS_LOG_FUNCTION (this << socket << contentType << objectSize);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  NS_ASSERT_MSG (it->second.txBufferSize == 0,
+                 "Cannot write to Tx buffer of socket " << socket
+                 << " until the previous content has been completely transmitted");
+  it->second.txBufferContentType = contentType;
+  it->second.txBufferSize = objectSize;
+  it->second.hasTxedPartOfObject = false;
+}
+
+
+void
+HttpServerTxBuffer::RecordNextServe (Ptr<Socket> socket, EventId eventId)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  it->second.nextServe = eventId;
+}
+
+
+uint32_t
+HttpServerTxBuffer::ServeFromTxBuffer (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  NS_ASSERT_MSG (it->second.txBufferSize > 0,
+                 "Tx buffer of socket " << socket << " is empty");
+
+  uint32_t headerSize; // how many bytes needed for header
+  if (it->second.hasTxedPartOfObject)
+    {
+      // subsequent packet of the same object does not require header
+      headerSize = 0;
+    }
+  else
+    {
+      headerSize = HttpEntityHeader::GetStaticSerializedSize ();
+    }
+
+  uint32_t socketSize = socket->GetTxAvailable ();
+  NS_LOG_DEBUG (this << " socket has " << socketSize
+                     << " bytes available for Tx");
+
+  if (socketSize > headerSize)
+    {
+      // size of actual content to be sent now, has to fit into the socket
+      uint32_t contentSize = std::min (it->second.txBufferSize,
+                                       socket->GetTxAvailable () - headerSize);
+      Ptr<Packet> packet = Create<Packet> (contentSize);
+
+      if (headerSize > 0)
+        {
+          NS_ASSERT (!it->second.hasTxedPartOfObject);
+          HttpEntityHeader httpEntityHeader;
+          httpEntityHeader.SetContentType (it->second.txBufferContentType);
+          httpEntityHeader.SetContentLength (it->second.txBufferSize);
+          packet->AddHeader (httpEntityHeader);
+        }
+
+      uint32_t packetSize = packet->GetSize ();
+      NS_ASSERT (packetSize == (contentSize + headerSize));
+      NS_ASSERT (packetSize <= socketSize);
+
+      NS_LOG_INFO (this << " created packet " << packet << " of "
+                        << packetSize << " bytes");
+
+      int actualBytes = socket->Send (packet);
+      NS_LOG_DEBUG (this << " Send() packet " << packet
+                         << " of " << packetSize << " bytes,"
+                         << " return value= " << actualBytes);
+
+      if ((unsigned) actualBytes == packetSize)
+        {
+          // the packet go through successfully
+          it->second.txBufferSize -= contentSize;
+          it->second.hasTxedPartOfObject = true;
+          NS_LOG_INFO (this << " remaining object to be transmitted "
+                            << it->second.txBufferSize << " bytes");
+          return contentSize;
+        }
+      else
+        {
+          NS_LOG_INFO (this << " failed to send object,"
+                            << " GetErrNo= " << socket->GetErrno () << ","
+                            << " suspending transmission"
+                            << " and waiting for another Tx opportunity");
+          return 0;
+        }
+
+    } // end of `if (socketSize > headerSize)`
+  else
+    {
+      NS_LOG_INFO (this << " not enough space for Tx in socket,"
+                        << " suspending transmission"
+                        << " and waiting for another Tx opportunity");
+      return 0;
+    }
+}
+
+
+// HTTP SERVER ////////////////////////////////////////////////////////////////
+
+
 NS_OBJECT_ENSURE_REGISTERED (HttpServer);
 
 
 HttpServer::HttpServer ()
   : m_state (NOT_STARTED),
     m_initialSocket (0),
+    m_txBuffer (Create<HttpServerTxBuffer> ()),
     m_httpVariables (CreateObject<HttpVariables> ())
 {
   NS_LOG_FUNCTION (this);
@@ -84,7 +342,9 @@ HttpServer::GetTypeId ()
                    MakeUintegerAccessor (&HttpServer::m_localPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("Protocol",
-                   "The type of protocol to use (only ns3::TcpSocketFactory is valid for now)",
+                   "The type of protocol to use. The attribute is here to "
+                   "accommodate different protocols in the future. At the "
+                   "moment, only ns3::TcpSocketFactory is supported.",
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&HttpServer::m_protocol),
                    MakeTypeIdChecker ())
@@ -97,9 +357,6 @@ HttpServer::GetTypeId ()
                    UintegerValue (),
                    MakeUintegerAccessor (&HttpServer::m_mtuSize),
                    MakeUintegerChecker<uint32_t> ())
-    .AddTraceSource ("Tx",
-                     "A new packet is created and is sent",
-                     MakeTraceSourceAccessor (&HttpServer::m_txTrace))
     .AddTraceSource ("Rx",
                      "A packet has been received",
                      MakeTraceSourceAccessor (&HttpServer::m_rxTrace))
@@ -282,7 +539,7 @@ HttpServer::StartApplication ()
     } // end of `if (m_state == NOT_STARTED)`
   else
     {
-      NS_LOG_WARN (this << " Invalid state " << GetStateString ()
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for StartApplication");
     }
 
@@ -297,22 +554,7 @@ HttpServer::StopApplication ()
   SwitchToState (STOPPED);
 
   // close all accepted sockets
-  std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-  for (it = m_acceptedSockets.begin ();
-       it != m_acceptedSockets.end (); it++)
-    {
-      if (!Simulator::IsExpired (it->second.nextServe))
-        {
-          NS_LOG_INFO (this << " canceling a serving event which is due in "
-                            << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                            << " seconds");
-          Simulator::Cancel (it->second.nextServe);
-        }
-
-      it->first->Close ();
-      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
-      it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-    }
+  m_txBuffer->CloseAllSockets ();
 
   if (m_initialSocket != 0)
     {
@@ -356,22 +598,7 @@ HttpServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
   socket->SetSendCallback (MakeCallback (&HttpServer::SendCallback,
                                          this));
 
-  std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-  it = m_acceptedSockets.find (socket);
-
-  if (it == m_acceptedSockets.end ())
-    {
-      // this is a new socket, keep it
-      SocketInfo_t socketInfo;
-      socketInfo.txBufferContentType = HttpEntityHeader::MAIN_OBJECT;
-      socketInfo.txBufferContentLength = 0;
-      m_acceptedSockets.insert (
-        std::pair<Ptr<Socket>, SocketInfo_t> (socket, socketInfo));
-    }
-  else
-    {
-      NS_LOG_WARN (this << " socket " << socket << " already exists");
-    }
+  m_txBuffer->AddSocket (socket);
 }
 
 
@@ -389,26 +616,8 @@ HttpServer::NormalCloseCallback (Ptr<Socket> socket)
     }
   else
     {
-      std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-      it = m_acceptedSockets.find (socket);
-
-      if (it == m_acceptedSockets.end ())
-        {
-          NS_LOG_WARN (this << " Invalid socket");
-        }
-      else
-        {
-          if (!Simulator::IsExpired (it->second.nextServe))
-            {
-              NS_LOG_INFO (this << " canceling a serving event which is due in "
-                                << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                                << " seconds");
-              Simulator::Cancel (it->second.nextServe);
-            }
-          m_acceptedSockets.erase (it);
-        }
+      m_txBuffer->CloseSocket (socket);
     }
-
 }
 
 
@@ -426,26 +635,8 @@ HttpServer::ErrorCloseCallback (Ptr<Socket> socket)
     }
   else
     {
-      std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-      it = m_acceptedSockets.find (socket);
-
-      if (it == m_acceptedSockets.end ())
-        {
-          NS_LOG_WARN (this << " Invalid socket");
-        }
-      else
-        {
-          if (!Simulator::IsExpired (it->second.nextServe))
-            {
-              NS_LOG_INFO (this << " canceling a serving event which is due in "
-                                << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                                << " seconds");
-              Simulator::Cancel (it->second.nextServe);
-            }
-          m_acceptedSockets.erase (it);
-        }
+      m_txBuffer->CloseSocket (socket);
     }
-
 }
 
 
@@ -459,11 +650,8 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
 
   while ((packet = socket->RecvFrom (from)))
     {
-      if (packet->GetSize () == 0)
-        {
-          break; // EOF
-        }
 
+#ifdef NS3_ASSERT_ENABLE
       if (InetSocketAddress::IsMatchingType (from))
         {
           NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
@@ -478,46 +666,45 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
                             << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
                             << " / " << InetSocketAddress::ConvertFrom (from));
         }
+#endif /* NS3_ASSERT_ENABLE */
+
+      if (packet->GetSize () < HttpEntityHeader::GetStaticSerializedSize ())
+        {
+          NS_FATAL_ERROR ("The received packet does not contain HTTP entity header");
+        }
 
       m_rxTrace (packet, from);
 
-      std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-      it = m_acceptedSockets.find (socket);
+      HttpEntityHeader httpEntity;
+      packet->RemoveHeader (httpEntity);
 
-      if (it == m_acceptedSockets.end ())
-        {
-          NS_LOG_WARN (this << " Invalid socket");
-        }
-      else
-        {
-          HttpEntityHeader httpEntity;
-          packet->RemoveHeader (httpEntity);
-          Time delay;
+      Time delay;
+      switch (httpEntity.GetContentType ())
+      {
+        case HttpEntityHeader::MAIN_OBJECT:
+          delay = m_httpVariables->GetMainObjectGenerationDelay ();
+          NS_LOG_INFO (this << " will finish generating a main object"
+                            << " in " << delay.GetSeconds () << " seconds");
+          m_txBuffer->RecordNextServe (socket,
+                                       Simulator::Schedule (delay,
+                                                            &HttpServer::ServeMainObject,
+                                                            this, socket));
+          break;
 
-          switch (httpEntity.GetContentType ())
-          {
-            case HttpEntityHeader::MAIN_OBJECT:
-              delay = m_httpVariables->GetMainObjectGenerationDelay ();
-              NS_LOG_INFO (this << " will finish generating a main object in "
-                                << delay.GetSeconds () << " seconds");
-              it->second.nextServe = Simulator::Schedule (
-                delay, &HttpServer::ServeMainObject, this, socket);
-              break;
+        case HttpEntityHeader::EMBEDDED_OBJECT:
+          delay = m_httpVariables->GetEmbeddedObjectGenerationDelay ();
+          NS_LOG_INFO (this << " will finish generating an embedded object"
+                            << " in " << delay.GetSeconds () << " seconds");
+          m_txBuffer->RecordNextServe (socket,
+                                       Simulator::Schedule (delay,
+                                                            &HttpServer::ServeEmbeddedObject,
+                                                            this, socket));
+          break;
 
-            case HttpEntityHeader::EMBEDDED_OBJECT:
-              delay = m_httpVariables->GetEmbeddedObjectGenerationDelay ();
-              NS_LOG_INFO (this << " will finish generating an embedded object in "
-                                << delay.GetSeconds () << " seconds");
-              it->second.nextServe = Simulator::Schedule (
-                delay, &HttpServer::ServeEmbeddedObject, this, socket);
-              break;
-
-            default:
-              NS_LOG_WARN (this << " Invalid packet header");
-              break;
-          }
-
-        } // end of else of `if (it == m_acceptedSockets.end ())`
+        default:
+          NS_FATAL_ERROR ("Invalid packet header");
+          break;
+      }
 
     } // end of `while ((packet = socket->RecvFrom (from)))`
 
@@ -529,70 +716,50 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
 {
   NS_LOG_FUNCTION (this << socket << availableBufferSize);
 
-  std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-  it = m_acceptedSockets.find (socket);
+  NS_ASSERT_MSG (m_txBuffer->IsSocketAvailable(socket), "Invalid socket");
 
-  if (it == m_acceptedSockets.end ())
+  if (!m_txBuffer->IsTxBufferEmpty (socket))
     {
-      NS_LOG_WARN (this << " Invalid socket");
-    }
-  else
-    {
-      uint32_t txBufferSize = it->second.txBufferContentLength;
+      // pending transmission exists for this socket
+      uint32_t txBufferSize = m_txBuffer->GetSize (socket);
+      uint32_t actualSent = m_txBuffer->ServeFromTxBuffer (socket);
 
-      if (txBufferSize > 0)
+#ifdef NS3_ASSERT_ENABLE
+      if (actualSent < txBufferSize)
         {
-          /*
-           * Pending transmission of this socket exists in the Tx buffer. We
-           * fetch it here by first clearing the Tx buffer, and then followed by
-           * actual transmission.
-           */
-          it->second.txBufferContentLength = 0;
-
-          switch (it->second.txBufferContentType)
+          switch (m_txBuffer->GetContentType (socket))
           {
-            uint32_t actualSent;
-
             case HttpEntityHeader::MAIN_OBJECT:
-              NS_LOG_INFO (this << " continue transmitting " << txBufferSize
-                                << " bytes of main object from Tx buffer");
-              actualSent = Serve (socket, it->second.txBufferContentType,
-                                  txBufferSize);
-              if (actualSent < txBufferSize)
-                {
-                  NS_LOG_INFO (this << " transmission of main object is suspended"
-                                    << " after " << actualSent << " bytes");
-                }
-              else
-                {
-                  NS_LOG_INFO (this << " finished sending a whole main object");
-                }
+              NS_LOG_INFO (this << " transmission of main object is suspended"
+                                << " after " << actualSent << " bytes");
               break;
-
             case HttpEntityHeader::EMBEDDED_OBJECT:
-              NS_LOG_INFO (this << " continue transmitting " << txBufferSize
-                                << " bytes of embedded object from Tx buffer");
-              actualSent = Serve (socket, it->second.txBufferContentType,
-                                  txBufferSize);
-              if (actualSent < txBufferSize)
-                {
-                  NS_LOG_INFO (this << " transmission of embedded object is suspended"
-                                    << " after " << actualSent << " bytes");
-                }
-              else
-                {
-                  NS_LOG_INFO (this << " finished sending a whole embedded object");
-                }
+              NS_LOG_INFO (this << " transmission of embedded object is suspended"
+                                << " after " << actualSent << " bytes");
               break;
-
             default:
-              NS_FATAL_ERROR ("Unknown Content-Type: " << it->second.txBufferContentType);
+              NS_FATAL_ERROR ("Invalid Tx buffer content type");
               break;
           }
+        }
+      else
+        {
+          switch (m_txBuffer->GetContentType (socket))
+          {
+            case HttpEntityHeader::MAIN_OBJECT:
+              NS_LOG_INFO (this << " finished sending a whole main object");
+              break;
+            case HttpEntityHeader::EMBEDDED_OBJECT:
+              NS_LOG_INFO (this << " finished sending a whole embedded object");
+              break;
+            default:
+              NS_FATAL_ERROR ("Invalid Tx buffer content type");
+              break;
+          }
+        }
+#endif /* NS3_ASSERT_ENABLE */
 
-        } // end of `if (bufferSize > 0)`
-
-    } // end of else of `if (it == m_acceptedSockets.end ())`
+    } // end of `if (m_txBuffer->IsTxBufferEmpty (socket))`
 
 } // end of `void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)`
 
@@ -605,8 +772,9 @@ HttpServer::ServeMainObject (Ptr<Socket> socket)
   uint32_t objectSize = m_httpVariables->GetMainObjectSize ();
   NS_LOG_INFO (this << " main object to be served is "
                     << objectSize << " bytes");
-  uint32_t actualSent = Serve (socket, HttpEntityHeader::MAIN_OBJECT,
+  m_txBuffer->WriteToTxBuffer (socket, HttpEntityHeader::MAIN_OBJECT,
                                objectSize);
+  uint32_t actualSent = m_txBuffer->ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
     {
@@ -628,8 +796,9 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
   uint32_t objectSize = m_httpVariables->GetEmbeddedObjectSize ();
   NS_LOG_INFO (this << " embedded object to be served is "
                     << objectSize << " bytes");
-  uint32_t actualSent = Serve (socket, HttpEntityHeader::EMBEDDED_OBJECT,
+  m_txBuffer->WriteToTxBuffer (socket, HttpEntityHeader::EMBEDDED_OBJECT,
                                objectSize);
+  uint32_t actualSent = m_txBuffer->ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
     {
@@ -641,125 +810,6 @@ HttpServer::ServeEmbeddedObject (Ptr<Socket> socket)
       NS_LOG_INFO (this << " finished sending a whole embedded object");
     }
 }
-
-
-uint32_t
-HttpServer::Serve (Ptr<Socket> socket,
-                   HttpEntityHeader::ContentType_t contentType,
-                   uint32_t objectSize)
-{
-  NS_LOG_FUNCTION (this << socket);
-
-  std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-  it = m_acceptedSockets.find (socket);
-  NS_ASSERT_MSG (it != m_acceptedSockets.end (),
-                 "Invalid socket");
-
-  uint32_t bytesTxed = 0;
-  uint32_t contentSize; // size of actual content
-  uint32_t headerSize = HttpEntityHeader::GetStaticSerializedSize ();
-  uint32_t packetSize; // contentSize + headerSize
-
-  NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
-                     << " bytes available for Tx");
-
-  while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))
-    {
-      contentSize = std::min (objectSize,
-                              socket->GetTxAvailable () - headerSize);
-      NS_ASSERT_MSG (contentSize > 0,
-                     "Invalid size of packet content: " << contentSize);
-      HttpEntityHeader httpEntityHeader;
-      httpEntityHeader.SetContentType (contentType);
-      httpEntityHeader.SetContentLength (objectSize); // contentSize is not used here
-      /*
-       * Content-Length above is the size of the whole object that remains.
-       * That's why objectSize is used here instead of contentSize. Thus it is
-       * always larger than the size of the packet that will be transmitted
-       * below.
-       */
-      Ptr<Packet> packet = Create<Packet> (contentSize);
-      packet->AddHeader (httpEntityHeader);
-      packetSize = packet->GetSize ();
-      NS_LOG_INFO (this << " created packet " << packet << " of "
-                        << packetSize << " bytes");
-      m_txTrace (packet);
-      int actualBytes = socket->Send (packet);
-      NS_LOG_DEBUG (this << " Send() packet " << packet
-                         << " of " << packet->GetSize () << " bytes,"
-                         << " return value= " << actualBytes);
-
-      if ((unsigned) actualBytes == packetSize)
-        {
-          bytesTxed += contentSize;
-          objectSize -= contentSize;
-          NS_LOG_INFO (this << " remaining object to be transmitted "
-                            << objectSize << " bytes");
-        }
-      else
-        {
-          NS_LOG_INFO (this << " failed to send object,"
-                            << " GetErrNo= " << socket->GetErrno () << ","
-                            << " suspending transmission"
-                            << " and waiting for another Tx opportunity");
-          break; // this exits the `while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))`
-        }
-
-      NS_LOG_DEBUG (this << " socket has " << socket->GetTxAvailable ()
-                         << " bytes available for Tx");
-
-    } // end of `while ((objectSize > 0) && (socket->GetTxAvailable () > headerSize))`
-
-  if (objectSize > 0)
-    {
-      /*
-       * The whole object has only partially transmitted. Save a record of the
-       * remains to Tx buffer. Transmission shall continue later in SendCallback
-       * when the socket becomes ready.
-       */
-      SaveTxBuffer (socket, contentType, objectSize);
-    }
-
-  return bytesTxed;
-
-} // end of `uint32_t Serve (Ptr<Socket> socket, HttpEntityHeader txInfo)`
-
-
-void
-HttpServer::SaveTxBuffer (const Ptr<Socket> socket,
-                          HttpEntityHeader::ContentType_t contentType,
-                          uint32_t objectSize)
-{
-  NS_LOG_FUNCTION (this << socket << contentType << objectSize);
-
-  std::map<Ptr<Socket>, SocketInfo_t>::iterator it;
-  it = m_acceptedSockets.find (socket);
-
-  if (it == m_acceptedSockets.end ())
-    {
-      NS_FATAL_ERROR ("Invalid socket " << socket);
-    }
-  else
-    {
-      if (it->second.txBufferContentLength == 0)
-        {
-          // existing Tx buffer is empty
-          it->second.txBufferContentType = contentType;
-          it->second.txBufferContentLength = objectSize;
-        }
-      else if (it->second.txBufferContentLength == contentType)
-        {
-          // pre-existing Tx buffer of same Content-Type, increment the buffer
-          it->second.txBufferContentLength += objectSize;
-        }
-      else
-        {
-          NS_FATAL_ERROR ("Unable to append Tx buffer with more packets "
-            << "on top of a pending transmission of another Content-Type");
-        }
-    }
-
-} // end of `void SaveTxBuffer (const Ptr<Socket> socket, const HttpEntityHeader txBuffer)`
 
 
 void

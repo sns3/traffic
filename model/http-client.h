@@ -69,8 +69,7 @@ protected:
   virtual void StartApplication ();
   virtual void StopApplication ();
 
-  // CALLBACK FUNCTIONS FROM SOCKET
-
+private:
   virtual void ConnectionSucceededCallback (Ptr<Socket> socket);
   virtual void ConnectionFailedCallback (Ptr<Socket> socket);
   virtual void NormalCloseCallback (Ptr<Socket> socket);
@@ -78,7 +77,6 @@ protected:
   virtual void ReceivedDataCallback (Ptr<Socket> socket);
   virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
-private:
   void RetryConnection ();
 
   void RequestMainObject ();

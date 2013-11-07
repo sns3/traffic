@@ -22,11 +22,12 @@
 #ifndef HTTP_SERVER_H
 #define HTTP_SERVER_H
 
+#include <ns3/simple-ref-count.h>
+#include <ns3/nstime.h>
+#include <ns3/http-entity-header.h>
 #include <ns3/application.h>
 #include <ns3/address.h>
-#include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
-#include <ns3/http-entity-header.h>
 #include <map>
 
 
@@ -34,6 +35,43 @@ namespace ns3 {
 
 
 class Socket;
+class EventId;
+
+
+class HttpServerTxBuffer : public SimpleRefCount<HttpServerTxBuffer>
+{
+public:
+  HttpServerTxBuffer ();
+  virtual ~HttpServerTxBuffer ();
+  bool IsSocketAvailable (Ptr<Socket> socket) const;
+  void AddSocket (Ptr<Socket> socket);
+  void CloseSocket (Ptr<Socket> socket);
+  void CloseAllSockets ();
+
+  HttpEntityHeader::ContentType_t GetContentType (Ptr<Socket> socket) const;
+  uint32_t GetSize (Ptr<Socket> socket) const;
+  bool HasTxedPartOfObject (Ptr<Socket> socket) const;
+
+  bool IsTxBufferEmpty (Ptr<Socket> socket) const;
+  void WriteToTxBuffer (Ptr<Socket> socket,
+                        HttpEntityHeader::ContentType_t contentType,
+                        uint32_t objectSize);
+  void RecordNextServe (Ptr<Socket> socket, EventId eventId);
+  uint32_t ServeFromTxBuffer (Ptr<Socket> socket);
+
+private:
+  struct TxBuffer_t
+  {
+    EventId                          nextServe;
+    HttpEntityHeader::ContentType_t  txBufferContentType;
+    uint32_t                         txBufferSize;
+    bool                             hasTxedPartOfObject;
+  };
+
+  std::map<Ptr<Socket>, TxBuffer_t> m_txBuffer;
+};
+
+
 class Packet;
 class HttpVariables;
 
@@ -68,8 +106,7 @@ protected:
   virtual void StartApplication ();
   virtual void StopApplication ();
 
-  // CALLBACK FUNCTIONS FROM SOCKET
-
+private:
   virtual bool ConnectionRequestCallback (Ptr<Socket> socket,
                                           const Address & address);
   virtual void NewConnectionCreatedCallback (Ptr<Socket> socket,
@@ -79,28 +116,14 @@ protected:
   virtual void ReceivedDataCallback (Ptr<Socket> socket);
   virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
-private:
   void ServeMainObject (Ptr<Socket> socket);
   void ServeEmbeddedObject (Ptr<Socket> socket);
-  uint32_t Serve (Ptr<Socket> socket,
-                  HttpEntityHeader::ContentType_t contentType,
-                  uint32_t objectSize);
-  void SaveTxBuffer (const Ptr<Socket> socket,
-                     HttpEntityHeader::ContentType_t contentType,
-                     uint32_t objectSize);
   void SwitchToState (State_t state);
 
-  State_t      m_state;
-  uint32_t     m_mtuSize;
-  Ptr<Socket>  m_initialSocket;
-
-  struct SocketInfo_t
-  {
-    EventId                          nextServe;
-    HttpEntityHeader::ContentType_t  txBufferContentType;
-    uint32_t                         txBufferContentLength;
-  };
-  std::map<Ptr<Socket>, SocketInfo_t> m_acceptedSockets;
+  State_t                  m_state;
+  uint32_t                 m_mtuSize;
+  Ptr<Socket>              m_initialSocket;
+  Ptr<HttpServerTxBuffer>  m_txBuffer;
 
   // ATTRIBUTES
 
@@ -111,8 +134,7 @@ private:
 
   // TRACE SOURCES
 
-  TracedCallback<Ptr<const Packet> >                   m_txTrace;
-  TracedCallback<Ptr<const Packet>, const Address & >  m_rxTrace;
+  TracedCallback<Ptr<const Packet>, const Address &>   m_rxTrace;
   TracedCallback<std::string, std::string>             m_stateTransitionTrace;
 
 }; // end of `class HttpServer`
