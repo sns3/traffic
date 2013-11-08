@@ -35,7 +35,6 @@ namespace ns3 {
 
 
 class Socket;
-class EventId;
 
 
 class HttpServerTxBuffer : public SimpleRefCount<HttpServerTxBuffer>
@@ -45,19 +44,20 @@ public:
   virtual ~HttpServerTxBuffer ();
   bool IsSocketAvailable (Ptr<Socket> socket) const;
   void AddSocket (Ptr<Socket> socket);
+  void RemoveSocket (Ptr<Socket> socket);
   void CloseSocket (Ptr<Socket> socket);
   void CloseAllSockets ();
 
-  HttpEntityHeader::ContentType_t GetContentType (Ptr<Socket> socket) const;
-  uint32_t GetSize (Ptr<Socket> socket) const;
+  bool IsBufferEmpty (Ptr<Socket> socket) const;
+  HttpEntityHeader::ContentType_t GetBufferContentType (Ptr<Socket> socket) const;
+  uint32_t GetBufferSize (Ptr<Socket> socket) const;
   bool HasTxedPartOfObject (Ptr<Socket> socket) const;
 
-  bool IsTxBufferEmpty (Ptr<Socket> socket) const;
-  void WriteToTxBuffer (Ptr<Socket> socket,
-                        HttpEntityHeader::ContentType_t contentType,
-                        uint32_t objectSize);
+  void WriteNewObject (Ptr<Socket> socket,
+                       HttpEntityHeader::ContentType_t contentType,
+                       uint32_t objectSize);
   void RecordNextServe (Ptr<Socket> socket, EventId eventId);
-  uint32_t ServeFromTxBuffer (Ptr<Socket> socket);
+  void DepleteBufferSize (Ptr<Socket> socket, uint32_t amount);
 
 private:
   struct TxBuffer_t
@@ -116,8 +116,9 @@ private:
   virtual void ReceivedDataCallback (Ptr<Socket> socket);
   virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
-  void ServeMainObject (Ptr<Socket> socket);
-  void ServeEmbeddedObject (Ptr<Socket> socket);
+  void ServeNewMainObject (Ptr<Socket> socket);
+  void ServeNewEmbeddedObject (Ptr<Socket> socket);
+  uint32_t ServeFromTxBuffer (Ptr<Socket> socket);
   void SwitchToState (State_t state);
 
   State_t                  m_state;
@@ -134,6 +135,7 @@ private:
 
   // TRACE SOURCES
 
+  TracedCallback<Ptr<const Packet> >                   m_txTrace;
   TracedCallback<Ptr<const Packet>, const Address &>   m_rxTrace;
   TracedCallback<std::string, std::string>             m_stateTransitionTrace;
 

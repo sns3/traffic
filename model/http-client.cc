@@ -50,6 +50,17 @@ HttpClient::HttpClient ()
     m_httpVariables (CreateObject<HttpVariables> ())
 {
   NS_LOG_FUNCTION (this);
+
+  m_isBurstMode = m_httpVariables->IsBurstMode ();
+
+  if (m_isBurstMode)
+    {
+      NS_LOG_INFO (this << " this client application uses HTTP 1.0 (burst mode)");
+    }
+  else
+    {
+      NS_LOG_INFO (this << " this client application uses HTTP 1.1 (persistent mode)");
+    }
 }
 
 
@@ -144,35 +155,33 @@ HttpClient::GetStateString () const
 std::string
 HttpClient::GetStateString (HttpClient::State_t state)
 {
-  std::string ret = "";
   switch (state)
   {
     case NOT_STARTED:
-      ret = "NOT_STARTED";
+      return "NOT_STARTED";
       break;
     case CONNECTING:
-      ret = "CONNECTING";
+      return "CONNECTING";
       break;
     case EXPECTING_MAIN_OBJECT:
-      ret = "EXPECTING_MAIN_OBJECT";
+      return "EXPECTING_MAIN_OBJECT";
       break;
     case PARSING_MAIN_OBJECT:
-      ret = "PARSING_MAIN_OBJECT";
+      return "PARSING_MAIN_OBJECT";
       break;
     case EXPECTING_EMBEDDED_OBJECT:
-      ret = "EXPECTING_EMBEDDED_OBJECT";
+      return "EXPECTING_EMBEDDED_OBJECT";
       break;
     case READING:
-      ret = "READING";
+      return "READING";
       break;
     case STOPPED:
-      ret = "STOPPED";
+      return "STOPPED";
       break;
     default:
       NS_FATAL_ERROR ("Unknown state");
       break;
   }
-  return ret;
 }
 
 
@@ -197,86 +206,14 @@ HttpClient::StartApplication ()
 
   if (m_state == NOT_STARTED)
     {
-      if (m_socket == 0)
-        {
-          if (m_protocol != TcpSocketFactory::GetTypeId ())
-            {
-              NS_FATAL_ERROR ("Socket other than "
-                << TcpSocketFactory::GetTypeId ().GetName ()
-                << " are not supported at the moment");
-            }
-
-          m_socket = Socket::CreateSocket (GetNode (), m_protocol);
-#ifdef NS3_ASSERT_ENABLE
-          UintegerValue mtu;
-          m_socket->GetAttribute ("SegmentSize", mtu);
-          NS_LOG_INFO (this << " created socket " << m_socket
-                            << " of " << m_protocol.GetName ()
-                            << " with MTU of " << mtu.Get () << " bytes");
-          NS_UNUSED (mtu);
-#endif /* NS3_ASSERT_ENABLE */
-
-          int ret;
-
-          if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
-            {
-              ret = m_socket->Bind ();
-              NS_LOG_DEBUG (this << " Bind() return value= " << ret
-                                 << " GetErrNo= " << m_socket->GetErrno ());
-
-              Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-              InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                                m_remoteServerPort);
-              NS_LOG_INFO (this << " connecting to " << ipv4
-                                << " port " << m_remoteServerPort
-                                << " / " << inetSocket);
-              ret = m_socket->Connect (inetSocket);
-              NS_LOG_DEBUG (this << " Connect() return value= " << ret
-                                 << " GetErrNo= " << m_socket->GetErrno ());
-            }
-          else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
-            {
-              ret = m_socket->Bind6 ();
-              NS_LOG_DEBUG (this << " Bind6() return value= " << ret
-                                 << " GetErrNo= " << m_socket->GetErrno ());
-
-              Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-              Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                                   m_remoteServerPort);
-              NS_LOG_INFO (this << " connecting to " << ipv6
-                                << " port " << m_remoteServerPort
-                                << " / " << inet6Socket);
-              ret = m_socket->Connect (inet6Socket);
-              NS_LOG_DEBUG (this << " Connect() return value= " << ret
-                                 << " GetErrNo= " << m_socket->GetErrno ());
-            }
-
-          NS_UNUSED (ret);
-
-        } // end of `if (m_socket == 0)`
-
-      NS_ASSERT_MSG (m_socket != 0, "Failed creating socket");
-      SwitchToState (CONNECTING);
-      m_socket->SetConnectCallback (MakeCallback (&HttpClient::ConnectionSucceededCallback,
-                                                  this),
-                                    MakeCallback (&HttpClient::ConnectionFailedCallback,
-                                                  this));
-      m_socket->SetCloseCallbacks (MakeCallback (&HttpClient::NormalCloseCallback,
-                                                 this),
-                                   MakeCallback (&HttpClient::ErrorCloseCallback,
-                                                 this));
-      m_socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
-                                               this));
-      m_socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
-                                               this));
-    } // end of `if (m_state == NOT_STARTED)`
+      OpenConnection ();
+    }
   else
     {
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
                         << " for StartApplication");
     }
-
-} // end of `void StartApplication ()`
+}
 
 
 void
@@ -285,15 +222,8 @@ HttpClient::StopApplication ()
   NS_LOG_FUNCTION (this);
 
   SwitchToState (STOPPED);
-
   CancelAllPendingEvents ();
-  if (m_socket != 0)
-    {
-      m_socket->Close ();
-      m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
-      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-    }
-
+  CloseConnection ();
 }
 
 
@@ -312,10 +242,6 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
 
       if (m_embeddedObjectsToBeRequested > 0)
         {
-          /*
-           * The previous web session was interrupted and there are some
-           * embedded objects remaining.
-           */
           m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
             &HttpClient::RequestEmbeddedObject, this);
         }
@@ -430,6 +356,95 @@ HttpClient::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
 
 
 void
+HttpClient::OpenConnection ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_state == NOT_STARTED || m_state == EXPECTING_EMBEDDED_OBJECT
+      || m_state == PARSING_MAIN_OBJECT || m_state == READING)
+    {
+      if (m_protocol != TcpSocketFactory::GetTypeId ())
+        {
+          NS_FATAL_ERROR ("Socket other than "
+            << TcpSocketFactory::GetTypeId ().GetName ()
+            << " are not supported at the moment");
+        }
+
+      m_socket = Socket::CreateSocket (GetNode (), m_protocol);
+
+#ifdef NS3_ASSERT_ENABLE
+      UintegerValue mtu;
+      m_socket->GetAttribute ("SegmentSize", mtu);
+      NS_LOG_INFO (this << " created socket " << m_socket
+                        << " of " << m_protocol.GetName ()
+                        << " with MTU of " << mtu.Get () << " bytes");
+      NS_UNUSED (mtu);
+#endif /* NS3_ASSERT_ENABLE */
+
+      int ret;
+
+      if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
+        {
+          ret = m_socket->Bind ();
+          NS_LOG_DEBUG (this << " Bind() return value= " << ret
+                             << " GetErrNo= " << m_socket->GetErrno ());
+
+          Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+          InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                            m_remoteServerPort);
+          NS_LOG_INFO (this << " connecting to " << ipv4
+                            << " port " << m_remoteServerPort
+                            << " / " << inetSocket);
+          ret = m_socket->Connect (inetSocket);
+          NS_LOG_DEBUG (this << " Connect() return value= " << ret
+                             << " GetErrNo= " << m_socket->GetErrno ());
+        }
+      else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
+        {
+          ret = m_socket->Bind6 ();
+          NS_LOG_DEBUG (this << " Bind6() return value= " << ret
+                             << " GetErrNo= " << m_socket->GetErrno ());
+
+          Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+          Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                               m_remoteServerPort);
+          NS_LOG_INFO (this << " connecting to " << ipv6
+                            << " port " << m_remoteServerPort
+                            << " / " << inet6Socket);
+          ret = m_socket->Connect (inet6Socket);
+          NS_LOG_DEBUG (this << " Connect() return value= " << ret
+                             << " GetErrNo= " << m_socket->GetErrno ());
+        }
+
+      NS_UNUSED (ret); // mute compiler warning
+      NS_ASSERT_MSG (m_socket != 0, "Failed creating socket");
+
+      SwitchToState (CONNECTING);
+
+      m_socket->SetConnectCallback (MakeCallback (&HttpClient::ConnectionSucceededCallback,
+                                                  this),
+                                    MakeCallback (&HttpClient::ConnectionFailedCallback,
+                                                  this));
+      m_socket->SetCloseCallbacks (MakeCallback (&HttpClient::NormalCloseCallback,
+                                                 this),
+                                   MakeCallback (&HttpClient::ErrorCloseCallback,
+                                                 this));
+      m_socket->SetRecvCallback (MakeCallback (&HttpClient::ReceivedDataCallback,
+                                               this));
+      m_socket->SetSendCallback (MakeCallback (&HttpClient::SendCallback,
+                                               this));
+
+    } // end of `if (m_state == {NOT_STARTED, EXPECTING_EMBEDDED_OBJECT, PARSING_MAIN_OBJECT, READING})`
+  else
+    {
+      NS_LOG_WARN (this << " invalid state " << GetStateString ()
+                        << " for OpenConnection");
+    }
+
+} // end of `void OpenConnection ()`
+
+
+void
 HttpClient::RetryConnection ()
 {
   NS_LOG_FUNCTION (this);
@@ -439,14 +454,13 @@ HttpClient::RetryConnection ()
       Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
       InetSocketAddress inetSocket = InetSocketAddress (ipv4,
                                                         m_remoteServerPort);
-      NS_LOG_INFO (this << " connecting to " << ipv4
+      NS_LOG_INFO (this << " retrying connecting to " << ipv4
                         << " port " << m_remoteServerPort
                         << " / " << inetSocket);
       int ret = m_socket->Connect (inetSocket);
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
       NS_UNUSED (ret);
-      SwitchToState (CONNECTING);
     }
   else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
     {
@@ -460,10 +474,25 @@ HttpClient::RetryConnection ()
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
       NS_UNUSED (ret);
-      SwitchToState (CONNECTING);
     }
 
+  SwitchToState (CONNECTING);
+
 } // end of `void RetryConnection ()`
+
+
+void
+HttpClient::CloseConnection ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (m_socket != 0)
+    {
+      m_socket->Close ();
+      m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+    }
+}
 
 
 void
@@ -511,7 +540,8 @@ HttpClient::RequestEmbeddedObject ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_state == PARSING_MAIN_OBJECT || m_state == EXPECTING_EMBEDDED_OBJECT)
+  if (m_state == CONNECTING || m_state == PARSING_MAIN_OBJECT
+      || m_state == EXPECTING_EMBEDDED_OBJECT)
     {
       if (m_embeddedObjectsToBeRequested > 0)
         {
@@ -582,6 +612,12 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
            */
           NS_LOG_INFO (this << " finished receiving a main object");
           m_rxMainObjectTrace (packet);
+
+          if (m_isBurstMode)
+            {
+              CloseConnection ();
+            }
+
           EnterParsingTime ();
         }
 
@@ -624,12 +660,29 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
           NS_LOG_INFO (this << " finished receiving an embedded object");
           m_rxEmbeddedObjectTrace (packet);
 
+          if (m_isBurstMode)
+            {
+              CloseConnection ();
+            }
+
           if (m_embeddedObjectsToBeRequested > 0)
             {
               NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
                            << " more embedded object(s) to be requested");
-              m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                &HttpClient::RequestEmbeddedObject, this);
+
+              if (m_isBurstMode)
+                {
+                  // open a new connection
+                  m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                    &HttpClient::OpenConnection, this);
+                  // RequestEmbeddedObject will follow after connection is established
+                }
+              else
+                {
+                  // immediately request another using the existing connection
+                  m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                    &HttpClient::RequestEmbeddedObject, this);
+                }
             }
           else
             {
@@ -750,7 +803,6 @@ HttpClient::EnterParsingTime ()
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
                    << " for EnterParsingTime");
     }
-
 }
 
 
@@ -768,8 +820,19 @@ HttpClient::ParseMainObject ()
 
       if (m_embeddedObjectsToBeRequested > 0)
         {
-          m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-            &HttpClient::RequestEmbeddedObject, this);
+          if (m_isBurstMode)
+            {
+              // open a new connection
+              m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                &HttpClient::OpenConnection, this);
+              // RequestEmbeddedObject will follow after connection is established
+            }
+          else
+            {
+              // immediately request an embedded object using the existing connection
+              m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
+                &HttpClient::RequestEmbeddedObject, this);
+            }
         }
       else
         {
@@ -799,9 +862,23 @@ HttpClient::EnterReadingTime ()
       Time readingTime = m_httpVariables->GetReadingTime ();
       NS_LOG_INFO (this << " will finish reading this web page in "
                         << readingTime.GetSeconds () << " seconds");
+
       // schedule a request of another main object once the reading time expires
-      m_eventRequestMainObject = Simulator::Schedule (
-        readingTime, &HttpClient::RequestMainObject, this);
+      if (m_isBurstMode)
+        {
+          // open a new connection
+          NS_ASSERT (m_embeddedObjectsToBeRequested == 0);
+          m_eventRequestMainObject = Simulator::Schedule (
+            readingTime, &HttpClient::OpenConnection, this);
+          // RequestMainObject will follow after connection is established
+        }
+      else
+        {
+          // reuse the existing connection
+          m_eventRequestMainObject = Simulator::Schedule (
+            readingTime, &HttpClient::RequestMainObject, this);
+        }
+
       SwitchToState (READING);
     }
   else

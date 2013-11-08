@@ -61,6 +61,8 @@ uint32_t
 HttpBoundedLogNormalVariable::GetBoundedInteger ()
 {
   NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (m_min <= m_max, "Lower bound is greater than upper bound");
+
   uint32_t ret;
   do
     {
@@ -105,10 +107,7 @@ void
 HttpBoundedLogNormalVariable::SetMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  if (mean == 0)
-    {
-      NS_FATAL_ERROR ("Mean shall not be zero");
-    }
+  NS_ASSERT_MSG (mean > 0, "Mean must be greater than zero");
   m_mean = mean;
   RefreshBaseParameters ();
 }
@@ -185,11 +184,9 @@ HttpBoundedParetoVariable::GetBoundedInteger ()
   NS_LOG_FUNCTION (this);
 
   double upperBound = GetBound (); // extracting parameter value from parent class
-  if (upperBound <= m_scale)
-    {
-      NS_FATAL_ERROR ("Bound attribute in a bounded Pareto distribution"
-        << " must be greater than the scale parameter");
-    }
+  NS_ASSERT_MSG (m_scale <= upperBound,
+                 "Bound attribute in a bounded Pareto distribution"
+                 << " must not be less than the scale parameter");
 
   uint32_t ret;
   do
@@ -207,11 +204,7 @@ HttpBoundedParetoVariable::SetScale (double scale)
 {
   NS_LOG_FUNCTION (this << scale);
 
-  if (scale <= 0.0)
-    {
-      NS_FATAL_ERROR ("Scale parameter must be greater than zero");
-    }
-
+  NS_ASSERT_MSG (scale > 0.0, "Scale parameter must be greater than zero");
   m_scale = scale;
   RefreshBaseParameters ();
 }
@@ -385,7 +378,7 @@ HttpVariables::GetTypeId ()
 
 
 bool
-HttpVariables::IsPersistentMode ()
+HttpVariables::IsBurstMode ()
 {
   double r = m_httpVersionRng->GetValue ();
   NS_ASSERT (r >= 0.0);

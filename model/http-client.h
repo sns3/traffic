@@ -77,7 +77,9 @@ private:
   virtual void ReceivedDataCallback (Ptr<Socket> socket);
   virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
+  void OpenConnection ();
   void RetryConnection ();
+  void CloseConnection ();
 
   void RequestMainObject ();
   void RequestEmbeddedObject ();
@@ -94,6 +96,7 @@ private:
   void SwitchToState (State_t state);
 
   State_t      m_state;
+  bool         m_isBurstMode;
   Ptr<Socket>  m_socket;
   uint32_t     m_objectBytesToBeReceived;
   uint32_t     m_embeddedObjectsToBeRequested;
