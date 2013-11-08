@@ -33,9 +33,9 @@ NS_LOG_COMPONENT_DEFINE ("HttpP2pExample");
 int
 main (int argc, char *argv[])
 {
-  //LogComponentEnableAll (LOG_PREFIX_ALL);
-  //LogComponentEnable ("HttpClient", LOG_LEVEL_ALL);
-  //LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
+  LogComponentEnableAll (LOG_PREFIX_ALL);
+  LogComponentEnable ("HttpClient", LOG_WARN);
+  LogComponentEnable ("HttpServer", LOG_WARN);
 
   NodeContainer nodes;
   nodes.Create (2);
