@@ -9,6 +9,8 @@ def build(bld):
         'model/http-entity-header.cc',
         'model/http-server.cc',
         'model/http-variables.cc',
+        'model/traffic-bounded-log-normal-variable.cc',
+        'model/traffic-bounded-pareto-variable.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('traffic')
@@ -23,6 +25,8 @@ def build(bld):
         'model/http-entity-header.h',
         'model/http-server.h',
         'model/http-variables.h',
+        'model/traffic-bounded-log-normal-variable.h',
+        'model/traffic-bounded-pareto-variable.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

@@ -30,181 +30,15 @@
 namespace ns3 {
 
 
-/**
- * \brief Wrapper of LogNormalRandomVariable for use in HTTP traffic model.
- *
- * Provides configurability using mean and standard deviation instead of the
- * regular mu (\f$ \mu \f$) and sigma (\f$ \sigma \f$). In addition, the
- * GetBoundedInteger() returns values which are truncated within a given range
- * of [min..max].
- *
- * \warning Random numbers produced by calling the base class methods GetValue()
- *          and GetInteger() are not truncated in this way.
- *
- * The mean, standard deviation, min, and max are configurable by calling the
- * corresponding class methods SetMean(), SetStdDev(), SetMin(), and SetMax(),
- * respectively.
- */
-class HttpBoundedLogNormalVariable : public LogNormalRandomVariable
-{
-public:
-  /// Create a new instance of random variable using the default parameters.
-  HttpBoundedLogNormalVariable ();
-
-  // Inherited from ObjectBase base class
-  static TypeId GetTypeId ();
-
-  /**
-   * \brief Return a random integer from the underlying LogNormal distribution,
-   *        bounded to the configured range.
-   * \return a random unsigned integer, guaranteed to be inside the range
-   *         [min..max]
-   */
-  uint32_t GetBoundedInteger ();
-
-  /**
-   * \brief Set the lower bound of the LogNormal random distribution.
-   * \param min the minimum value that the random distribution can produce
-   *
-   * \warning Upper bound must be greater than lower bound.
-   */
-  void SetMin (uint32_t min);
-
-  /**
-   * \return the minimum value that the random distribution can produce
-   */
-  uint32_t GetMin () const;
-
-  /**
-   * \brief Set the upper bound of the LogNormal random distribution.
-   * \param max the maximum value that the random distribution can produce
-   *
-   * \warning Upper bound must be greater than lower bound.
-   */
-  void SetMax (uint32_t max);
-
-  /**
-   * \return the maximum value that the random distribution can produce
-   */
-  uint32_t GetMax () const;
-
-  /**
-   * \brief Set the mean of the LogNormal random distribution.
-   * \param mean the mean of the values that the random distribution will
-   *             produce, must be greater than zero
-   *
-   * \warning Mean value must be greater than zero, otherwise an error would be
-   *          raised.
-   */
-  void SetMean (uint32_t mean);
-
-  /**
-   * \return the mean of the values value that the random distribution is
-   *         producing
-   */
-  uint32_t GetMean () const;
-
-  /**
-   * \brief Set the standard deviation of the LogNormal random distribution.
-   * \param stdDev the standard deviation of the values that the random
-   *               distribution will produce
-   */
-  void SetStdDev (uint32_t stdDev);
-
-  /**
-   * \return the standard deviation of the values value that the random
-   *         distribution is producing
-   */
-  uint32_t GetStdDev () const;
-
-private:
-  /**
-   * \brief Internal function to update the mu and sigma of the underlying
-   *        LogNormal distribution, based on the provided mean and standard
-   *        deviation.
-   */
-  void RefreshBaseParameters ();
-
-  uint32_t m_min;
-  uint32_t m_max;
-  uint32_t m_mean;
-  uint32_t m_stdDev;
-
-}; // end of `class HttpBoundedLogNormalVariable`
-
-
-/**
- * \brief Wrapper of ParetoRandomVariable for use in HTTP traffic model.
- *
- * Provides configurability using the scale parameter instead of the regular
- * mean parameter. In addition, the GetBoundedInteger() returns values which are
- * normalized (i.e., substracted by the scale parameter) and truncated within a
- * given range of [0..(max - scale)].
- *
- * \warning Random numbers produced by calling the base class methods GetValue()
- *          and GetInteger() are not be truncated in this way.
- *
- * The scale parameter is configurable by calling SetScale() method. The max
- * parameter is, however, an attribute of the parent class, so it should be set
- * as the following example:
- *
- *     Ptr<HttpBoundedParetoVariable> x = CreateObject<HttpBoundedParetoVariable> ();
- *     SetAttribute ("Bound", DoubleValue (100.0));
- *
- * \warning The scale parameter must not be greater than the Bound attribute.
- *          This is the case in the default configuration of the class.
- */
-class HttpBoundedParetoVariable : public ParetoRandomVariable
-{
-public:
-  /// Create a new instance of random variable using the default parameters.
-  HttpBoundedParetoVariable ();
-
-  // Inherited from ObjectBase base class
-  static TypeId GetTypeId ();
-
-  /**
-   * \brief Return a random integer from the underlying Pareto distribution,
-   *        bounded to the configured range.
-   * \return a random unsigned integer, guaranteed to be inside the range
-   *         [0..(max - scale)]
-   */
-  virtual uint32_t GetBoundedInteger ();
-
-  /**
-   * \param scale the scale parameter of the underlying Pareto random
-   *              distribution, must be greater than zero
-   *
-   * \warning The scale parameter value must be greater than zero, otherwise an
-   *          error would be raised.
-   */
-  void SetScale (double scale);
-
-  /**
-   * \return the scale parameter value of the underying Pareto random
-   *         distribution
-   */
-  double GetScale () const;
-
-private:
-  /**
-   * \brief Internal function to update the mu and sigma of the underlying
-   *        LogNormal distribution, based on the provided mean and standard
-   *        deviation.
-   */
-  void RefreshBaseParameters ();
-
-  double m_scale;
-
-}; // end of `class HttpBoundedParetoVariable`
+class TrafficBoundedLogNormalVariable;
+class TrafficBoundedParetoVariable;
 
 
 /**
  * \brief Container of various random variables for HTTP traffic model.
  *
  * The default configuration of the underlying random distributions are
- * according to the default configured using the parameters defined in
- * IEEE 802.16 [1], NGMN [2], and 3GPP2 [3] specifications.
+ * according to IEEE 802.16 [1], NGMN [2], and 3GPP2 [3] specifications.
  *
  * The available random values to be retrieved are:
  * - HTTP version --- 1.0 (burst mode) or 1.1 (persistent mode);
@@ -217,7 +51,7 @@ private:
  * - embedded object size (in bytes) --- truncated LogNormal distribution with
  *   a mean of 7758 bytes;
  * - number of embedded object per web page --- truncated Pareto distribution
- *   with a mean of 3.9 (after truncation);
+ *   with a mean of 3.95 (after truncation);
  * - length of reading time (in seconds) --- unbounded exponential distribution
  *   with a mean of 30 seconds; and
  * - length of parsing time (in seconds) --- unbounded exponential distribution
@@ -250,30 +84,113 @@ public:
    *        shall use HTTP 1.0 (burst mode) or HTTP 1.1 (persistent mode).
    * \return true if HTTP 1.0, or false if HTTP 1.1
    *
-   * By default, HTTP 1.0 and HTTP 1.1 have fifty-fifty chances.
+   * Both HTTP 1.0 and HTTP 1.1 have fifty-fifty chances.
    */
   bool IsBurstMode ();
 
   /**
-   * \brief
+   * \brief Get a random value of Maximum Transmission Unit (MTU) size in bytes.
+   *
+   * The possible MTU sizes are 1460 bytes and 536 bytes with 76% and 24%
+   * chances, respectively. The selected value is typically used by the sockets
+   * of HTTP servers to transmit the response packets (both main objects and
+   * embedded objects) to the requesting HTTP clients.
    */
   uint32_t GetMtuSize ();
+
+  /**
+   * \brief Get the constant HTTP request size in bytes.
+   *
+   * By default, HTTP request size is 350 bytes, which can be modified by
+   * setting the `RequestSize` attribute or calling the SetRequestSize() method.
+   * This value should applies to requests by HTTP client for main objects and
+   * embedded objects alike.
+   */
   uint32_t GetRequestSize ();
-  uint32_t GetRequestSizeKbytes ();
+
+  /**
+   * \brief Get the constant length of time needed by an HTTP server to generate
+   *        a main object.
+   *
+   * By default, main objects are generated instantly, i.e., zero delay. This
+   * can be modified by setting the `MainObjectGenerationDelay` attribute or
+   * calling the SetMainObjectGenerationDelay() method.
+   */
   Time GetMainObjectGenerationDelay ();
-  double GetMainObjectGenerationDelaySeconds ();
+
+  /**
+   * \brief Get a random size (in bytes) of a main object to be transmitted by
+   *        an HTTP server.
+   *
+   * The size of main objects are determined by a truncated log-normal random
+   * distribution. The default distribution settings produces random values with
+   * a mean of 10710 bytes and a standard deviation of 25032 bytes, and then
+   * truncated to fit between 100 bytes and 2 MB. These default settings can be
+   * modified via attributes or class methods.
+   */
   uint32_t GetMainObjectSize ();
-  uint32_t GetMainObjectSizeKbytes ();
+
+  /**
+   * \brief Get the constant length of time needed by an HTTP server to generate
+   *        an embedded object.
+   *
+   * By default, embedded objects are generated instantly, i.e., zero delay.
+   * This can be modified by setting the `EmbeddedObjectGenerationDelay`
+   * attribute or calling the SetEmbeddedObjectGenerationDelay() method.
+   */
   Time GetEmbeddedObjectGenerationDelay ();
-  double GetEmbeddedObjectGenerationDelaySeconds ();
+
+  /**
+   * \brief Get a random size (in bytes) of an embedded object to be transmitted
+   *        by an HTTP server.
+   *
+   * The size of embedded objects are determined by a truncated log-normal
+   * random distribution. The default distribution settings produces random
+   * values with a mean of 7758 bytes and a standard deviation of 126168 bytes,
+   * and then truncated to fit between 100 bytes and 2 MB. These default
+   * settings can be modified via attributes or class methods.
+   */
   uint32_t GetEmbeddedObjectSize ();
-  uint32_t GetEmbeddedObjectSizeKbytes ();
+
+  /**
+   * \brief Get a random integer indicating the number of embedded objects in a
+   *        main object.
+   *
+   * The number of embedded objects in a main object is typically discovered
+   * when the HTTP client is parsing the main object in question. This number is
+   * determined by a truncated Pareto distribution. The default distribution
+   * settings produces random values between 0 and 53, with an actual mean of
+   * approximately 3.95.
+   */
   uint32_t GetNumOfEmbeddedObjects ();
+
+  /**
+   * \brief
+   */
   Time GetReadingTime ();
-  double GetReadingTimeSeconds ();
   Time GetParsingTime ();
+
+  /**
+   * \brief Equivalent of GetReadingTime(), only use for plotting.
+   */
+  double GetReadingTimeSeconds ();
+
+  /**
+   * \brief Equivalent of GetReadingTime(), only use for plotting.
+   */
   double GetParsingTimeSeconds ();
 
+  /**
+   * \brief Set a fixed random variable stream number to the random variables
+   *        used by this model.
+   * \param stream the stream index to use.
+   *
+   * Different random variable stream number makes random number generators to
+   * produce different set of random values, thus may also produce different
+   * simulation results. However, two identical simulations which use same
+   * stream number should produce identical results as well (the repeatability
+   * property of ns-3 simulation).
+   */
   void SetStream (int64_t stream);
 
   // THE REST ARE THE NOT-SO-USEFUL METHODS
@@ -328,16 +245,16 @@ private:
 
   // RANDOM NUMBER VARIABLES
 
-  Ptr<UniformRandomVariable>         m_httpVersionRng;
-  Ptr<UniformRandomVariable>         m_mtuSizeRng;
-  Ptr<ConstantRandomVariable>        m_requestSizeRng;
-  Ptr<ConstantRandomVariable>        m_mainObjectGenerationDelayRng;
-  Ptr<HttpBoundedLogNormalVariable>  m_mainObjectSizeRng;
-  Ptr<ConstantRandomVariable>        m_embeddedObjectGenerationDelayRng;
-  Ptr<HttpBoundedLogNormalVariable>  m_embeddedObjectSizeRng;
-  Ptr<HttpBoundedParetoVariable>     m_numOfEmbeddedObjectsRng;
-  Ptr<ExponentialRandomVariable>     m_readingTimeRng;
-  Ptr<ExponentialRandomVariable>     m_parsingTimeRng;
+  Ptr<UniformRandomVariable>            m_httpVersionRng;
+  Ptr<UniformRandomVariable>            m_mtuSizeRng;
+  Ptr<ConstantRandomVariable>           m_requestSizeRng;
+  Ptr<ConstantRandomVariable>           m_mainObjectGenerationDelayRng;
+  Ptr<TrafficBoundedLogNormalVariable>  m_mainObjectSizeRng;
+  Ptr<ConstantRandomVariable>           m_embeddedObjectGenerationDelayRng;
+  Ptr<TrafficBoundedLogNormalVariable>  m_embeddedObjectSizeRng;
+  Ptr<TrafficBoundedParetoVariable>     m_numOfEmbeddedObjectsRng;
+  Ptr<ExponentialRandomVariable>        m_readingTimeRng;
+  Ptr<ExponentialRandomVariable>        m_parsingTimeRng;
 
 }; // end of `class HttpVariables`
 

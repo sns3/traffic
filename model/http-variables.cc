@@ -25,219 +25,13 @@
 #include <ns3/uinteger.h>
 #include <ns3/double.h>
 #include <ns3/rng-stream.h>
-#include <cmath>
+#include <ns3/traffic-bounded-log-normal-variable.h>
+#include <ns3/traffic-bounded-pareto-variable.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("HttpVariables");
 
 namespace ns3 {
-
-
-// LOG NORMAL WRAPPER CLASS ///////////////////////////////////////////////////
-
-
-NS_OBJECT_ENSURE_REGISTERED (HttpBoundedLogNormalVariable);
-
-
-HttpBoundedLogNormalVariable::HttpBoundedLogNormalVariable ()
-  : LogNormalRandomVariable ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
-TypeId
-HttpBoundedLogNormalVariable::GetTypeId ()
-{
-  static TypeId tid = TypeId ("ns3::HttpBoundedLogNormalVariable")
-    .SetParent<LogNormalRandomVariable> ()
-    .AddConstructor<HttpBoundedLogNormalVariable> ()
-  ;
-  return tid;
-}
-
-
-uint32_t
-HttpBoundedLogNormalVariable::GetBoundedInteger ()
-{
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (m_min <= m_max, "Lower bound is greater than upper bound");
-
-  uint32_t ret;
-  do
-    {
-      ret = GetInteger (); // invoking a function of parent class
-    }
-  while ((ret < m_min) || (ret > m_max));
-  return ret;
-}
-
-
-void
-HttpBoundedLogNormalVariable::SetMin (uint32_t min)
-{
-  NS_LOG_FUNCTION (this << min);
-  m_min = min;
-}
-
-
-uint32_t
-HttpBoundedLogNormalVariable::GetMin () const
-{
-  return m_min;
-}
-
-
-void
-HttpBoundedLogNormalVariable::SetMax (uint32_t max)
-{
-  NS_LOG_FUNCTION (this << max);
-  m_max = max;
-}
-
-
-uint32_t
-HttpBoundedLogNormalVariable::GetMax () const
-{
-  return m_max;
-}
-
-
-void
-HttpBoundedLogNormalVariable::SetMean (uint32_t mean)
-{
-  NS_LOG_FUNCTION (this << mean);
-  NS_ASSERT_MSG (mean > 0, "Mean must be greater than zero");
-  m_mean = mean;
-  RefreshBaseParameters ();
-}
-
-
-uint32_t
-HttpBoundedLogNormalVariable::GetMean () const
-{
-  return m_mean;
-}
-
-
-void
-HttpBoundedLogNormalVariable::SetStdDev (uint32_t stdDev)
-{
-  NS_LOG_FUNCTION (this << stdDev);
-  m_stdDev = stdDev;
-  RefreshBaseParameters ();
-}
-
-
-uint32_t
-HttpBoundedLogNormalVariable::GetStdDev () const
-{
-  return m_stdDev;
-}
-
-
-void
-HttpBoundedLogNormalVariable::RefreshBaseParameters ()
-{
-  NS_LOG_FUNCTION (this);
-
-  double a1 = pow (m_stdDev, 2);
-  double a2 = pow (m_mean, 2);
-  double a = log (1 + (a1 / a2));
-
-  double mu = log (m_mean) - (0.5 * a);
-  double sigma = sqrt (a);
-  NS_LOG_INFO (this << " Mu= " << mu << " Sigma= " << sigma);
-
-  // updating attributes of parent class
-  SetAttribute ("Mu", DoubleValue (mu));
-  SetAttribute ("Sigma", DoubleValue (sigma));
-}
-
-
-// PARETO WRAPPER CLASS ///////////////////////////////////////////////////////
-
-
-NS_OBJECT_ENSURE_REGISTERED (HttpBoundedParetoVariable);
-
-
-HttpBoundedParetoVariable::HttpBoundedParetoVariable ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
-TypeId
-HttpBoundedParetoVariable::GetTypeId ()
-{
-  static TypeId tid = TypeId ("ns3::HttpBoundedParetoVariable")
-    .SetParent<ParetoRandomVariable> ()
-    .AddConstructor<HttpBoundedParetoVariable> ()
-  ;
-  return tid;
-}
-
-
-uint32_t
-HttpBoundedParetoVariable::GetBoundedInteger ()
-{
-  NS_LOG_FUNCTION (this);
-
-  double upperBound = GetBound (); // extracting parameter value from parent class
-  NS_ASSERT_MSG (m_scale <= upperBound,
-                 "Bound attribute in a bounded Pareto distribution"
-                 << " must not be less than the scale parameter");
-
-  uint32_t ret;
-  do
-    {
-      ret = GetInteger (); // invoking a function of parent class
-    }
-  while ((ret < m_scale) || (ret > upperBound));
-
-  return ret - m_scale;
-}
-
-
-void
-HttpBoundedParetoVariable::SetScale (double scale)
-{
-  NS_LOG_FUNCTION (this << scale);
-
-  NS_ASSERT_MSG (scale > 0.0, "Scale parameter must be greater than zero");
-  m_scale = scale;
-  RefreshBaseParameters ();
-}
-
-
-double
-HttpBoundedParetoVariable::GetScale () const
-{
-  return m_scale;
-}
-
-
-void
-HttpBoundedParetoVariable::RefreshBaseParameters ()
-{
-  NS_LOG_FUNCTION (this);
-
-  double shape = GetShape (); // extracting parameter value from parent class
-  if (fabs (shape - 1.0) < 0.000001)
-    {
-      NS_FATAL_ERROR ("Shape parameter of a Pareto distribution must not equal to 1.0"
-        << " (the current value is " << shape << ")");
-    }
-
-  double mean = (shape * m_scale) / (shape - 1.0);
-  NS_LOG_INFO (this << " mean= " << mean);
-
-  // updating attribute of parent class
-  SetAttribute ("Mean", DoubleValue (mean));
-}
-
-
-// PRIMARY CLASS //////////////////////////////////////////////////////////////
 
 
 NS_OBJECT_ENSURE_REGISTERED (HttpVariables);
@@ -248,10 +42,10 @@ HttpVariables::HttpVariables ()
     m_mtuSizeRng                       (CreateObject<UniformRandomVariable> ()),
     m_requestSizeRng                   (CreateObject<ConstantRandomVariable> ()),
     m_mainObjectGenerationDelayRng     (CreateObject<ConstantRandomVariable> ()),
-    m_mainObjectSizeRng                (CreateObject<HttpBoundedLogNormalVariable> ()),
+    m_mainObjectSizeRng                (CreateObject<TrafficBoundedLogNormalVariable> ()),
     m_embeddedObjectGenerationDelayRng (CreateObject<ConstantRandomVariable> ()),
-    m_embeddedObjectSizeRng            (CreateObject<HttpBoundedLogNormalVariable> ()),
-    m_numOfEmbeddedObjectsRng          (CreateObject<HttpBoundedParetoVariable> ()),
+    m_embeddedObjectSizeRng            (CreateObject<TrafficBoundedLogNormalVariable> ()),
+    m_numOfEmbeddedObjectsRng          (CreateObject<TrafficBoundedParetoVariable> ()),
     m_readingTimeRng                   (CreateObject<ExponentialRandomVariable> ()),
     m_parsingTimeRng                   (CreateObject<ExponentialRandomVariable> ())
 {
@@ -281,7 +75,8 @@ HttpVariables::GetTypeId ()
 
     // MAIN OBJECT GENERATION DELAY
     .AddAttribute ("MainObjectGenerationDelay",
-                   "The constant time needed by HTTP server to generate a main object as a response.",
+                   "The constant time needed by HTTP server "
+                   "to generate a main object as a response.",
                    TimeValue (MilliSeconds (0)),
                    MakeTimeAccessor (&HttpVariables::SetMainObjectGenerationDelay),
                    MakeTimeChecker ())
@@ -311,7 +106,8 @@ HttpVariables::GetTypeId ()
 
     // EMBEDDED OBJECT GENERATION DELAY
     .AddAttribute ("EmbeddedObjectGenerationDelay",
-                   "The constant time needed by HTTP server to generate an embedded object as a response.",
+                   "The constant time needed by HTTP server "
+                   "to generate an embedded object as a response.",
                    TimeValue (MilliSeconds (0)),
                    MakeTimeAccessor (&HttpVariables::SetEmbeddedObjectGenerationDelay),
                    MakeTimeChecker ())
@@ -341,18 +137,22 @@ HttpVariables::GetTypeId ()
 
     // NUMBER OF EMBEDDED OBJECTS PER PAGE
     .AddAttribute ("NumOfEmbeddedObjectsMax",
-                   "The maximum value of number of embedded objects per web page.",
+                   "The upper bound parameter of Pareto distribution for "
+                   "the number of embedded objects per web page. The actual "
+                   "maximum value is this value subtracted by the scale parameter",
                    UintegerValue (55),
                    MakeUintegerAccessor (&HttpVariables::SetNumOfEmbeddedObjectsMax,
                                          &HttpVariables::GetNumOfEmbeddedObjectsMax),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("NumOfEmbeddedObjectsShape",
-                   "The shape parameter of Pareto distribution for number of embedded objects per web page.",
+                   "The shape parameter of Pareto distribution for "
+                   "the number of embedded objects per web page.",
                    DoubleValue (1.1),
                    MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsShape),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("NumOfEmbeddedObjectsScale",
-                   "The scale parameter of Pareto distribution for number of embedded objects per web page.",
+                   "The scale parameter of Pareto distribution for "
+                   "the number of embedded objects per web page.",
                    DoubleValue (2.0),
                    MakeDoubleAccessor (&HttpVariables::SetNumOfEmbeddedObjectsScale),
                    MakeDoubleChecker<double> ())
@@ -411,24 +211,10 @@ HttpVariables::GetRequestSize ()
 }
 
 
-uint32_t
-HttpVariables::GetRequestSizeKbytes ()
-{
-  return m_requestSizeRng->GetInteger () / 1000;
-}
-
-
 Time
 HttpVariables::GetMainObjectGenerationDelay ()
 {
   return Seconds (m_mainObjectGenerationDelayRng->GetValue ());
-}
-
-
-double
-HttpVariables::GetMainObjectGenerationDelaySeconds ()
-{
-  return m_mainObjectGenerationDelayRng->GetValue ();
 }
 
 
@@ -439,13 +225,6 @@ HttpVariables::GetMainObjectSize ()
 }
 
 
-uint32_t
-HttpVariables::GetMainObjectSizeKbytes ()
-{
-  return m_mainObjectSizeRng->GetBoundedInteger () / 1000;
-}
-
-
 Time
 HttpVariables::GetEmbeddedObjectGenerationDelay ()
 {
@@ -453,24 +232,10 @@ HttpVariables::GetEmbeddedObjectGenerationDelay ()
 }
 
 
-double
-HttpVariables::GetEmbeddedObjectGenerationDelaySeconds ()
-{
-  return m_embeddedObjectGenerationDelayRng->GetValue ();
-}
-
-
 uint32_t
 HttpVariables::GetEmbeddedObjectSize ()
 {
   return m_embeddedObjectSizeRng->GetBoundedInteger ();
-}
-
-
-uint32_t
-HttpVariables::GetEmbeddedObjectSizeKbytes ()
-{
-  return m_embeddedObjectSizeRng->GetBoundedInteger () / 1000;
 }
 
 
@@ -513,6 +278,7 @@ void
 HttpVariables::SetStream (int64_t stream)
 {
   NS_LOG_FUNCTION (this << stream);
+
   m_httpVersionRng->SetStream (stream);
   m_mtuSizeRng->SetStream (stream);
   m_requestSizeRng->SetStream (stream);
