@@ -611,7 +611,7 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
            * reception of a whole main object
            */
           NS_LOG_INFO (this << " finished receiving a main object");
-          m_rxMainObjectTrace (packet);
+          m_rxMainObjectTrace ();
 
           if (m_isBurstMode)
             {
@@ -658,7 +658,7 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
            * the reception of a whole embedded object
            */
           NS_LOG_INFO (this << " finished receiving an embedded object");
-          m_rxEmbeddedObjectTrace (packet);
+          m_rxEmbeddedObjectTrace ();
 
           if (m_isBurstMode)
             {

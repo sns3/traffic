@@ -113,9 +113,9 @@ private:
   TracedCallback<Ptr<const Packet> >        m_txMainObjectRequestTrace;
   TracedCallback<Ptr<const Packet> >        m_txEmbeddedObjectRequestTrace;
   TracedCallback<Ptr<const Packet> >        m_rxMainObjectPacketTrace;
-  TracedCallback<Ptr<const Packet> >        m_rxMainObjectTrace;
+  TracedCallback<>                          m_rxMainObjectTrace;
   TracedCallback<Ptr<const Packet> >        m_rxEmbeddedObjectPacketTrace;
-  TracedCallback<Ptr<const Packet> >        m_rxEmbeddedObjectTrace;
+  TracedCallback<>                          m_rxEmbeddedObjectTrace;
   TracedCallback<std::string, std::string>  m_stateTransitionTrace;
 
   // EVENTS
