@@ -29,6 +29,7 @@ namespace ns3 {
 
 
 /**
+ * \ingroup traffic
  * \brief Wrapper of LogNormalRandomVariable for use in traffic models.
  *
  * Provides configurability using mean and standard deviation instead of the

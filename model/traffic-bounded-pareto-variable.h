@@ -29,6 +29,7 @@ namespace ns3 {
 
 
 /**
+ * \ingroup traffic
  * \brief Wrapper of ParetoRandomVariable for use in traffic models.
  *
  * Provides configurability using the scale parameter instead of the regular

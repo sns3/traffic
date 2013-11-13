@@ -35,47 +35,15 @@ namespace ns3 {
 
 
 class Socket;
-
-
-class HttpServerTxBuffer : public SimpleRefCount<HttpServerTxBuffer>
-{
-public:
-  HttpServerTxBuffer ();
-  virtual ~HttpServerTxBuffer ();
-  bool IsSocketAvailable (Ptr<Socket> socket) const;
-  void AddSocket (Ptr<Socket> socket);
-  void RemoveSocket (Ptr<Socket> socket);
-  void CloseSocket (Ptr<Socket> socket);
-  void CloseAllSockets ();
-
-  bool IsBufferEmpty (Ptr<Socket> socket) const;
-  HttpEntityHeader::ContentType_t GetBufferContentType (Ptr<Socket> socket) const;
-  uint32_t GetBufferSize (Ptr<Socket> socket) const;
-  bool HasTxedPartOfObject (Ptr<Socket> socket) const;
-
-  void WriteNewObject (Ptr<Socket> socket,
-                       HttpEntityHeader::ContentType_t contentType,
-                       uint32_t objectSize);
-  void RecordNextServe (Ptr<Socket> socket, EventId eventId);
-  void DepleteBufferSize (Ptr<Socket> socket, uint32_t amount);
-
-private:
-  struct TxBuffer_t
-  {
-    EventId                          nextServe;
-    HttpEntityHeader::ContentType_t  txBufferContentType;
-    uint32_t                         txBufferSize;
-    bool                             hasTxedPartOfObject;
-  };
-
-  std::map<Ptr<Socket>, TxBuffer_t> m_txBuffer;
-};
-
-
 class Packet;
 class HttpVariables;
+class HttpServerTxBuffer;
 
 
+/**
+ * \ingroup traffic
+ * \brief
+ */
 class HttpServer : public Application
 {
 public:
@@ -107,14 +75,13 @@ protected:
   virtual void StopApplication ();
 
 private:
-  virtual bool ConnectionRequestCallback (Ptr<Socket> socket,
-                                          const Address & address);
-  virtual void NewConnectionCreatedCallback (Ptr<Socket> socket,
-                                             const Address & address);
-  virtual void NormalCloseCallback (Ptr<Socket> socket);
-  virtual void ErrorCloseCallback (Ptr<Socket> socket);
-  virtual void ReceivedDataCallback (Ptr<Socket> socket);
-  virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+  bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
+  void NewConnectionCreatedCallback (Ptr<Socket> socket,
+                                     const Address & address);
+  void NormalCloseCallback (Ptr<Socket> socket);
+  void ErrorCloseCallback (Ptr<Socket> socket);
+  void ReceivedDataCallback (Ptr<Socket> socket);
+  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
   void ServeNewMainObject (Ptr<Socket> socket);
   void ServeNewEmbeddedObject (Ptr<Socket> socket);
@@ -140,6 +107,239 @@ private:
   TracedCallback<std::string, std::string>             m_stateTransitionTrace;
 
 }; // end of `class HttpServer`
+
+
+/**
+ * \internal
+ * \ingroup traffic
+ * \brief Transmission buffer for use in an HTTP server, which also handles the
+ *        sockets to the connected HTTP clients.
+ *
+ * Each socket is allocated its own separate transmission buffer. The buffer
+ * indicates the length (in bytes) and the type of the data in the buffer.
+ *
+ * Types of data are expressed using the HttpEntityHeader::ContentType_t type.
+ * Only one type of data can be active at a time, i.e., the buffer cannot store
+ * mixed types of data.
+ */
+class HttpServerTxBuffer : public SimpleRefCount<HttpServerTxBuffer>
+{
+public:
+  /// Create a new instance of transmission buffer.
+  HttpServerTxBuffer ();
+
+  // SOCKET MANAGEMENT
+
+  /**
+   * \param socket pointer to the socket to be found
+   * \return true if the given socket is found within the buffer
+   *
+   * This method is typically used before calling other methods. For example,
+   * AddSocket() requires that the given socket does not exist among the stored
+   * buffers. On the other hand, all the other methods that accept a pointer to
+   * a socket as an argument require the existence of a buffer allocated to the
+   * given socket.
+   */
+  bool IsSocketAvailable (Ptr<Socket> socket) const;
+
+  /**
+   * \brief Add a new socket and create an empty transmission buffer for it.
+   * \param socket pointer to the new socket to be added (must not exist in the
+   *               buffer)
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is false.
+   *
+   * After the method is completed, IsSocketAvailable() for the same pointer of
+   * socket shall return true.
+   */
+  void AddSocket (Ptr<Socket> socket);
+
+  /**
+   * \brief Remove a socket and its associated transmission buffer, and then
+   *        unset the socket's callbacks to prevent further interaction with
+   *        the socket.
+   * \param socket pointer to the socket to be removed
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   *
+   * If the socket has a pending transmission event, it will be canceled.
+   *
+   * This method is useful for discarding a socket which is already closed,
+   * e.g., by the HTTP client. This is due to the fact that double closing of a
+   * socket may introduce undefined behaviour.
+   *
+   * After the method is completed, IsSocketAvailable() for the same pointer of
+   * socket shall return false.
+   */
+  void RemoveSocket (Ptr<Socket> socket);
+
+  /**
+   * \brief Close and remove a socket and its associated transmission buffer,
+   *        and then unset the socket's callback to prevent further interaction
+   *        with the socket.
+   * \param socket pointer to the socket to be closed and removed
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   *
+   * This method is similar with RemoveSocket(), except that the latter does not
+   * close the socket.
+   *
+   * After the method is completed, IsSocketAvailable() for the same pointer of
+   * socket shall return false.
+   */
+  void CloseSocket (Ptr<Socket> socket);
+
+  /**
+   * \brief Close and remove all stored sockets, hence clearing the buffer.
+   */
+  void CloseAllSockets ();
+
+  // BUFFER MANAGEMENT
+
+  /**
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \return true if the current length of the transmission buffer is zero,
+   *         i.e., no pending packet
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   */
+  bool IsBufferEmpty (Ptr<Socket> socket) const;
+
+  /**
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \return the Content-Type of the current data inside the transmission
+   *         buffer
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   *
+   * Returns HttpEntityHeader::NOT_SET when the buffer is new and never been
+   * filled with any data before. Otherwise, returns either
+   * HttpEntityHeader::MAIN_OBJECT or HttpEntityHeader::EMBEDDED_OBJECT.
+   */
+  HttpEntityHeader::ContentType_t GetBufferContentType (Ptr<Socket> socket) const;
+
+  /**
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \return the length (in bytes) of the current data inside the transmission
+   *         buffer
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   */
+  uint32_t GetBufferSize (Ptr<Socket> socket) const;
+
+  /**
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \return true if the buffer content has been read since it is written
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   *
+   * This method returns true after WriteNewObject() method is called. It
+   * becomes false after DepleteBufferSize() method is called.
+   */
+  bool HasTxedPartOfObject (Ptr<Socket> socket) const;
+
+  /**
+   * \brief Write a data representing a new main object or embedded object to
+   *        the transmission buffer.
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \param contentType the Content-Type of the data to be written (must not
+   *                    equal to HttpEntityHeader::NOT_SET)
+   * \param objectSize the length (in bytes) of the new object to be created
+   *                   (must be greater than zero)
+   *
+   * \warning Must be called only when both IsSocketAvailable() and
+   *          IsBufferEmpty() for the given socket are true.
+   *
+   * Since this method writes a fresh new object, this method makes the
+   * HasTxedPartOfObject() method returns false. The stored data can be later
+   * consumed wholly of partially by DepleteBufferSize() method.
+   */
+  void WriteNewObject (Ptr<Socket> socket,
+                       HttpEntityHeader::ContentType_t contentType,
+                       uint32_t objectSize);
+
+  /**
+   * \brief Inform about a pending transmission event associated with the
+   *        socket, so that it would be automatically canceled in case the
+   *        socket is closed.
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \param eventId the event to be recorded, e.g., the return value of
+   *                Simulator::Schedule function
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true.
+   */
+  void RecordNextServe (Ptr<Socket> socket, EventId eventId);
+
+  /**
+   * \brief Simulate a consumption of an amount of data from the transmission
+   *        buffer, e.g., for the purpose of actual transmission by the caller.
+   * \param socket pointer to the socket which is associated with the
+   *               transmission buffer of interest
+   * \param amount the length (in bytes) to be consumed (must be greater than
+   *               zero)
+   *
+   * \warning Must be called only when IsSocketAvailable() for the given socket
+   *          is true. In addition, the requested amount must be larger than the
+   *          current buffer size, which can be checked by calling the
+   *          GetBufferSize() method.
+   *
+   * The Content-Type of the object to be consumed can be inquired beforehand
+   * by the GetBufferContentType() method.
+   *
+   * After the method is completed, HasTxedPartOfObject() for the same
+   * transmission buffer shall return true. If the method has consumed all the
+   * remaining bytes within the buffer, IsBufferEmpty() for the buffer shall
+   * return true.
+   */
+  void DepleteBufferSize (Ptr<Socket> socket, uint32_t amount);
+
+private:
+  /**
+   * \brief Set of fields representing a single transmission buffer, which will
+   *        be associated with a socket.
+   */
+  struct TxBuffer_t
+  {
+    /**
+     * \brief Pending transmission event which will be automatically canceled
+     *        when the associated socket is closed.
+     */
+    EventId nextServe;
+    /**
+     * \brief The Content-Type of the current data inside the transmission
+     *        buffer. Accessible using the GetBufferContentType() method.
+     */
+    HttpEntityHeader::ContentType_t txBufferContentType;
+    /**
+     * \brief The length (in bytes) of the current data inside the transmission
+     *        buffer. Accessible using the GetBufferSize() method.
+     */
+    uint32_t txBufferSize;
+    /**
+     * \brief True if the buffer content has been read since it is written.
+     *        Accessible using the HasTxedPartOfObject() method.
+     */
+    bool hasTxedPartOfObject;
+  };
+
+  /// Collection of accepted sockets and its individual transmission buffer.
+  std::map<Ptr<Socket>, TxBuffer_t> m_txBuffer;
+
+}; // end of `class HttpServerTxBuffer`
 
 
 }  // end of `namespace ns3`

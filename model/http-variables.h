@@ -35,7 +35,9 @@ class TrafficBoundedParetoVariable;
 
 
 /**
- * \brief Container of various random variables for HTTP traffic model.
+ * \ingroup traffic
+ * \brief Container of various random variables for assisting the generation of
+ *        interactive traffic pattern by the HTTP (web browsing) traffic model.
  *
  * The default configuration of the underlying random distributions are
  * according to IEEE 802.16 [1], NGMN [2], and 3GPP2 [3] specifications.
@@ -51,7 +53,7 @@ class TrafficBoundedParetoVariable;
  * - embedded object size (in bytes) --- truncated LogNormal distribution with
  *   a mean of 7758 bytes;
  * - number of embedded object per web page --- truncated Pareto distribution
- *   with a mean of 3.95 (after truncation);
+ *   with a mean of approximately 3.95 (after truncation);
  * - length of reading time (in seconds) --- unbounded exponential distribution
  *   with a mean of 30 seconds; and
  * - length of parsing time (in seconds) --- unbounded exponential distribution
@@ -103,7 +105,7 @@ public:
    *
    * By default, HTTP request size is 350 bytes, which can be modified by
    * setting the `RequestSize` attribute or calling the SetRequestSize() method.
-   * This value should applies to requests by HTTP client for main objects and
+   * This value should apply to requests by HTTP client for main objects and
    * embedded objects alike.
    */
   uint32_t GetRequestSize ();
@@ -113,7 +115,7 @@ public:
    *        a main object.
    *
    * By default, main objects are generated instantly, i.e., zero delay. This
-   * can be modified by setting the `MainObjectGenerationDelay` attribute or
+   * can be modified by setting the `MainObjectGenerationDelay` attribute or by
    * calling the SetMainObjectGenerationDelay() method.
    */
   Time GetMainObjectGenerationDelay ();
@@ -123,10 +125,10 @@ public:
    *        an HTTP server.
    *
    * The size of main objects are determined by a truncated log-normal random
-   * distribution. The default distribution settings produces random values with
-   * a mean of 10710 bytes and a standard deviation of 25032 bytes, and then
-   * truncated to fit between 100 bytes and 2 MB. These default settings can be
-   * modified via attributes or class methods.
+   * distribution. The default distribution settings produces random integers
+   * with a mean of 10710 bytes and a standard deviation of 25032 bytes, and
+   * then truncated to fit between 100 bytes and 2 MB. These default settings
+   * can be* modified via attributes or class methods.
    */
   uint32_t GetMainObjectSize ();
 
@@ -136,7 +138,7 @@ public:
    *
    * By default, embedded objects are generated instantly, i.e., zero delay.
    * This can be modified by setting the `EmbeddedObjectGenerationDelay`
-   * attribute or calling the SetEmbeddedObjectGenerationDelay() method.
+   * attribute or by calling the SetEmbeddedObjectGenerationDelay() method.
    */
   Time GetEmbeddedObjectGenerationDelay ();
 
@@ -146,8 +148,8 @@ public:
    *
    * The size of embedded objects are determined by a truncated log-normal
    * random distribution. The default distribution settings produces random
-   * values with a mean of 7758 bytes and a standard deviation of 126168 bytes,
-   * and then truncated to fit between 100 bytes and 2 MB. These default
+   * integers with a mean of 7758 bytes and a standard deviation of 126168
+   * bytes, and then truncated to fit between 100 bytes and 2 MB. These default
    * settings can be modified via attributes or class methods.
    */
   uint32_t GetEmbeddedObjectSize ();
@@ -159,24 +161,42 @@ public:
    * The number of embedded objects in a main object is typically discovered
    * when the HTTP client is parsing the main object in question. This number is
    * determined by a truncated Pareto distribution. The default distribution
-   * settings produces random values between 0 and 53, with an actual mean of
-   * approximately 3.95.
+   * settings produces (after truncation) random integers between 0 and 53,
+   * with an actual mean of approximately 3.95.
    */
   uint32_t GetNumOfEmbeddedObjects ();
 
   /**
-   * \brief
+   * \brief Get a random length of time which is spent by a hypothetical human
+   *        user (HTTP client) to read a web page before transitioning to
+   *        another web page.
+   *
+   * Reading time is determined by an exponential distribution. The default
+   * distribution settings produces random values with a mean of 30 seconds
+   * without any maximum bound. The mean can be modified by setting the
+   * `ReadingTimeMean` attribute or by calling the SetReadingTimeMean() method.
    */
   Time GetReadingTime ();
+
+  /**
+   * \brief Get a random length of time which simulate the small delay caused
+   *        by HTTP client looking for any embedded objects within the received
+   *        main object.
+   *
+   * Parsing time is determined by an exponential distribution. The default
+   * distribution settings produces random values with a mean of 130 ms without
+   * any maximum bound. The mean can be modified by setting the
+   * `ParsingTimeMean` attribute or by calling the SetParsingTimeMean() method.
+   */
   Time GetParsingTime ();
 
   /**
-   * \brief Equivalent of GetReadingTime(), only use for plotting.
+   * \brief Equivalent with GetReadingTime(), but only for plotting purpose.
    */
   double GetReadingTimeSeconds ();
 
   /**
-   * \brief Equivalent of GetReadingTime(), only use for plotting.
+   * \brief Equivalent with GetParsingTime(), but only for plotting purpose.
    */
   double GetParsingTimeSeconds ();
 

@@ -37,6 +37,14 @@ namespace ns3 {
 
 
 /**
+ * \defgroup traffic Traffic Generators
+ * \brief Applications modeling realistic network traffic.
+ *
+ *
+ */
+
+/**
+ * \ingroup traffic
  * \brief Helper to make it easier to instantiate an ns3::HttpClient on a set
  *        of nodes.
  */
@@ -113,6 +121,7 @@ private:
 
 
 /**
+ * \ingroup traffic
  * \brief Helper to make it easier to instantiate an ns3::HttpServer on a set
  *        of nodes.
  */

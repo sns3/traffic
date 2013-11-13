@@ -30,8 +30,11 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("HttpP2pExample");
 
-int
-main (int argc, char *argv[])
+/**
+ * \ingroup traffic
+ * \brief
+ */
+int main (int argc, char *argv[])
 {
   LogComponentEnableAll (LOG_PREFIX_ALL);
   LogComponentEnable ("HttpClient", LOG_WARN);

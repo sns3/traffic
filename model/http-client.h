@@ -36,6 +36,10 @@ class Packet;
 class HttpVariables;
 
 
+/**
+ * \ingroup traffic
+ * \brief
+ */
 class HttpClient : public Application
 {
 public:
@@ -70,12 +74,12 @@ protected:
   virtual void StopApplication ();
 
 private:
-  virtual void ConnectionSucceededCallback (Ptr<Socket> socket);
-  virtual void ConnectionFailedCallback (Ptr<Socket> socket);
-  virtual void NormalCloseCallback (Ptr<Socket> socket);
-  virtual void ErrorCloseCallback (Ptr<Socket> socket);
-  virtual void ReceivedDataCallback (Ptr<Socket> socket);
-  virtual void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+  void ConnectionSucceededCallback (Ptr<Socket> socket);
+  void ConnectionFailedCallback (Ptr<Socket> socket);
+  void NormalCloseCallback (Ptr<Socket> socket);
+  void ErrorCloseCallback (Ptr<Socket> socket);
+  void ReceivedDataCallback (Ptr<Socket> socket);
+  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
   void OpenConnection ();
   void RetryConnection ();

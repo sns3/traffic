@@ -6,3 +6,7 @@ def build(bld):
 
     obj = bld.create_ns3_program('http-variables-plot', ['traffic'])
     obj.source = 'http-variables-plot.cc'
+
+    obj = bld.create_ns3_program('nrtv-variables-plot', ['traffic'])
+    obj.source = 'nrtv-variables-plot.cc'
+    

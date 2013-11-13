@@ -9,6 +9,7 @@ def build(bld):
         'model/http-entity-header.cc',
         'model/http-server.cc',
         'model/http-variables.cc',
+        'model/nrtv-variables.cc',
         'model/traffic-bounded-log-normal-variable.cc',
         'model/traffic-bounded-pareto-variable.cc',
         ]
@@ -19,12 +20,14 @@ def build(bld):
     headers = bld.new_task_gen(features=['ns3header'])
     headers.module = 'traffic'
     headers.source = [
+        'helper/histogram-plot-helper.h',
         'helper/http-client-trace-plot.h',
         'helper/http-helper.h',
         'model/http-client.h',
         'model/http-entity-header.h',
         'model/http-server.h',
         'model/http-variables.h',
+        'model/nrtv-variables.h',
         'model/traffic-bounded-log-normal-variable.h',
         'model/traffic-bounded-pareto-variable.h',
         ]

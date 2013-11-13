@@ -174,7 +174,8 @@ HttpVariables::GetTypeId ()
                    MakeTimeChecker ())
   ;
   return tid;
-}
+
+} // end of `TypeId HttpVariables::GetTypeId ()`
 
 
 bool

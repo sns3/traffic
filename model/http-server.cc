@@ -40,224 +40,6 @@ NS_LOG_COMPONENT_DEFINE ("HttpServer");
 namespace ns3 {
 
 
-// HTTP SERVER TX BUFFER //////////////////////////////////////////////////////
-
-
-HttpServerTxBuffer::HttpServerTxBuffer ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
-HttpServerTxBuffer::~HttpServerTxBuffer ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
-bool
-HttpServerTxBuffer::IsSocketAvailable (Ptr<Socket> socket) const
-{
-  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
-  it = m_txBuffer.find (socket);
-  return (it != m_txBuffer.end ());
-}
-
-
-void
-HttpServerTxBuffer::AddSocket (Ptr<Socket> socket)
-{
-  NS_LOG_FUNCTION (this << socket);
-
-  NS_ASSERT_MSG (!IsSocketAvailable (socket),
-                 this << " cannot add socket " << socket
-                      << " because it has already added before");
-
-  TxBuffer_t txBuffer;
-  txBuffer.txBufferContentType = HttpEntityHeader::NOT_SET;
-  txBuffer.txBufferSize = 0;
-  txBuffer.hasTxedPartOfObject = false;
-  m_txBuffer.insert (std::pair<Ptr<Socket>, TxBuffer_t> (socket, txBuffer));
-}
-
-
-void
-HttpServerTxBuffer::RemoveSocket (Ptr<Socket> socket)
-{
-  NS_LOG_FUNCTION (this << socket);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-
-  if (!Simulator::IsExpired (it->second.nextServe))
-    {
-      NS_LOG_INFO (this << " canceling a serving event which is due in "
-                        << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                        << " seconds");
-      Simulator::Cancel (it->second.nextServe);
-    }
-
-  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
-  it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-
-  m_txBuffer.erase (it);
-}
-
-
-void
-HttpServerTxBuffer::CloseSocket (Ptr<Socket> socket)
-{
-  NS_LOG_FUNCTION (this << socket);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-
-  if (!Simulator::IsExpired (it->second.nextServe))
-    {
-      NS_LOG_INFO (this << " canceling a serving event which is due in "
-                        << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                        << " seconds");
-      Simulator::Cancel (it->second.nextServe);
-    }
-
-  if (it->second.txBufferSize > 0)
-    {
-      NS_LOG_WARN (this << " closing a socket where "
-                        << it->second.txBufferSize << " bytes of transmission"
-                        << " is still pending in the corresponding Tx buffer");
-    }
-
-  it->first->Close ();
-  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
-  it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-
-  m_txBuffer.erase (it);
-}
-
-
-void
-HttpServerTxBuffer::CloseAllSockets ()
-{
-  NS_LOG_FUNCTION (this);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  for (it = m_txBuffer.begin ();
-       it != m_txBuffer.end (); it++)
-    {
-      if (!Simulator::IsExpired (it->second.nextServe))
-        {
-          NS_LOG_INFO (this << " canceling a serving event which is due in "
-                            << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
-                            << " seconds");
-          Simulator::Cancel (it->second.nextServe);
-        }
-
-      it->first->Close ();
-      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
-      it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-    }
-
-  m_txBuffer.clear ();
-}
-
-
-bool
-HttpServerTxBuffer::IsBufferEmpty (Ptr<Socket> socket) const
-{
-  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  return (it->second.txBufferSize == 0);
-}
-
-
-HttpEntityHeader::ContentType_t
-HttpServerTxBuffer::GetBufferContentType (Ptr<Socket> socket) const
-{
-  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  return it->second.txBufferContentType;
-}
-
-
-uint32_t
-HttpServerTxBuffer::GetBufferSize (Ptr<Socket> socket) const
-{
-  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  return it->second.txBufferSize;
-}
-
-
-bool
-HttpServerTxBuffer::HasTxedPartOfObject (Ptr<Socket> socket) const
-{
-  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  return it->second.hasTxedPartOfObject;
-}
-
-
-void
-HttpServerTxBuffer::WriteNewObject (Ptr<Socket> socket,
-                                    HttpEntityHeader::ContentType_t contentType,
-                                    uint32_t objectSize)
-{
-  NS_LOG_FUNCTION (this << socket << contentType << objectSize);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  NS_ASSERT_MSG (it->second.txBufferSize == 0,
-                 "Cannot write to Tx buffer of socket " << socket
-                 << " until the previous content has been completely transmitted");
-  it->second.txBufferContentType = contentType;
-  it->second.txBufferSize = objectSize;
-  it->second.hasTxedPartOfObject = false;
-}
-
-
-void
-HttpServerTxBuffer::RecordNextServe (Ptr<Socket> socket, EventId eventId)
-{
-  NS_LOG_FUNCTION (this << socket);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  it->second.nextServe = eventId;
-}
-
-
-void
-HttpServerTxBuffer::DepleteBufferSize (Ptr<Socket> socket, uint32_t amount)
-{
-  NS_LOG_FUNCTION (this << socket << amount);
-
-  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
-  it = m_txBuffer.find (socket);
-  NS_ASSERT_MSG (it != m_txBuffer.end (),
-                 "Socket " << socket << " cannot be found");
-  NS_ASSERT_MSG (it->second.txBufferSize >= amount,
-                 "The requested amount is larger than the current buffer size");
-  it->second.txBufferSize -= amount;
-  it->second.hasTxedPartOfObject = true;
-}
-
-
 // HTTP SERVER ////////////////////////////////////////////////////////////////
 
 
@@ -883,6 +665,225 @@ HttpServer::SwitchToState (HttpServer::State_t state)
   m_state = state;
   NS_LOG_INFO (this << " HttpServer " << oldState << " --> " << newState);
   m_stateTransitionTrace (oldState, newState);
+}
+
+
+// HTTP SERVER TX BUFFER //////////////////////////////////////////////////////
+
+
+HttpServerTxBuffer::HttpServerTxBuffer ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+bool
+HttpServerTxBuffer::IsSocketAvailable (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  return (it != m_txBuffer.end ());
+}
+
+
+void
+HttpServerTxBuffer::AddSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  NS_ASSERT_MSG (!IsSocketAvailable (socket),
+                 this << " cannot add socket " << socket
+                      << " because it has already added before");
+
+  TxBuffer_t txBuffer;
+  txBuffer.txBufferContentType = HttpEntityHeader::NOT_SET;
+  txBuffer.txBufferSize = 0;
+  txBuffer.hasTxedPartOfObject = false;
+  m_txBuffer.insert (std::pair<Ptr<Socket>, TxBuffer_t> (socket, txBuffer));
+}
+
+
+void
+HttpServerTxBuffer::RemoveSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+
+  if (!Simulator::IsExpired (it->second.nextServe))
+    {
+      NS_LOG_INFO (this << " canceling a serving event which is due in "
+                        << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (it->second.nextServe);
+    }
+
+  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+
+  m_txBuffer.erase (it);
+}
+
+
+void
+HttpServerTxBuffer::CloseSocket (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+
+  if (!Simulator::IsExpired (it->second.nextServe))
+    {
+      NS_LOG_INFO (this << " canceling a serving event which is due in "
+                        << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (it->second.nextServe);
+    }
+
+  if (it->second.txBufferSize > 0)
+    {
+      NS_LOG_WARN (this << " closing a socket where "
+                        << it->second.txBufferSize << " bytes of transmission"
+                        << " is still pending in the corresponding Tx buffer");
+    }
+
+  it->first->Close ();
+  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+
+  m_txBuffer.erase (it);
+}
+
+
+void
+HttpServerTxBuffer::CloseAllSockets ()
+{
+  NS_LOG_FUNCTION (this);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  for (it = m_txBuffer.begin ();
+       it != m_txBuffer.end (); it++)
+    {
+      if (!Simulator::IsExpired (it->second.nextServe))
+        {
+          NS_LOG_INFO (this << " canceling a serving event which is due in "
+                            << Simulator::GetDelayLeft (it->second.nextServe).GetSeconds ()
+                            << " seconds");
+          Simulator::Cancel (it->second.nextServe);
+        }
+
+      it->first->Close ();
+      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+    }
+
+  m_txBuffer.clear ();
+}
+
+
+bool
+HttpServerTxBuffer::IsBufferEmpty (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return (it->second.txBufferSize == 0);
+}
+
+
+HttpEntityHeader::ContentType_t
+HttpServerTxBuffer::GetBufferContentType (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.txBufferContentType;
+}
+
+
+uint32_t
+HttpServerTxBuffer::GetBufferSize (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.txBufferSize;
+}
+
+
+bool
+HttpServerTxBuffer::HasTxedPartOfObject (Ptr<Socket> socket) const
+{
+  std::map<Ptr<Socket>, TxBuffer_t>::const_iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  return it->second.hasTxedPartOfObject;
+}
+
+
+void
+HttpServerTxBuffer::WriteNewObject (Ptr<Socket> socket,
+                                    HttpEntityHeader::ContentType_t contentType,
+                                    uint32_t objectSize)
+{
+  NS_LOG_FUNCTION (this << socket << contentType << objectSize);
+
+  NS_ASSERT_MSG (contentType != HttpEntityHeader::NOT_SET,
+                 "Unable to write an object without a proper Content-Type");
+  NS_ASSERT_MSG (objectSize > 0,
+                 "Unable to write a zero-sized object");
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  NS_ASSERT_MSG (it->second.txBufferSize == 0,
+                 "Cannot write to Tx buffer of socket " << socket
+                 << " until the previous content has been completely transmitted");
+  it->second.txBufferContentType = contentType;
+  it->second.txBufferSize = objectSize;
+  it->second.hasTxedPartOfObject = false;
+}
+
+
+void
+HttpServerTxBuffer::RecordNextServe (Ptr<Socket> socket, EventId eventId)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  it->second.nextServe = eventId;
+}
+
+
+void
+HttpServerTxBuffer::DepleteBufferSize (Ptr<Socket> socket, uint32_t amount)
+{
+  NS_LOG_FUNCTION (this << socket << amount);
+
+  NS_ASSERT_MSG (amount > 0, "Unable to consume zero bytes");
+
+  std::map<Ptr<Socket>, TxBuffer_t>::iterator it;
+  it = m_txBuffer.find (socket);
+  NS_ASSERT_MSG (it != m_txBuffer.end (),
+                 "Socket " << socket << " cannot be found");
+  NS_ASSERT_MSG (it->second.txBufferSize >= amount,
+                 "The requested amount is larger than the current buffer size");
+  it->second.txBufferSize -= amount;
+  it->second.hasTxedPartOfObject = true;
 }
 
 
