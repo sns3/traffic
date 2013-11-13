@@ -232,9 +232,9 @@ HttpClientTracePlot::RxMainObjectPacketCallback (Ptr<const Packet> packet)
 
 
 void
-HttpClientTracePlot::RxMainObjectCallback (Ptr<const Packet> packet)
+HttpClientTracePlot::RxMainObjectCallback ()
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this);
   m_mainObjectAck.Add (Simulator::Now ().GetSeconds (), 0.0);
   m_isMainObjectAckExist = true;
 }
@@ -251,9 +251,9 @@ HttpClientTracePlot::RxEmbeddedObjectPacketCallback (Ptr<const Packet> packet)
 
 
 void
-HttpClientTracePlot::RxEmbeddedObjectCallback (Ptr<const Packet> packet)
+HttpClientTracePlot::RxEmbeddedObjectCallback ()
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this);
   m_embeddedObjectAck.Add (Simulator::Now ().GetSeconds (), 0.0);
   m_isEmbeddedObjectAckExist = true;
 }

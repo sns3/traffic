@@ -75,9 +75,9 @@ private:
   void TxMainObjectRequestCallback (Ptr<const Packet> packet);
   void TxEmbeddedObjectRequestCallback (Ptr<const Packet> packet);
   void RxMainObjectPacketCallback (Ptr<const Packet> packet);
-  void RxMainObjectCallback (Ptr<const Packet> packet);
+  void RxMainObjectCallback ();
   void RxEmbeddedObjectPacketCallback (Ptr<const Packet> packet);
-  void RxEmbeddedObjectCallback (Ptr<const Packet> packet);
+  void RxEmbeddedObjectCallback ();
 
   Ptr<HttpClient> m_httpClient;
   std::string m_outputName;
