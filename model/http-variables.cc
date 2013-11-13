@@ -243,7 +243,7 @@ HttpVariables::GetEmbeddedObjectSize ()
 uint32_t
 HttpVariables::GetNumOfEmbeddedObjects ()
 {
-  return m_numOfEmbeddedObjectsRng->GetBoundedInteger ();
+  return m_numOfEmbeddedObjectsRng->GetBoundedNormalizedInteger ();
 }
 
 

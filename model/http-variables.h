@@ -64,10 +64,10 @@ class TrafficBoundedParetoVariable;
  *
  * References:
  * [1] IEEE 802.16m, "Evaluation Methodology Document (EMD)",
- *     IEEE 802.16m-08/004r5.
+ *     IEEE 802.16m-08/004r5, July 2008.
  * [2] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology",
- *     v1.0.
- * [3] 3GPP2-TSGC5, "HTTP, FTP and TCP models for 1xEV-DV simulations".
+ *     v1.0, January 2008.
+ * [3] 3GPP2-TSGC5, "HTTP, FTP and TCP models for 1xEV-DV simulations", 2001.
  *
  */
 class HttpVariables : public Object

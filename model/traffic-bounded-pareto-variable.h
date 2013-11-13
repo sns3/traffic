@@ -33,12 +33,14 @@ namespace ns3 {
  * \brief Wrapper of ParetoRandomVariable for use in traffic models.
  *
  * Provides configurability using the scale parameter instead of the regular
- * mean parameter. In addition, the GetBoundedInteger() returns values which are
- * normalized (i.e., substracted by the scale parameter) and truncated within a
- * given range of [0..(max - scale)].
+ * mean parameter. In addition, the GetBoundedInteger() method returns values
+ * which are truncated within a range of [scale..max]. There is also the
+ * GetBoundedNormalizedInteger() method which returns values which are both
+ * truncated and normalized (i.e., substracted by the scale parameter), thus
+ * ranging between [0..(max-scale)].
  *
  * \warning Random numbers produced by calling the base class methods GetValue()
- *          and GetInteger() are not be truncated in this way.
+ *          and GetInteger() are not truncated in this way.
  *
  * The scale parameter is configurable by calling SetScale() method. The max
  * parameter is, however, an attribute of the parent class, so it should be set
@@ -47,7 +49,7 @@ namespace ns3 {
  *     Ptr<TrafficBoundedParetoVariable> x = CreateObject<TrafficBoundedParetoVariable> ();
  *     SetAttribute ("Bound", DoubleValue (100.0));
  *
- * \warning The scale parameter must not be greater than the Bound attribute.
+ * \warning The scale parameter must *not* be greater than the Bound attribute.
  *          This is the case in the default configuration of the class.
  */
 class TrafficBoundedParetoVariable : public ParetoRandomVariable
@@ -63,9 +65,18 @@ public:
    * \brief Return a random integer from the underlying Pareto distribution,
    *        bounded to the configured range.
    * \return a random unsigned integer, guaranteed to be inside the range
-   *         [0..(max - scale)]
+   *         [scale..max]
    */
   virtual uint32_t GetBoundedInteger ();
+
+  /**
+   * \brief Return a random integer from the underlying Pareto distribution,
+   *        bounded to the configured range, and normalized with the scale
+   *        parameter.
+   * \return a random unsigned integer, guaranteed to be inside the range
+   *         [0..(max-scale)]
+   */
+  virtual uint32_t GetBoundedNormalizedInteger ();
 
   /**
    * \param scale the scale parameter of the underlying Pareto random

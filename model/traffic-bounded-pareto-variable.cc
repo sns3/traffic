@@ -67,7 +67,18 @@ TrafficBoundedParetoVariable::GetBoundedInteger ()
     }
   while ((ret < m_scale) || (ret > upperBound));
 
-  return ret - m_scale;
+  return ret;
+}
+
+
+uint32_t
+TrafficBoundedParetoVariable::GetBoundedNormalizedInteger ()
+{
+  NS_LOG_FUNCTION (this);
+
+  uint32_t x = GetBoundedInteger ();
+  NS_ASSERT (x >= m_scale);
+  return (x - m_scale);
 }
 
 

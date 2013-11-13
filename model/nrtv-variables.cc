@@ -78,9 +78,8 @@ NrtvVariables::GetTypeId ()
     // SLICE SIZE
     .AddAttribute ("SliceSizeMax",
                    "The upper bound parameter of Pareto distribution for the "
-                   "slice size. The actual maximum value is this value "
-                   "subtracted by the scale parameter",
-                   UintegerValue (270),
+                   "slice size.",
+                   UintegerValue (250),
                    MakeUintegerAccessor (&NrtvVariables::SetSliceSizeMax,
                                          &NrtvVariables::GetSliceSizeMax),
                    MakeUintegerChecker<uint32_t> ())
@@ -91,15 +90,14 @@ NrtvVariables::GetTypeId ()
                    MakeDoubleChecker<double> ())
     .AddAttribute ("SliceSizeScale",
                    "The scale parameter of Pareto distribution for the slice size.",
-                   DoubleValue (20.0),
+                   DoubleValue (40.0),
                    MakeDoubleAccessor (&NrtvVariables::SetSliceSizeScale),
                    MakeDoubleChecker<double> ())
 
     // SLICE ENCODING DELAY
     .AddAttribute ("SliceEncodingDelayMax",
                    "The upper bound parameter of Pareto distribution for the "
-                   "slice size. The actual maximum value is this value "
-                   "subtracted by the scale parameter",
+                   "slice size.",
                    TimeValue (MilliSeconds (15)),
                    MakeTimeAccessor (&NrtvVariables::SetSliceEncodingDelayMax,
                                      &NrtvVariables::GetSliceEncodingDelayMax),

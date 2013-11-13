@@ -40,23 +40,25 @@ class TrafficBoundedParetoVariable;
  *        model.
  *
  * The default configuration of the underlying random distributions are
- * according to NGMN [1] specification.
+ * according to NGMN [1] and WiMAX [2] specifications.
  *
  * The available random values to be retrieved are:
  * - frame interval --- constant 100 ms (i.e., 10 fps);
  * - number of slices per frame --- constant 8 slices (packets);
  * - slice size --- truncated Pareto distribution with mean of approximately
- *   30.57 bytes;
- * - slice encoding delay --- truncated Pareto distribution with mean of 6 ms;
- *   and
+ *   82.64 bytes;
+ * - slice encoding delay --- truncated Pareto distribution with mean of
+ *   approximately 5.31 ms; and
  * - client's de-jitter buffer window size --- constant 5 seconds.
  *
  * Most parameters of the random distributions are configurable via attributes
  * and methods of this class.
  *
- * Reference:
+ * References:
  * [1] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology",
- *     v1.0.
+ *     v1.0, January 2008.
+ * [2] WiMAX Forum, "WiMAX (TM) System Evaluation Methodology", Version 2.1,
+ *     July 2008.
  *
  */
 class NrtvVariables : public Object
@@ -99,7 +101,7 @@ public:
    *
    * Slice size is determined by a truncated Pareto distribution. The default
    * distribution settings produces (after truncation) random integers between
-   * 0 and 250 bytes, with an actual mean of approximately 30.57 bytes.
+   * 40 and 250 bytes, with an actual mean of approximately 82.64 bytes.
    */
   uint32_t GetSliceSize ();
 
@@ -109,7 +111,7 @@ public:
    *
    * Slice encoding delay is determined by truncated Pareto distribution. The
    * default distribution settings produces (after truncation) random values
-   * between 0 and 12.5 ms, with an actual mean of approximately 2.31 ms.
+   * between 2.5 ms and 15 ms, with an actual mean of approximately 5.31 ms.
    */
   Time GetSliceEncodingDelay ();
 
