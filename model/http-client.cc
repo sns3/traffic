@@ -86,7 +86,7 @@ HttpClient::GetTypeId ()
                    AddressValue (),
                    MakeAddressAccessor (&HttpClient::m_remoteServerAddress),
                    MakeAddressChecker ())
-    .AddAttribute ("RemotePort",
+    .AddAttribute ("RemoteServerPort",
                    "The destination port of the outbound packets",
                    UintegerValue (80), // the default HTTP port
                    MakeUintegerAccessor (&HttpClient::m_remoteServerPort),
@@ -266,8 +266,11 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
 
   if (m_state == CONNECTING)
     {
-      m_eventRetryConnection = Simulator::ScheduleNow (
-        &HttpClient::RetryConnection, this);
+      if (socket->GetErrno () != Socket::ERROR_NOTERROR)
+        {
+          m_eventRetryConnection = Simulator::ScheduleNow (
+            &HttpClient::RetryConnection, this);
+        }
     }
   else
     {
@@ -283,8 +286,11 @@ HttpClient::NormalCloseCallback (Ptr<Socket> socket)
   NS_LOG_FUNCTION (this << socket);
 
   CancelAllPendingEvents ();
-  m_eventRetryConnection = Simulator::ScheduleNow (
-    &HttpClient::RetryConnection, this);
+  if (socket->GetErrno () != Socket::ERROR_NOTERROR)
+    {
+      m_eventRetryConnection = Simulator::ScheduleNow (
+        &HttpClient::RetryConnection, this);
+    }
 }
 
 
@@ -294,8 +300,11 @@ HttpClient::ErrorCloseCallback (Ptr<Socket> socket)
   NS_LOG_FUNCTION (this << socket);
 
   CancelAllPendingEvents ();
-  m_eventRetryConnection = Simulator::ScheduleNow (
-    &HttpClient::RetryConnection, this);
+  if (socket->GetErrno () != Socket::ERROR_NOTERROR)
+    {
+      m_eventRetryConnection = Simulator::ScheduleNow (
+        &HttpClient::RetryConnection, this);
+    }
 }
 
 

@@ -80,7 +80,7 @@ public:
    *
    * Frame interval can be modified by setting the `FrameInterval` attribute or
    * by calling the SetFrameInterval() method. This value should apply to both
-   * NRTV server and NRTV client.
+   * NRTV server/application and NRTV client/sink.
    *
    * Frame interval is also known in the standard specification as the
    * "inter-arrrival time between the beginning of each frame".
@@ -107,7 +107,7 @@ public:
 
   /**
    * \brief Get a random length of delay which is introduced by a hypothetical
-   *        video encoder at NRTV server before serving each slice.
+   *        video encoder at NRTV server/application before serving each slice.
    *
    * Slice encoding delay is determined by truncated Pareto distribution. The
    * default distribution settings produces (after truncation) random values

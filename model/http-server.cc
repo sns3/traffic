@@ -83,7 +83,7 @@ HttpServer::GetTypeId ()
                    AddressValue (),
                    MakeAddressAccessor (&HttpServer::m_localAddress),
                    MakeAddressChecker ())
-    .AddAttribute ("Port",
+    .AddAttribute ("LocalPort",
                    "Port on which the application listen for incoming packets",
                    UintegerValue (80), // the default HTTP port
                    MakeUintegerAccessor (&HttpServer::m_localPort),

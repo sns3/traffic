@@ -19,13 +19,13 @@
  *
  */
 
-#ifndef HTTP_CLIENT_H
-#define HTTP_CLIENT_H
+#ifndef NRTV_CLIENT_H
+#define NRTV_CLIENT_H
 
 #include <ns3/application.h>
 #include <ns3/address.h>
+#include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
-#include <ns3/http-entity-header.h>
 
 
 namespace ns3 {
@@ -33,18 +33,18 @@ namespace ns3 {
 
 class Socket;
 class Packet;
-class HttpVariables;
+class NrtvVariables;
 
 
 /**
  * \ingroup traffic
  * \brief
  */
-class HttpClient : public Application
+class NrtvClient : public Application
 {
 public:
-  HttpClient ();
-  virtual ~HttpClient ();
+  NrtvClient ();
+  virtual ~NrtvClient ();
   static TypeId GetTypeId ();
 
   Address GetRemoteServerAddress () const;
@@ -54,10 +54,7 @@ public:
   {
     NOT_STARTED = 0,
     CONNECTING,
-    EXPECTING_MAIN_OBJECT,
-    PARSING_MAIN_OBJECT,
-    EXPECTING_EMBEDDED_OBJECT,
-    READING,
+    RECEIVING,
     STOPPED
   };
 
@@ -79,59 +76,38 @@ private:
   void NormalCloseCallback (Ptr<Socket> socket);
   void ErrorCloseCallback (Ptr<Socket> socket);
   void ReceivedDataCallback (Ptr<Socket> socket);
-  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
   void OpenConnection ();
   void RetryConnection ();
   void CloseConnection ();
 
-  void RequestMainObject ();
-  void RequestEmbeddedObject ();
-  void ReceiveMainObject (Ptr<Packet> packet);
-  void ReceiveEmbeddedObject (Ptr<Packet> packet);
-  uint32_t Receive (Ptr<Packet> packet,
-                    HttpEntityHeader::ContentType_t expectedContentType);
-  void EnterParsingTime ();
-  void ParseMainObject ();
-  void EnterReadingTime ();
-
   void CancelAllPendingEvents ();
   void SwitchToState (State_t state);
 
   State_t      m_state;
-  bool         m_isBurstMode;
+  Time         m_dejitterBufferWindowSize;
   Ptr<Socket>  m_socket;
-  uint32_t     m_objectBytesToBeReceived;
-  uint32_t     m_embeddedObjectsToBeRequested;
 
   // ATTRIBUTES
 
-  Ptr<HttpVariables>  m_httpVariables;
+  Ptr<NrtvVariables>  m_nrtvVariables;
   Address             m_remoteServerAddress;
   uint16_t            m_remoteServerPort;
   TypeId              m_protocol;
 
   // TRACE SOURCES
 
-  TracedCallback<Ptr<const Packet> >        m_txMainObjectRequestTrace;
-  TracedCallback<Ptr<const Packet> >        m_txEmbeddedObjectRequestTrace;
-  TracedCallback<Ptr<const Packet> >        m_rxMainObjectPacketTrace;
-  TracedCallback<>                          m_rxMainObjectTrace;
-  TracedCallback<Ptr<const Packet> >        m_rxEmbeddedObjectPacketTrace;
-  TracedCallback<>                          m_rxEmbeddedObjectTrace;
+  TracedCallback<Ptr<const Packet> >        m_rxTrace;
   TracedCallback<std::string, std::string>  m_stateTransitionTrace;
 
   // EVENTS
 
-  EventId m_eventRequestMainObject;
-  EventId m_eventRequestEmbeddedObject;
   EventId m_eventRetryConnection;
-  EventId m_eventParseMainObject;
 
-}; // end of `class HttpClient`
+}; // end of `class NrtvClient`
 
 
 }  // end of `namespace ns3`
 
 
-#endif /* HTTP_CLIENT_H */
+#endif /* NRTV_CLIENT_H */
