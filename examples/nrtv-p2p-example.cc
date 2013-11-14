@@ -37,10 +37,8 @@ NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
 int main (int argc, char *argv[])
 {
   LogComponentEnableAll (LOG_PREFIX_ALL);
-  //LogComponentEnable ("NrtvApplication", LOG_LEVEL_ALL);
   //LogComponentEnable ("NrtvClient", LOG_LEVEL_ALL);
   //LogComponentEnable ("NrtvServer", LOG_LEVEL_ALL);
-  //LogComponentEnable ("HttpServer", LOG_LEVEL_ALL);
 
   NodeContainer nodes;
   nodes.Create (2);
@@ -64,18 +62,6 @@ int main (int argc, char *argv[])
 
   std::string protocol = "ns3::TcpSocketFactory";
 
-//  HttpServerHelper httpServerHelper (protocol, clientAddress);
-//  ApplicationContainer clientApps = httpServerHelper.Install (nodes.Get (0));
-//  clientApps.Start (Seconds (1.0));
-//  //clientApps.Stop (Seconds (30.0));
-
-//  Ptr<NrtvApplication> nrtvApp = CreateObject<NrtvApplication> ();
-//  nrtvApp->SetAttribute ("Protocol", StringValue (protocol));
-//  nrtvApp->SetAttribute ("RemoteAddress", AddressValue (clientAddress));
-////  nrtvApp->SetAttribute ("RemotePort", UintegerValue (1935));
-//  nrtvApp->SetStartTime (Seconds (2.0));
-//  nodes.Get (1)->AddApplication (nrtvApp);
-
   Ptr<NrtvClient> nrtvClient = CreateObject<NrtvClient> ();
   nrtvClient->SetAttribute ("Protocol", StringValue (protocol));
   nrtvClient->SetAttribute ("RemoteServerAddress", AddressValue (serverAddress));
@@ -88,10 +74,9 @@ int main (int argc, char *argv[])
   nrtvServer->SetStartTime (Seconds (1.0));
   nodes.Get (1)->AddApplication (nrtvServer);
 
-//  Ptr<NrtvApplicationTracePlot> plot = CreateObject<NrtvApplicationTracePlot> (nrtvApp);
-//  Ptr<NrtvServerTracePlot> plot = CreateObject<NrtvServerTracePlot> (nrtvServer);
+  Ptr<NrtvClientTracePlot> plot = CreateObject<NrtvClientTracePlot> (nrtvClient);
 
-  Simulator::Stop (Seconds (1000.0));
+  Simulator::Stop (Seconds (10.0));
   Simulator::Run ();
   Simulator::Destroy ();
 

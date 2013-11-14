@@ -164,7 +164,7 @@ HttpClientTracePlot::Plot ()
   NS_LOG_FUNCTION (this << m_outputName);
 
   Gnuplot plot (m_outputName + ".png");
-  //plot.SetTitle ("HTTP Packet Trace");
+  plot.SetTitle ("HTTP Client Traffic Trace");
   plot.SetTerminal ("png");
   plot.SetLegend ("Time (in seconds)", "Bytes transmitted");
 

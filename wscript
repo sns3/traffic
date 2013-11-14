@@ -5,6 +5,7 @@ def build(bld):
     module.source = [
         'helper/http-client-trace-plot.cc',
         'helper/http-helper.cc',
+        'helper/nrtv-client-trace-plot.cc',
         'model/http-client.cc',
         'model/http-entity-header.cc',
         'model/http-server.cc',
@@ -25,6 +26,7 @@ def build(bld):
         'helper/histogram-plot-helper.h',
         'helper/http-client-trace-plot.h',
         'helper/http-helper.h',
+        'helper/nrtv-client-trace-plot.h',
         'model/http-client.h',
         'model/http-entity-header.h',
         'model/http-server.h',

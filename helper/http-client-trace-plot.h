@@ -47,7 +47,7 @@ class Packet;
  *         CreateObject<HttpClientTracePlot> (httpClient);
  *
  * By default, the Gnuplot file name is "http-client-trace.plt". This can be
- * modified by calling the SetOutputName method, or by using the extended
+ * modified by calling the SetOutputName() method, or by using the extended
  * constructor.
  *
  * The Gnuplot file can be converted to a PNG file, for example by using this
