@@ -32,13 +32,15 @@ NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
 
 /**
  * \ingroup traffic
- * \brief
+ * \brief Simple example of two nodes connected by a point-to-point link. One
+ *        acts as a video streaming server, while the other node acts as the
+ *        client.
  */
 int main (int argc, char *argv[])
 {
-  LogComponentEnableAll (LOG_PREFIX_ALL);
-  //LogComponentEnable ("NrtvClient", LOG_LEVEL_ALL);
-  //LogComponentEnable ("NrtvServer", LOG_LEVEL_ALL);
+//  LogComponentEnableAll (LOG_PREFIX_ALL);
+//  LogComponentEnable ("NrtvClient", LOG_WARN);
+//  LogComponentEnable ("NrtvServer", LOG_WARN);
 
   NodeContainer nodes;
   nodes.Create (2);
@@ -55,26 +57,15 @@ int main (int argc, char *argv[])
 
   Ipv4AddressHelper address;
   address.SetBase ("10.1.1.0", "255.255.255.0");
-
   Ipv4InterfaceContainer interfaces = address.Assign (devices);
-//  Ipv4Address clientAddress = interfaces.GetAddress (0);
-  Ipv4Address serverAddress = interfaces.GetAddress (1);
 
-  std::string protocol = "ns3::TcpSocketFactory";
+  NrtvHelper nrtvHelper ("ns3::TcpSocketFactory");
+  nrtvHelper.InstallUsingIpv4 (nodes.Get (1), nodes.Get (0));
+  nrtvHelper.GetServer ().Start (Seconds (1.0));
+  nrtvHelper.GetClients ().Start (Seconds (2.0));
 
-  Ptr<NrtvClient> nrtvClient = CreateObject<NrtvClient> ();
-  nrtvClient->SetAttribute ("Protocol", StringValue (protocol));
-  nrtvClient->SetAttribute ("RemoteServerAddress", AddressValue (serverAddress));
-  nrtvClient->SetStartTime (Seconds (2.0));
-  nodes.Get (0)->AddApplication (nrtvClient);
-
-  Ptr<NrtvServer> nrtvServer = CreateObject<NrtvServer> ();
-  nrtvServer->SetAttribute ("Protocol", StringValue (protocol));
-  nrtvServer->SetAttribute ("LocalAddress", AddressValue (serverAddress));
-  nrtvServer->SetStartTime (Seconds (1.0));
-  nodes.Get (1)->AddApplication (nrtvServer);
-
-  Ptr<NrtvClientTracePlot> plot = CreateObject<NrtvClientTracePlot> (nrtvClient);
+  Ptr<NrtvClientTracePlot> plot = CreateObject<NrtvClientTracePlot> (
+    nrtvHelper.GetClients ().Get (0)->GetObject<NrtvClient> ());
 
   Simulator::Stop (Seconds (10.0));
   Simulator::Run ();

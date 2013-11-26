@@ -19,12 +19,12 @@
  * Original work author (from packet-sink-helper.cc):
  * - Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *
- * Converted to HTTP traffic models by:
+ * Converted to NRTV traffic models by:
  * - Budiarto Herman <budiarto.herman@magister.fi>
  *
  */
 
-#include "http-helper.h"
+#include "nrtv-helper.h"
 #include <ns3/string.h>
 #include <ns3/inet-socket-address.h>
 #include <ns3/ipv4.h>
@@ -33,36 +33,36 @@
 namespace ns3 {
 
 
-// HTTP CLIENT HELPER /////////////////////////////////////////////////////////
+// NRTV CLIENT HELPER /////////////////////////////////////////////////////////
 
-HttpClientHelper::HttpClientHelper (std::string protocol, Address address)
+NrtvClientHelper::NrtvClientHelper (std::string protocol, Address address)
 {
-  m_factory.SetTypeId ("ns3::HttpClient");
+  m_factory.SetTypeId ("ns3::NrtvClient");
   m_factory.Set ("Protocol", StringValue (protocol));
   m_factory.Set ("RemoteServerAddress", AddressValue (address));
 }
 
 void
-HttpClientHelper::SetAttribute (std::string name, const AttributeValue &value)
+NrtvClientHelper::SetAttribute (std::string name, const AttributeValue &value)
 {
   m_factory.Set (name, value);
 }
 
 ApplicationContainer
-HttpClientHelper::Install (Ptr<Node> node) const
+NrtvClientHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-HttpClientHelper::Install (std::string nodeName) const
+NrtvClientHelper::Install (std::string nodeName) const
 {
   Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-HttpClientHelper::Install (NodeContainer c) const
+NrtvClientHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
@@ -74,7 +74,7 @@ HttpClientHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-HttpClientHelper::InstallPriv (Ptr<Node> node) const
+NrtvClientHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<Application> app = m_factory.Create<Application> ();
   node->AddApplication (app);
@@ -83,36 +83,36 @@ HttpClientHelper::InstallPriv (Ptr<Node> node) const
 }
 
 
-// HTTP SERVER HELPER /////////////////////////////////////////////////////////
+// NRTV SERVER HELPER /////////////////////////////////////////////////////////
 
-HttpServerHelper::HttpServerHelper (std::string protocol, Address address)
+NrtvServerHelper::NrtvServerHelper (std::string protocol, Address address)
 {
-  m_factory.SetTypeId ("ns3::HttpServer");
+  m_factory.SetTypeId ("ns3::NrtvServer");
   m_factory.Set ("Protocol", StringValue (protocol));
   m_factory.Set ("LocalAddress", AddressValue (address));
 }
 
 void
-HttpServerHelper::SetAttribute (std::string name, const AttributeValue &value)
+NrtvServerHelper::SetAttribute (std::string name, const AttributeValue &value)
 {
   m_factory.Set (name, value);
 }
 
 ApplicationContainer
-HttpServerHelper::Install (Ptr<Node> node) const
+NrtvServerHelper::Install (Ptr<Node> node) const
 {
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-HttpServerHelper::Install (std::string nodeName) const
+NrtvServerHelper::Install (std::string nodeName) const
 {
   Ptr<Node> node = Names::Find<Node> (nodeName);
   return ApplicationContainer (InstallPriv (node));
 }
 
 ApplicationContainer
-HttpServerHelper::Install (NodeContainer c) const
+NrtvServerHelper::Install (NodeContainer c) const
 {
   ApplicationContainer apps;
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
@@ -124,7 +124,7 @@ HttpServerHelper::Install (NodeContainer c) const
 }
 
 Ptr<Application>
-HttpServerHelper::InstallPriv (Ptr<Node> node) const
+NrtvServerHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<Application> app = m_factory.Create<Application> ();
   node->AddApplication (app);
@@ -133,35 +133,35 @@ HttpServerHelper::InstallPriv (Ptr<Node> node) const
 }
 
 
-// HTTP HELPER ////////////////////////////////////////////////////////////////
+// NRTV HELPER ////////////////////////////////////////////////////////////////
 
-HttpHelper::HttpHelper (std::string protocol)
+NrtvHelper::NrtvHelper (std::string protocol)
 {
   Address invalidAddr;
-  m_clientHelper = new HttpClientHelper (protocol, invalidAddr);
-  m_serverHelper = new HttpServerHelper (protocol, invalidAddr);
+  m_clientHelper = new NrtvClientHelper (protocol, invalidAddr);
+  m_serverHelper = new NrtvServerHelper (protocol, invalidAddr);
 }
 
-HttpHelper::~HttpHelper ()
+NrtvHelper::~NrtvHelper ()
 {
   delete m_clientHelper;
   delete m_serverHelper;
 }
 
 void
-HttpHelper::SetClientAttribute (std::string name, const AttributeValue &value)
+NrtvHelper::SetClientAttribute (std::string name, const AttributeValue &value)
 {
   m_clientHelper->SetAttribute (name, value);
 }
 
 void
-HttpHelper::SetServerAttribute (std::string name, const AttributeValue &value)
+NrtvHelper::SetServerAttribute (std::string name, const AttributeValue &value)
 {
   m_serverHelper->SetAttribute (name, value);
 }
 
 ApplicationContainer
-HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
+NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 {
   ApplicationContainer ret;
 
@@ -191,7 +191,7 @@ HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 }
 
 ApplicationContainer
-HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
+NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
 {
   ApplicationContainer ret;
 
@@ -221,13 +221,13 @@ HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
 }
 
 ApplicationContainer
-HttpHelper::GetClients () const
+NrtvHelper::GetClients () const
 {
   return m_lastInstalledClients;
 }
 
 ApplicationContainer
-HttpHelper::GetServer () const
+NrtvHelper::GetServer () const
 {
   return m_lastInstalledServer;
 }
