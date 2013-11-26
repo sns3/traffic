@@ -43,7 +43,8 @@ NrtvVariables::NrtvVariables ()
     m_numOfSlicesRng               (CreateObject<ConstantRandomVariable> ()),
     m_sliceSizeRng                 (CreateObject<TrafficBoundedParetoVariable> ()),
     m_sliceEncodingDelayRng        (CreateObject<TrafficBoundedParetoVariable> ()),
-    m_dejitterBufferWindowSizeRng  (CreateObject<ConstantRandomVariable> ())
+    m_dejitterBufferWindowSizeRng  (CreateObject<ConstantRandomVariable> ()),
+    m_idleTimeRng                  (CreateObject<ExponentialRandomVariable> ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -145,6 +146,14 @@ NrtvVariables::GetTypeId ()
                    TimeValue (Seconds (5)),
                    MakeTimeAccessor (&NrtvVariables::SetDejitterBufferWindowSize),
                    MakeTimeChecker ())
+
+    // IDLE TIME
+    .AddAttribute ("IdleTimeMean",
+                   "The mean of client's idle time.",
+                   TimeValue (Seconds (5)),
+                   MakeTimeAccessor (&NrtvVariables::SetIdleTimeMean,
+                                     &NrtvVariables::GetIdleTimeMean),
+                   MakeTimeChecker ())
   ;
   return tid;
 
@@ -200,6 +209,20 @@ NrtvVariables::GetDejitterBufferWindowSize ()
 }
 
 
+Time
+NrtvVariables::GetIdleTime ()
+{
+  return Seconds (m_idleTimeRng->GetValue ());
+}
+
+
+double
+NrtvVariables::GetIdleTimeSeconds ()
+{
+  return m_idleTimeRng->GetValue ();
+}
+
+
 void
 NrtvVariables::SetStream (int64_t stream)
 {
@@ -210,6 +233,8 @@ NrtvVariables::SetStream (int64_t stream)
   m_numOfSlicesRng->SetStream (stream);
   m_sliceSizeRng->SetStream (stream);
   m_sliceEncodingDelayRng->SetStream (stream);
+  m_dejitterBufferWindowSizeRng->SetStream (stream);
+  m_idleTimeRng->SetStream (stream);
 }
 
 
@@ -376,6 +401,24 @@ NrtvVariables::SetDejitterBufferWindowSize (Time constant)
   NS_LOG_FUNCTION (this << constant.GetSeconds ());
   m_dejitterBufferWindowSizeRng->SetAttribute ("Constant",
                                                DoubleValue (constant.GetSeconds ()));
+}
+
+
+// PARSING TIME ATTRIBUTES SETTER AND GETTER METHODS //////////////////////////
+
+
+void
+NrtvVariables::SetIdleTimeMean (Time mean)
+{
+  NS_LOG_FUNCTION (this << mean.GetSeconds ());
+  m_idleTimeRng->SetAttribute ("Mean", DoubleValue (mean.GetSeconds ()));
+}
+
+
+Time
+NrtvVariables::GetIdleTimeMean () const
+{
+  return Seconds (m_idleTimeRng->GetMean ());
 }
 
 

@@ -93,6 +93,14 @@ int main (int argc, char *argv[])
                                        nrtvVariables->GetSliceEncodingDelayMean ().GetMilliSeconds (),
                                        nrtvVariables->GetSliceEncodingDelayMax ().GetMilliSeconds ());
 
+  HistogramPlotHelper::Plot<double> (MakeCallback (&NrtvVariables::GetIdleTimeSeconds,
+                                                   nrtvVariables),
+                                     "nrtv-idle-time",
+                                     "Histogram of client idle time in NRTV traffic model",
+                                     "Idle time (in seconds)",
+                                     numOfSamples, 1, // bar width = 1 second
+                                     nrtvVariables->GetIdleTimeMean ().GetSeconds ());
+
   return 0;
 
 } // end of `int main (int argc, char *argv[])`

@@ -190,14 +190,10 @@ public:
    */
   Time GetParsingTime ();
 
-  /**
-   * \brief Equivalent with GetReadingTime(), but only for plotting purpose.
-   */
+  /// Equivalent with GetReadingTime(), but only for plotting purpose.
   double GetReadingTimeSeconds ();
 
-  /**
-   * \brief Equivalent with GetParsingTime(), but only for plotting purpose.
-   */
+  /// Equivalent with GetParsingTime(), but only for plotting purpose.
   double GetParsingTimeSeconds ();
 
   /**

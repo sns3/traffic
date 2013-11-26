@@ -132,10 +132,7 @@ public:
    */
   Time GetSliceEncodingDelay ();
 
-  /**
-   * \brief Equivalent with GetSliceEncodingDelay(), but only for plotting
-   *        purpose.
-   */
+  /// Equivalent with GetSliceEncodingDelay(), but only for plotting purpose.
   uint64_t GetSliceEncodingDelayMilliSeconds ();
 
   /**
@@ -147,6 +144,22 @@ public:
    * or by calling the SetDejitterBufferWindowSize() method.
    */
   Time GetDejitterBufferWindowSize ();
+
+  /**
+   * \brief Get a random length of time which is spent by a hypothetical human
+   *        user (NRTV client) to "rest" after a video session (e.g., posting a
+   *        comment about the video, selecting the next video) before
+   *        transitioning to the next video session.
+   *
+   * Client's idle time is determined by an exponential distribution. The
+   * default distribution settings produces random values with a mean of
+   * 5 seconds without any maximum bound. The mean can be modified by setting
+   * the `IdleTimeMean` attribute or by calling the SetIdleTimeMean() method.
+   */
+  Time GetIdleTime ();
+
+  /// Equivalent with GetIdleTIme(), but only for plotting purpose.
+  double GetIdleTimeSeconds ();
 
   /**
    * \brief Set a fixed random variable stream number to the random variables
@@ -195,9 +208,14 @@ public:
   Time GetSliceEncodingDelayMean () const;
   Time GetSliceEncodingDelayMax () const;
 
-  // DE-JITTER BUFFER WINDOW SIZE SETTER METHOD
+  // CLIENT'S DE-JITTER BUFFER WINDOW SIZE SETTER METHOD
 
   void SetDejitterBufferWindowSize (Time constant);
+
+  // CLIENT'S IDLE TIME SETTER METHODS
+
+  void SetIdleTimeMean (Time mean);
+  Time GetIdleTimeMean () const;
 
 private:
 
@@ -209,6 +227,7 @@ private:
   Ptr<TrafficBoundedParetoVariable>     m_sliceSizeRng;
   Ptr<TrafficBoundedParetoVariable>     m_sliceEncodingDelayRng;
   Ptr<ConstantRandomVariable>           m_dejitterBufferWindowSizeRng;
+  Ptr<ExponentialRandomVariable>        m_idleTimeRng;
 
 }; // end of `class NrtvVariables`
 
