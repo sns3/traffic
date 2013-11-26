@@ -128,7 +128,7 @@ public:
    * distribution. The default distribution settings produces random integers
    * with a mean of 10710 bytes and a standard deviation of 25032 bytes, and
    * then truncated to fit between 100 bytes and 2 MB. These default settings
-   * can be* modified via attributes or class methods.
+   * can be modified via attributes or class methods.
    */
   uint32_t GetMainObjectSize ();
 

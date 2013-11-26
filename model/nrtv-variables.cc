@@ -25,6 +25,7 @@
 #include <ns3/uinteger.h>
 #include <ns3/double.h>
 #include <ns3/rng-stream.h>
+#include <ns3/traffic-bounded-log-normal-variable.h>
 #include <ns3/traffic-bounded-pareto-variable.h>
 
 
@@ -37,7 +38,7 @@ NS_OBJECT_ENSURE_REGISTERED (NrtvVariables);
 
 
 NrtvVariables::NrtvVariables ()
-  : m_numOfFramesRng               (CreateObject<ExponentialRandomVariable> ()),
+  : m_numOfFramesRng               (CreateObject<TrafficBoundedLogNormalVariable> ()),
     m_frameIntervalRng             (CreateObject<ConstantRandomVariable> ()),
     m_numOfSlicesRng               (CreateObject<ConstantRandomVariable> ()),
     m_sliceSizeRng                 (CreateObject<TrafficBoundedParetoVariable> ()),
@@ -67,6 +68,21 @@ NrtvVariables::GetTypeId ()
                    UintegerValue (3000),
                    MakeUintegerAccessor (&NrtvVariables::SetNumOfFramesMean,
                                          &NrtvVariables::GetNumOfFramesMean),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumOfFramesStdDev",
+                   "The standard deviation of number of frames per video.",
+                   UintegerValue (2400),
+                   MakeUintegerAccessor (&NrtvVariables::SetNumOfFramesStdDev),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumOfFramesMin",
+                   "The minimum value of number of frames per video.",
+                   UintegerValue (200),
+                   MakeUintegerAccessor (&NrtvVariables::SetNumOfFramesMin),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("NumOfFramesMax",
+                   "The maximum value of number of frames per video.",
+                   UintegerValue (36000),
+                   MakeUintegerAccessor (&NrtvVariables::SetNumOfFramesMax),
                    MakeUintegerChecker<uint32_t> ())
 
     // FRAME INTERVAL
@@ -138,7 +154,7 @@ NrtvVariables::GetTypeId ()
 uint32_t
 NrtvVariables::GetNumOfFrames ()
 {
-  return m_numOfFramesRng->GetInteger ();
+  return m_numOfFramesRng->GetBoundedInteger ();
 }
 
 
@@ -204,8 +220,31 @@ void
 NrtvVariables::SetNumOfFramesMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  m_numOfFramesRng->SetAttribute ("Mean",
-                                  DoubleValue (static_cast<double> (mean)));
+  m_numOfFramesRng->SetMean (mean);
+}
+
+
+void
+NrtvVariables::SetNumOfFramesStdDev (uint32_t stdDev)
+{
+  NS_LOG_FUNCTION (this << stdDev);
+  m_numOfFramesRng->SetStdDev (stdDev);
+}
+
+
+void
+NrtvVariables::SetNumOfFramesMin (uint32_t min)
+{
+  NS_LOG_FUNCTION (this << min);
+  m_numOfFramesRng->SetMin (min);
+}
+
+
+void
+NrtvVariables::SetNumOfFramesMax (uint32_t max)
+{
+  NS_LOG_FUNCTION (this << max);
+  m_numOfFramesRng->SetMax (max);
 }
 
 

@@ -30,6 +30,7 @@
 namespace ns3 {
 
 
+class TrafficBoundedLogNormalVariable;
 class TrafficBoundedParetoVariable;
 
 
@@ -43,7 +44,7 @@ class TrafficBoundedParetoVariable;
  * according to NGMN [1] and WiMAX [2] specifications.
  *
  * The available random values to be retrieved are:
- * - number of frames per video --- unbounded exponential distribution with mean
+ * - number of frames per video --- truncated LogNormal distribution with mean
  *   of 3000 frames (i.e., 5 minutes of 10 fps video);
  * - frame interval --- constant 100 ms (i.e., 10 fps);
  * - number of slices per frame --- constant 8 slices (packets);
@@ -77,13 +78,14 @@ public:
   // THE MORE USEFUL METHODS
 
   /**
-   * \brief Get a random length of video in number of frames.
+   * \brief Get a random length of video (in number of frames) to be transmitted
+   *        by an NRTV server.
    *
-   * Number of frames per video is determined by an exponential distribution.
-   * The default distribution settings produces random values with a mean of
-   * 3000 frames without any maximum bound. The mean can be modified by setting
-   * the `NumOfFramesMean` attribute or by calling the SetNumOfFramesMean()
-   * method.
+   * Number of frames per video is determined by a truncated log-norma
+   * distribution. The default distribution settings produces random integers
+   * with a mean of 3000 frames and a standard deviation of 2400 frames, and
+   * then truncated to fit between 200 frames and 36000 frames. These default
+   * settings can be modified via attributes or class methods.
    */
   uint32_t GetNumOfFrames ();
 
@@ -164,6 +166,9 @@ public:
   // NUMBER OF FRAMES SETTER METHOD
 
   void SetNumOfFramesMean (uint32_t mean);
+  void SetNumOfFramesStdDev (uint32_t stdDev);
+  void SetNumOfFramesMin (uint32_t min);
+  void SetNumOfFramesMax (uint32_t max);
   uint32_t GetNumOfFramesMean () const;
 
   // FRAME INTERVAL SETTER METHOD
@@ -198,12 +203,12 @@ private:
 
   // RANDOM NUMBER VARIABLES
 
-  Ptr<ExponentialRandomVariable>     m_numOfFramesRng;
-  Ptr<ConstantRandomVariable>        m_frameIntervalRng;
-  Ptr<ConstantRandomVariable>        m_numOfSlicesRng;
-  Ptr<TrafficBoundedParetoVariable>  m_sliceSizeRng;
-  Ptr<TrafficBoundedParetoVariable>  m_sliceEncodingDelayRng;
-  Ptr<ConstantRandomVariable>        m_dejitterBufferWindowSizeRng;
+  Ptr<TrafficBoundedLogNormalVariable>  m_numOfFramesRng;
+  Ptr<ConstantRandomVariable>           m_frameIntervalRng;
+  Ptr<ConstantRandomVariable>           m_numOfSlicesRng;
+  Ptr<TrafficBoundedParetoVariable>     m_sliceSizeRng;
+  Ptr<TrafficBoundedParetoVariable>     m_sliceEncodingDelayRng;
+  Ptr<ConstantRandomVariable>           m_dejitterBufferWindowSizeRng;
 
 }; // end of `class NrtvVariables`
 

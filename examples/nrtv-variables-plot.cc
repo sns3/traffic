@@ -72,8 +72,8 @@ int main (int argc, char *argv[])
                                        "nrtv-num-of-frames",
                                        "Histogram of number of frames in NRTV traffic model",
                                        "Number of frames",
-                                       numOfSamples, 200, // bin width = 200 frames
-                                       nrtvVariables->GetNumOfFramesMean ());
+                                       numOfSamples, 100, // bin width = 100 frames
+                                       static_cast<double> (nrtvVariables->GetNumOfFramesMean ()));
 
   HistogramPlotHelper::Plot<uint32_t> (MakeCallback (&NrtvVariables::GetSliceSize,
                                                      nrtvVariables),
