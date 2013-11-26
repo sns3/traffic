@@ -37,7 +37,8 @@ NS_OBJECT_ENSURE_REGISTERED (NrtvVariables);
 
 
 NrtvVariables::NrtvVariables ()
-  : m_frameIntervalRng             (CreateObject<ConstantRandomVariable> ()),
+  : m_numOfFramesRng               (CreateObject<ExponentialRandomVariable> ()),
+    m_frameIntervalRng             (CreateObject<ConstantRandomVariable> ()),
     m_numOfSlicesRng               (CreateObject<ConstantRandomVariable> ()),
     m_sliceSizeRng                 (CreateObject<TrafficBoundedParetoVariable> ()),
     m_sliceEncodingDelayRng        (CreateObject<TrafficBoundedParetoVariable> ()),
@@ -59,6 +60,14 @@ NrtvVariables::GetTypeId ()
                    IntegerValue (-1),
                    MakeIntegerAccessor (&NrtvVariables::SetStream),
                    MakeIntegerChecker<int64_t> ())
+
+    // NUMBER OF FRAMES
+    .AddAttribute ("NumOfFramesMean",
+                   "The mean of number of frames per video.",
+                   UintegerValue (3000),
+                   MakeUintegerAccessor (&NrtvVariables::SetNumOfFramesMean,
+                                         &NrtvVariables::GetNumOfFramesMean),
+                   MakeUintegerChecker<uint32_t> ())
 
     // FRAME INTERVAL
     .AddAttribute ("FrameInterval",
@@ -126,6 +135,13 @@ NrtvVariables::GetTypeId ()
 } // end of `TypeId NrtvVariables::GetTypeId ()`
 
 
+uint32_t
+NrtvVariables::GetNumOfFrames ()
+{
+  return m_numOfFramesRng->GetInteger ();
+}
+
+
 Time
 NrtvVariables::GetFrameInterval ()
 {
@@ -173,6 +189,7 @@ NrtvVariables::SetStream (int64_t stream)
 {
   NS_LOG_FUNCTION (this << stream);
 
+  m_numOfFramesRng->SetStream (stream);
   m_frameIntervalRng->SetStream (stream);
   m_numOfSlicesRng->SetStream (stream);
   m_sliceSizeRng->SetStream (stream);
@@ -180,7 +197,26 @@ NrtvVariables::SetStream (int64_t stream)
 }
 
 
-// FRAME INTERVAL SETTER METHODS //////////////////////////////////////////////
+// NUMBER OF FRAMES PER VIDEO ATTRIBUTE SETTER AND GETTER METHODS /////////////
+
+
+void
+NrtvVariables::SetNumOfFramesMean (uint32_t mean)
+{
+  NS_LOG_FUNCTION (this << mean);
+  m_numOfFramesRng->SetAttribute ("Mean",
+                                  DoubleValue (static_cast<double> (mean)));
+}
+
+
+uint32_t
+NrtvVariables::GetNumOfFramesMean () const
+{
+  return m_numOfFramesRng->GetMean ();
+}
+
+
+// FRAME INTERVAL ATTRIBUTE SETTER METHODS ////////////////////////////////////
 
 
 void
@@ -192,7 +228,7 @@ NrtvVariables::SetFrameInterval (Time constant)
 }
 
 
-// NUMBER OF SLICES PER FRAME SETTER METHODS //////////////////////////////////
+// NUMBER OF SLICES PER FRAME ATTRIBUTE SETTER METHODS ////////////////////////
 
 
 void
@@ -204,7 +240,7 @@ NrtvVariables::SetNumOfSlices (uint16_t constant)
 }
 
 
-// SLICE SIZE ATTRIBUTES SETTER AND GETTER METHODS ////////////////////////////
+// SLICE SIZE ATTRIBUTE SETTER AND GETTER METHODS /////////////////////////////
 
 
 void
@@ -248,7 +284,7 @@ NrtvVariables::GetSliceSizeMax () const
 }
 
 
-// SLICE ENCODING DELAY ATTRIBUTES SETTER AND GETTER METHODS //////////////////
+// SLICE ENCODING DELAY ATTRIBUTE SETTER AND GETTER METHODS ///////////////////
 
 
 void
@@ -292,7 +328,7 @@ NrtvVariables::GetSliceEncodingDelayMax () const
 }
 
 
-// DE-JITTER BUFFER WINDOW SIZE SETTER METHODS ////////////////////////////////
+// DE-JITTER BUFFER WINDOW SIZE ATTRIBUTE SETTER METHODS //////////////////////
 
 
 void

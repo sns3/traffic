@@ -67,6 +67,14 @@ int main (int argc, char *argv[])
   Ptr<NrtvVariables> nrtvVariables = CreateObject<NrtvVariables> ();
   //nrtvVariables->SetStream (99);
 
+  HistogramPlotHelper::Plot<uint32_t> (MakeCallback (&NrtvVariables::GetNumOfFrames,
+                                                     nrtvVariables),
+                                       "nrtv-num-of-frames",
+                                       "Histogram of number of frames in NRTV traffic model",
+                                       "Number of frames",
+                                       numOfSamples, 200, // bin width = 200 frames
+                                       nrtvVariables->GetNumOfFramesMean ());
+
   HistogramPlotHelper::Plot<uint32_t> (MakeCallback (&NrtvVariables::GetSliceSize,
                                                      nrtvVariables),
                                        "nrtv-slice-size",

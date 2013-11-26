@@ -39,17 +39,21 @@ class TrafficBoundedParetoVariable;
  *        streaming traffic pattern by the Near Real Time Video (NRTV) traffic
  *        model.
  *
- * The default configuration of the underlying random distributions are
+ * The default configuration of some of the underlying random distributions are
  * according to NGMN [1] and WiMAX [2] specifications.
  *
  * The available random values to be retrieved are:
+ * - number of frames per video --- unbounded exponential distribution with mean
+ *   of 3000 frames (i.e., 5 minutes of 10 fps video);
  * - frame interval --- constant 100 ms (i.e., 10 fps);
  * - number of slices per frame --- constant 8 slices (packets);
  * - slice size --- truncated Pareto distribution with mean of approximately
  *   82.64 bytes;
  * - slice encoding delay --- truncated Pareto distribution with mean of
- *   approximately 5.31 ms; and
- * - client's de-jitter buffer window size --- constant 5 seconds.
+ *   approximately 5.31 ms;
+ * - client's de-jitter buffer window size --- constant 5 seconds; and
+ * - client's idle time --- unbounded exponential distribution with mean of
+ *   5 seconds.
  *
  * Most parameters of the random distributions are configurable via attributes
  * and methods of this class.
@@ -71,6 +75,17 @@ public:
   static TypeId GetTypeId ();
 
   // THE MORE USEFUL METHODS
+
+  /**
+   * \brief Get a random length of video in number of frames.
+   *
+   * Number of frames per video is determined by an exponential distribution.
+   * The default distribution settings produces random values with a mean of
+   * 3000 frames without any maximum bound. The mean can be modified by setting
+   * the `NumOfFramesMean` attribute or by calling the SetNumOfFramesMean()
+   * method.
+   */
+  uint32_t GetNumOfFrames ();
 
   /**
    * \brief Get a constant length of time between consecutive frames.
@@ -146,6 +161,11 @@ public:
 
   // THE REST ARE THE NOT-SO-USEFUL METHODS
 
+  // NUMBER OF FRAMES SETTER METHOD
+
+  void SetNumOfFramesMean (uint32_t mean);
+  uint32_t GetNumOfFramesMean () const;
+
   // FRAME INTERVAL SETTER METHOD
 
   void SetFrameInterval (Time constant);
@@ -178,6 +198,7 @@ private:
 
   // RANDOM NUMBER VARIABLES
 
+  Ptr<ExponentialRandomVariable>     m_numOfFramesRng;
   Ptr<ConstantRandomVariable>        m_frameIntervalRng;
   Ptr<ConstantRandomVariable>        m_numOfSlicesRng;
   Ptr<TrafficBoundedParetoVariable>  m_sliceSizeRng;
