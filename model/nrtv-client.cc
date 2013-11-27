@@ -92,6 +92,12 @@ NrtvClient::GetTypeId ()
     .AddTraceSource ("Rx",
                      "A packet of has been received",
                      MakeTraceSourceAccessor (&NrtvClient::m_rxTrace))
+    .AddTraceSource ("RxSlice",
+                     "Received a whole frame",
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxSliceTrace))
+    .AddTraceSource ("RxFrame",
+                     "Received a whole frame",
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxFrameTrace))
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every NRTV client state transition",
                      MakeTraceSourceAccessor (&NrtvClient::m_stateTransitionTrace))
@@ -141,6 +147,9 @@ NrtvClient::GetStateString (NrtvClient::State_t state)
       break;
     case RECEIVING:
       return "RECEIVING";
+      break;
+    case IDLE:
+      return "IDLE";
       break;
     case STOPPED:
       return "STOPPED";
@@ -241,8 +250,11 @@ NrtvClient::NormalCloseCallback (Ptr<Socket> socket)
   NS_LOG_FUNCTION (this << socket);
 
   CancelAllPendingEvents ();
-  m_eventRetryConnection = Simulator::ScheduleNow (
-    &NrtvClient::RetryConnection, this);
+  SwitchToState (IDLE);
+  Time idleTime = m_nrtvVariables->GetIdleTime ();
+  NS_LOG_INFO (this << " a video has just completed, now waiting for "
+                    << idleTime.GetSeconds () << " seconds before the next video");
+  Simulator::Schedule (idleTime, &NrtvClient::OpenConnection, this);
 }
 
 
@@ -254,6 +266,7 @@ NrtvClient::ErrorCloseCallback (Ptr<Socket> socket)
   CancelAllPendingEvents ();
   m_eventRetryConnection = Simulator::ScheduleNow (
     &NrtvClient::RetryConnection, this);
+  /// \todo This won't work because the socket is already closed
 }
 
 
@@ -308,9 +321,11 @@ NrtvClient::OpenConnection ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_state == NOT_STARTED)
+  if (m_state == NOT_STARTED || m_state == IDLE)
     {
       m_socket = Socket::CreateSocket (GetNode (), m_protocol);
+      NS_LOG_INFO (this << " created socket " << m_socket
+                        << " of " << m_protocol.GetName ());
       int ret;
 
       if (Ipv4Address::IsMatchingType (m_remoteServerAddress))

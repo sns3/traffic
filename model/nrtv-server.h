@@ -73,11 +73,17 @@ protected:
   virtual void StopApplication ();
 
 private:
+  // SOCKET CALLBACKS
+
   bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
   void NewConnectionCreatedCallback (Ptr<Socket> socket,
                                      const Address & address);
   void NormalCloseCallback (Ptr<Socket> socket);
   void ErrorCloseCallback (Ptr<Socket> socket);
+
+  // VIDEO WORKER CALLBACK
+
+  void NotifyVideoCompleted (Ptr<Socket> socket);
 
   void SwitchToState (State_t state);
 
@@ -111,6 +117,7 @@ class NrtvServerVideoWorker : public SimpleRefCount<NrtvServerVideoWorker>
 {
 public:
   NrtvServerVideoWorker (NrtvServer* server, Ptr<Socket> socket);
+  virtual ~NrtvServerVideoWorker ();
 
   void NormalCloseCallback (Ptr<Socket> socket);
   void ErrorCloseCallback (Ptr<Socket> socket);
@@ -136,7 +143,6 @@ private:
   uint32_t            m_numOfFramesServed;
   uint16_t            m_numOfSlices;
   uint16_t            m_numOfSlicesServed;
-  bool                m_isLastFrame;
   Ptr<NrtvVariables>  m_nrtvVariables;
 
 }; // end of `class NrtvServerVideoWorker`

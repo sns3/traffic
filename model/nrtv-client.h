@@ -55,6 +55,7 @@ public:
     NOT_STARTED = 0,
     CONNECTING,
     RECEIVING,
+    IDLE,
     STOPPED
   };
 
@@ -98,6 +99,8 @@ private:
   // TRACE SOURCES
 
   TracedCallback<Ptr<const Packet> >        m_rxTrace;
+  TracedCallback<uint16_t, uint16_t>        m_rxSliceTrace;
+  TracedCallback<uint32_t, uint32_t>        m_rxFrameTrace;
   TracedCallback<std::string, std::string>  m_stateTransitionTrace;
 
   // EVENTS

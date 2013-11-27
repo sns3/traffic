@@ -307,8 +307,12 @@ HttpServer::StopApplication ()
   if (m_initialSocket != 0)
     {
       m_initialSocket->Close ();
-      m_initialSocket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      m_initialSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>, const Address &> (),
+                                          MakeNullCallback<void, Ptr<Socket>, const Address &> ());
+      m_initialSocket->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                                          MakeNullCallback<void, Ptr<Socket> > ());
       m_initialSocket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+      m_initialSocket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
     }
 
 }
@@ -524,7 +528,7 @@ HttpServer::ServeNewMainObject (Ptr<Socket> socket)
   NS_LOG_INFO (this << " main object to be served is "
                     << objectSize << " bytes");
   m_txBuffer->WriteNewObject (socket, HttpEntityHeader::MAIN_OBJECT,
-                               objectSize);
+                              objectSize);
   uint32_t actualSent = ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
@@ -548,7 +552,7 @@ HttpServer::ServeNewEmbeddedObject (Ptr<Socket> socket)
   NS_LOG_INFO (this << " embedded object to be served is "
                     << objectSize << " bytes");
   m_txBuffer->WriteNewObject (socket, HttpEntityHeader::EMBEDDED_OBJECT,
-                               objectSize);
+                              objectSize);
   uint32_t actualSent = ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
@@ -721,8 +725,10 @@ HttpServerTxBuffer::RemoveSocket (Ptr<Socket> socket)
       Simulator::Cancel (it->second.nextServe);
     }
 
-  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  it->first->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                                MakeNullCallback<void, Ptr<Socket> > ());
   it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
 
   m_txBuffer.erase (it);
 }
@@ -754,8 +760,10 @@ HttpServerTxBuffer::CloseSocket (Ptr<Socket> socket)
     }
 
   it->first->Close ();
-  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  it->first->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                                MakeNullCallback<void, Ptr<Socket> > ());
   it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+  it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
 
   m_txBuffer.erase (it);
 }
@@ -779,8 +787,10 @@ HttpServerTxBuffer::CloseAllSockets ()
         }
 
       it->first->Close ();
-      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      it->first->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                                    MakeNullCallback<void, Ptr<Socket> > ());
       it->first->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
     }
 
   m_txBuffer.clear ();

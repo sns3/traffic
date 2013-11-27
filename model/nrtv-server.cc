@@ -338,6 +338,19 @@ NrtvServer::ErrorCloseCallback (Ptr<Socket> socket)
 
 
 void
+NrtvServer::NotifyVideoCompleted (Ptr<Socket> socket)
+{
+  NS_LOG_FUNCTION (this << socket);
+
+  // remove the worker entry
+  std::map<Ptr<Socket>, Ptr<NrtvServerVideoWorker> >::iterator it
+      = m_workers.find (socket);
+  NS_ASSERT (it != m_workers.end ());
+  m_workers.erase (it); // this will destroy the worker and close its socket
+}
+
+
+void
 NrtvServer::SwitchToState (NrtvServer::State_t state)
 {
   std::string oldState = GetStateString ();
@@ -358,8 +371,7 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
     m_socket (socket),
     m_txBufferSize (0),
     m_numOfFramesServed (0),
-    m_numOfSlicesServed (0),
-    m_isLastFrame (false)
+    m_numOfSlicesServed (0)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -383,6 +395,18 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
                                          this));
 
   Simulator::ScheduleNow (&NrtvServerVideoWorker::NewFrame, this);
+}
+
+
+NrtvServerVideoWorker::~NrtvServerVideoWorker ()
+{
+  NS_LOG_FUNCTION (this);
+
+  // close the socket
+  m_socket->Close ();
+  m_socket->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                               MakeNullCallback<void, Ptr<Socket> > ());
+  m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
 }
 
 
@@ -452,8 +476,11 @@ NrtvServerVideoWorker::NewFrame ()
     }
   else
     {
-      m_isLastFrame = true;
-      NS_LOG_INFO ("No more frame after this");
+      // inform the server instance
+      NS_LOG_INFO (this << " no more frame after this");
+      m_eventNewFrame = Simulator::Schedule (m_frameInterval,
+                                             &NrtvServer::NotifyVideoCompleted,
+                                             m_server, m_socket);
     }
 
   m_numOfSlicesServed = 0;
@@ -474,8 +501,7 @@ NrtvServerVideoWorker::ScheduleNewSlice ()
                      << " while new frame is coming in "
                      << Simulator::GetDelayLeft (m_eventNewFrame).GetMilliSeconds () << " ms");
 
-  if (m_isLastFrame
-      || (encodingDelay < Simulator::GetDelayLeft (m_eventNewFrame)))
+  if (encodingDelay < Simulator::GetDelayLeft (m_eventNewFrame))
     {
       // still time for a new slice
       NS_LOG_INFO (this << " video slice " << sliceNumber << " will be generated in "

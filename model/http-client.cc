@@ -290,6 +290,7 @@ HttpClient::NormalCloseCallback (Ptr<Socket> socket)
     {
       m_eventRetryConnection = Simulator::ScheduleNow (
         &HttpClient::RetryConnection, this);
+      /// \todo This won't work because the socket is already closed
     }
 }
 
@@ -304,6 +305,7 @@ HttpClient::ErrorCloseCallback (Ptr<Socket> socket)
     {
       m_eventRetryConnection = Simulator::ScheduleNow (
         &HttpClient::RetryConnection, this);
+      /// \todo This won't work because the socket is already closed
     }
 }
 
@@ -498,8 +500,12 @@ HttpClient::CloseConnection ()
   if (m_socket != 0)
     {
       m_socket->Close ();
-      m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+      m_socket->SetConnectCallback (MakeNullCallback<void, Ptr<Socket> > (),
+                                    MakeNullCallback<void, Ptr<Socket> > ());
+      m_socket->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
+                                   MakeNullCallback<void, Ptr<Socket> > ());
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
+      m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
     }
 }
 
