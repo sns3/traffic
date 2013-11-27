@@ -1,7 +1,7 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    module = bld.create_ns3_module('traffic', ['core', 'internet', 'tools'])
+    module = bld.create_ns3_module('traffic', ['core', 'applications'])
     module.source = [
         'helper/http-client-trace-plot.cc',
         'helper/http-helper.cc',
@@ -12,6 +12,7 @@ def build(bld):
         'model/http-server.cc',
         'model/http-variables.cc',
         'model/nrtv-client.cc',
+        'model/nrtv-header.cc',
         'model/nrtv-server.cc',
         'model/nrtv-variables.cc',
         'model/traffic-bounded-log-normal-variable.cc',
@@ -34,6 +35,7 @@ def build(bld):
         'model/http-server.h',
         'model/http-variables.h',
         'model/nrtv-client.h',
+        'model/nrtv-header.h',
         'model/nrtv-server.h',
         'model/nrtv-variables.h',
         'model/traffic-bounded-log-normal-variable.h',

@@ -26,6 +26,8 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/nrtv-variables.h>
+#include <ns3/nrtv-header.h>
+#include <ns3/seq-ts-header.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -93,7 +95,7 @@ NrtvClient::GetTypeId ()
                      "A packet of has been received",
                      MakeTraceSourceAccessor (&NrtvClient::m_rxTrace))
     .AddTraceSource ("RxSlice",
-                     "Received a whole frame",
+                     "Received a whole slice",
                      MakeTraceSourceAccessor (&NrtvClient::m_rxSliceTrace))
     .AddTraceSource ("RxFrame",
                      "Received a whole frame",
@@ -287,6 +289,7 @@ NrtvClient::ReceivedDataCallback (Ptr<Socket> socket)
               break; // EOF
             }
 
+#ifdef NS3_LOG_ENABLE
           if (InetSocketAddress::IsMatchingType (from))
             {
               NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
@@ -301,8 +304,10 @@ NrtvClient::ReceivedDataCallback (Ptr<Socket> socket)
                                 << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
                                 << " / " << InetSocketAddress::ConvertFrom (from));
             }
+#endif /* NS3_LOG_ENABLE */
 
           m_rxTrace (packet);
+          Receive (packet);
 
         } // end of `while ((packet = socket->RecvFrom (from)))`
 
@@ -434,6 +439,54 @@ NrtvClient::CloseConnection ()
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
     }
 }
+
+
+uint32_t
+NrtvClient::Receive (Ptr<Packet> packet)
+{
+  NS_LOG_FUNCTION (this << packet);
+
+  /*
+   * The headers of the slice (packet) consist of SeqTsHeader and NrtvHeader.
+   * Unfortunately we can't avoid hard-coding the size of SeqTsHeader (12 bytes)
+   * here.
+   */
+  uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
+  NS_ASSERT_MSG (packet->GetSize () >= headerSize,
+                 "Invalid packet, it is too small");
+
+  SeqTsHeader seqTsHeader;
+  packet->RemoveHeader (seqTsHeader);
+  NS_ASSERT_MSG (seqTsHeader.GetSeq () > 0, "Invalid SeqTs header");
+
+  NrtvHeader nrtvHeader;
+  packet->RemoveHeader (nrtvHeader);
+  NS_ASSERT_MSG (nrtvHeader.GetFrameNumber () > 0, "Invalid NRTV header");
+
+  uint16_t sliceNumber = nrtvHeader.GetSliceNumber ();
+  uint16_t numOfSlices = nrtvHeader.GetNumOfSlices ();
+  NS_LOG_INFO (this << " received slice " << sliceNumber
+                    << " out of " << numOfSlices << " slices");
+  m_rxSliceTrace (sliceNumber, numOfSlices);
+
+  if (sliceNumber == numOfSlices)
+    {
+      // this is the last slice, hence we just received a complete frame
+      uint32_t frameNumber = nrtvHeader.GetFrameNumber ();
+      uint32_t numOfFrames = nrtvHeader.GetNumOfFrames ();
+      NS_LOG_INFO (this << " received frame " << frameNumber
+                        << " out of " << numOfFrames << " frames");
+      m_rxFrameTrace (frameNumber, numOfFrames);
+
+      if (frameNumber == numOfFrames)
+        {
+          // this is the last frame
+        }
+    }
+
+  return packet->GetSize ();
+
+} // end of `uint32_t Receive (packet)`
 
 
 void

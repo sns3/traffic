@@ -222,14 +222,14 @@ HttpServer::StartApplication ()
 
           // creating a TCP socket to connect to the server
           m_initialSocket = Socket::CreateSocket (GetNode (), m_protocol);
-#ifdef NS3_ASSERT_ENABLE
+#ifdef NS3_LOG_ENABLE
           UintegerValue mtu;
           m_initialSocket->GetAttribute ("SegmentSize", mtu);
           NS_LOG_INFO (this << " created socket " << m_initialSocket
                             << " of " << m_protocol.GetName ()
                             << " with MTU of " << mtu.Get () << " bytes");
           NS_UNUSED (mtu);
-#endif /* NS3_ASSERT_ENABLE */
+#endif /* NS3_LOG_ENABLE */
 
           Config::SetDefault ("ns3::TcpSocket::SegmentSize",
                               *previousSocketMtu); // reset it back
@@ -333,13 +333,13 @@ HttpServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
 {
   NS_LOG_FUNCTION (this << socket << address);
 
-#ifdef NS3_ASSERT_ENABLE
+#ifdef NS3_LOG_ENABLE
   UintegerValue mtu;
   socket->GetAttribute ("SegmentSize", mtu);
   NS_LOG_INFO (this << " new connection from socket " << socket
                     << " with MTU of " << mtu.Get () << " bytes");
   NS_UNUSED (mtu);
-#endif /* NS3_ASSERT_ENABLE */
+#endif /* NS3_LOG_ENABLE */
 
   socket->SetCloseCallbacks (MakeCallback (&HttpServer::NormalCloseCallback,
                                            this),
@@ -405,7 +405,7 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
   while ((packet = socket->RecvFrom (from)))
     {
 
-#ifdef NS3_ASSERT_ENABLE
+#ifdef NS3_LOG_ENABLE
       if (InetSocketAddress::IsMatchingType (from))
         {
           NS_LOG_INFO (this << " a packet of " << packet->GetSize () << " bytes"
@@ -420,7 +420,7 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
                             << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
                             << " / " << InetSocketAddress::ConvertFrom (from));
         }
-#endif /* NS3_ASSERT_ENABLE */
+#endif /* NS3_LOG_ENABLE */
 
       if (packet->GetSize () < HttpEntityHeader::GetStaticSerializedSize ())
         {
@@ -475,7 +475,7 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
       uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
       uint32_t actualSent = ServeFromTxBuffer (socket);
 
-#ifdef NS3_ASSERT_ENABLE
+#ifdef NS3_LOG_ENABLE
       if (actualSent < txBufferSize)
         {
           switch (m_txBuffer->GetBufferContentType (socket))
@@ -508,7 +508,7 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
               break;
           }
         }
-#endif /* NS3_ASSERT_ENABLE */
+#endif /* NS3_LOG_ENABLE */
 
       // mute compiler warning
       NS_UNUSED (txBufferSize);

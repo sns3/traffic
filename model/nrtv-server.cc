@@ -26,6 +26,8 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/nrtv-variables.h>
+#include <ns3/nrtv-header.h>
+#include <ns3/seq-ts-header.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -369,7 +371,7 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
                                               Ptr<Socket> socket)
   : m_server (server),
     m_socket (socket),
-    m_txBufferSize (0),
+    m_packetSeq (0),
     m_numOfFramesServed (0),
     m_numOfSlicesServed (0)
 {
@@ -391,10 +393,21 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
                                            this),
                              MakeCallback (&NrtvServerVideoWorker::ErrorCloseCallback,
                                            this));
+
+  /*
+   * The following callback is not used, because we assume our Tx rate is rather
+   * mild (i.e., individual packet sizes are relatively small), so socket is
+   * assumed to be always available for transmission.
+   *
+   * \todo Might be a wrong assumption.
+   */
+#ifdef NS3_LOG_ENABLE
   socket->SetSendCallback (MakeCallback (&NrtvServerVideoWorker::SendCallback,
                                          this));
+#endif /* NS3_LOG_ENABLE */
 
   Simulator::ScheduleNow (&NrtvServerVideoWorker::NewFrame, this);
+
 }
 
 
@@ -440,12 +453,6 @@ NrtvServerVideoWorker::SendCallback (Ptr<Socket> socket,
   NS_ASSERT_MSG (m_socket == socket,
                  "Socket " << m_socket << " is expected, "
                            << "but socket " << socket << " is received");
-
-  if (availableBufferSize > 0)
-    {
-      // this must be an unfinished transmission
-      ServeFromTxBuffer ();
-    }
 }
 
 
@@ -527,62 +534,74 @@ NrtvServerVideoWorker::NewSlice ()
   m_numOfSlicesServed++;
   NS_LOG_FUNCTION (this << m_numOfSlicesServed << m_numOfSlices);
 
+  uint32_t socketSize = m_socket->GetTxAvailable ();
+  NS_LOG_DEBUG (this << " socket has " << socketSize
+                     << " bytes available for Tx");
+
   uint32_t sliceSize = m_nrtvVariables->GetSliceSize ();
   NS_LOG_INFO (this << " video slice " << m_numOfSlicesServed
                     << " is " << sliceSize << " bytes");
-  m_txBufferSize += sliceSize;
-  ServeFromTxBuffer (); // this will deplete m_txBufferSize
 
+  /*
+   * The headers of the slice (packet) consist of SeqTsHeader and NrtvHeader.
+   * Unfortunately we can't avoid hard-coding the size of SeqTsHeader (12 bytes)
+   * here.
+   */
+  uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
+  uint32_t contentSize = std::min (sliceSize,
+                                   socketSize - headerSize);
+  NS_ASSERT_MSG (contentSize == sliceSize, "Socket size is too small");
+
+  m_packetSeq++;
+  SeqTsHeader seqTsHeader;
+  seqTsHeader.SetSeq (m_packetSeq);
+
+  NrtvHeader nrtvHeader;
+  nrtvHeader.SetFrameNumber (m_numOfFramesServed);
+  nrtvHeader.SetNumOfFrames (m_numOfFrames);
+  nrtvHeader.SetSliceNumber (m_numOfSlicesServed);
+  nrtvHeader.SetNumOfSlices (m_numOfSlices);
+
+  Ptr<Packet> packet = Create<Packet> (contentSize);
+  /*
+   * Adding the headers in reverse order, so that when the client receive the
+   * packet, the SeqTs header will be the first to be read.
+   */
+  packet->AddHeader (nrtvHeader);
+  packet->AddHeader (seqTsHeader);
+
+  uint32_t packetSize = packet->GetSize ();
+  NS_ASSERT (packetSize == (contentSize + headerSize));
+  NS_ASSERT (packetSize <= socketSize);
+
+  NS_LOG_INFO (this << " created packet " << packet << " of "
+                    << packetSize << " bytes");
+
+  int actualBytes = m_socket->Send (packet);
+  NS_LOG_DEBUG (this << " Send() packet " << packet
+                     << " of " << packetSize << " bytes,"
+                     << " return value= " << actualBytes);
+  m_server->m_txTrace (packet);
+
+#ifdef NS3_LOG_ENABLE
+  if ((unsigned) actualBytes == packetSize)
+    {
+      // nothing
+    }
+  else
+    {
+      /// \todo We don't do retry at the moment, so we just do nothing in this case
+      NS_LOG_ERROR (this << " failure in sending packet");
+    }
+#endif /* NS3_LOG_ENABLE */
+
+  // make way for the next slice
   if (m_numOfSlicesServed < m_numOfSlices)
     {
       ScheduleNewSlice ();
     }
-}
 
-
-uint32_t
-NrtvServerVideoWorker::ServeFromTxBuffer ()
-{
-  NS_LOG_FUNCTION (this);
-
-  uint32_t packetSize = std::min (m_txBufferSize,
-                                  m_socket->GetTxAvailable ());
-  if (packetSize > 0)
-    {
-      Ptr<Packet> packet = Create<Packet> (packetSize);
-      NS_LOG_INFO (this << " created packet " << packet << " of "
-                   << packetSize << " bytes");
-      int actualBytes = m_socket->Send (packet);
-      NS_LOG_DEBUG (this << " Send() packet " << packet
-                    << " of " << packetSize << " bytes,"
-                    << " return value= " << actualBytes);
-      m_server->m_txTrace (packet);
-
-      if ((unsigned) actualBytes == packetSize)
-        {
-          // the packet go through successfully
-          NS_ASSERT (m_txBufferSize >= packetSize);
-          m_txBufferSize -= packetSize;
-          NS_LOG_INFO (this << " remaining buffer to be transmitted "
-                       << m_txBufferSize << " bytes");
-          return packetSize;
-        }
-      else
-        {
-          NS_LOG_INFO (this << " failed to send packet,"
-                       << " GetErrNo= " << m_socket->GetErrno () << ","
-                       << " suspending transmission"
-                       << " and waiting for another Tx opportunity");
-          return 0;
-        }
-
-    } // end of `if (packetSize > 0)`
-  else
-    {
-      return 0;
-    }
-
-} // end of `uint32_t ServeFromTxBuffer ()`
+} // end of `void NewSlice ()`
 
 
 } // end of `namespace ns3`

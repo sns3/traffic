@@ -128,7 +128,6 @@ private:
   void NewFrame ();
   void ScheduleNewSlice ();
   void NewSlice ();
-  uint32_t ServeFromTxBuffer ();
 
   // EVENTS
 
@@ -137,7 +136,7 @@ private:
 
   NrtvServer*         m_server;
   Ptr<Socket>         m_socket;
-  uint32_t            m_txBufferSize;
+  uint32_t            m_packetSeq;
   Time                m_frameInterval;
   uint32_t            m_numOfFrames;
   uint32_t            m_numOfFramesServed;

@@ -45,7 +45,7 @@ namespace ns3 {
  *     httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
  *     httpEntity.SetContentLength (350); // in bytes
  *
- * Finally, you can append the header to a packet, e.g.:
+ * Finally, we can append the header to a packet, e.g.:
  *
  *     Ptr<Packet> packet = Create<Packet> (530);
  *     packet->AddHeader (httpEntityHeader);
@@ -54,7 +54,7 @@ namespace ns3 {
  * will become 536 bytes long.
  *
  * Another use case is upon receiving a packet and reading the header content.
- * First of all, make sure the received packet is at least 6 bytes long (you
+ * First of all, make sure the received packet is at least 6 bytes long (we
  * may use GetStaticSerializedSize() to avoid hard-coding a bare figure).
  * Then strip the header from the packet to read its content, for example:
  *
@@ -70,7 +70,7 @@ namespace ns3 {
  *         uint32_t contentLength = httpEntity.GetContentLength ();
  *       }
  *
- * Instead of Packet::RemoveHeader(), you may use Packet::PeekHeader() if you
+ * Instead of Packet::RemoveHeader(), we may use Packet::PeekHeader() if we
  * want to keep the header in the packet.
  *
  * \warning You will get an error if you invoke Packet::RemoveHeader() or

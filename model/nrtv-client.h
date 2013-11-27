@@ -82,6 +82,8 @@ private:
   void RetryConnection ();
   void CloseConnection ();
 
+  uint32_t Receive (Ptr<Packet> packet);
+
   void CancelAllPendingEvents ();
   void SwitchToState (State_t state);
 

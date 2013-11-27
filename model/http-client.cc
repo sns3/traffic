@@ -383,14 +383,14 @@ HttpClient::OpenConnection ()
 
       m_socket = Socket::CreateSocket (GetNode (), m_protocol);
 
-#ifdef NS3_ASSERT_ENABLE
+#ifdef NS3_LOG_ENABLE
       UintegerValue mtu;
       m_socket->GetAttribute ("SegmentSize", mtu);
       NS_LOG_INFO (this << " created socket " << m_socket
                         << " of " << m_protocol.GetName ()
                         << " with MTU of " << mtu.Get () << " bytes");
       NS_UNUSED (mtu);
-#endif /* NS3_ASSERT_ENABLE */
+#endif /* NS3_LOG_ENABLE */
 
       int ret;
 
