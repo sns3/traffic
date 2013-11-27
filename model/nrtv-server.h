@@ -34,7 +34,7 @@ namespace ns3 {
 
 class Socket;
 class NrtvVariables;
-class NrtvServerWorker;
+class NrtvServerVideoWorker;
 
 
 /**
@@ -84,8 +84,8 @@ private:
   State_t       m_state;
   Ptr<Socket>   m_initialSocket;
 
-  friend class NrtvServerWorker;
-  std::map<Ptr<Socket>, Ptr<NrtvServerWorker> > m_workers;
+  friend class NrtvServerVideoWorker;
+  std::map<Ptr<Socket>, Ptr<NrtvServerVideoWorker> > m_workers;
 
   // ATTRIBUTES
 
@@ -107,11 +107,10 @@ private:
  * \ingroup traffic
  * \brief
  */
-class NrtvServerWorker : public SimpleRefCount<NrtvServerWorker>
+class NrtvServerVideoWorker : public SimpleRefCount<NrtvServerVideoWorker>
 {
 public:
-  NrtvServerWorker (NrtvServer* server, Ptr<Socket> socket,
-                    Time frameInterval, uint16_t numOfSlices);
+  NrtvServerVideoWorker (NrtvServer* server, Ptr<Socket> socket);
 
   void NormalCloseCallback (Ptr<Socket> socket);
   void ErrorCloseCallback (Ptr<Socket> socket);
@@ -133,11 +132,14 @@ private:
   Ptr<Socket>         m_socket;
   uint32_t            m_txBufferSize;
   Time                m_frameInterval;
+  uint32_t            m_numOfFrames;
+  uint32_t            m_numOfFramesServed;
   uint16_t            m_numOfSlices;
   uint16_t            m_numOfSlicesServed;
+  bool                m_isLastFrame;
   Ptr<NrtvVariables>  m_nrtvVariables;
 
-}; // end of `class NrtvServerWorker`
+}; // end of `class NrtvServerVideoWorker`
 
 
 } // end of `namespace ns3`

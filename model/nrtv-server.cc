@@ -268,7 +268,7 @@ NrtvServer::StopApplication ()
   SwitchToState (STOPPED);
 
   // close all accepted sockets
-  for (std::map<Ptr<Socket>, Ptr<NrtvServerWorker> >::iterator it = m_workers.begin ();
+  for (std::map<Ptr<Socket>, Ptr<NrtvServerVideoWorker> >::iterator it = m_workers.begin ();
        it != m_workers.end (); ++it)
     {
       it->first->Close ();
@@ -301,16 +301,8 @@ NrtvServer::NewConnectionCreatedCallback (Ptr<Socket> socket,
 {
   NS_LOG_FUNCTION (this << socket << address);
 
-  Ptr<NrtvServerWorker> worker;
-  worker = Create<NrtvServerWorker> (this, socket,
-                                     m_nrtvVariables->GetFrameInterval (),
-                                     m_nrtvVariables->GetNumOfSlices ());
-  socket->SetCloseCallbacks (MakeCallback (&NrtvServerWorker::NormalCloseCallback,
-                                           worker),
-                             MakeCallback (&NrtvServerWorker::ErrorCloseCallback,
-                                           worker));
-  socket->SetSendCallback (MakeCallback (&NrtvServerWorker::SendCallback,
-                                         worker));
+  Ptr<NrtvServerVideoWorker> worker = Create<NrtvServerVideoWorker> (this,
+                                                                     socket);
   m_workers[socket] = worker;
 }
 
@@ -357,31 +349,45 @@ NrtvServer::SwitchToState (NrtvServer::State_t state)
 }
 
 
-// NRTV SERVER WORKER /////////////////////////////////////////////////////////
+// NRTV SERVER VIDEO WORKER ///////////////////////////////////////////////////
 
 
-NrtvServerWorker::NrtvServerWorker (NrtvServer* server, Ptr<Socket> socket,
-                                    Time frameInterval, uint16_t numOfSlices)
+NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
+                                              Ptr<Socket> socket)
   : m_server (server),
     m_socket (socket),
     m_txBufferSize (0),
-    m_frameInterval (frameInterval),
-    m_numOfSlices (numOfSlices),
-    m_numOfSlicesServed (0)
+    m_numOfFramesServed (0),
+    m_numOfSlicesServed (0),
+    m_isLastFrame (false)
 {
-  NS_LOG_FUNCTION (this << socket << frameInterval.GetSeconds ()
-                        << numOfSlices);
+  NS_LOG_FUNCTION (this << socket);
 
   PointerValue p;
   server->GetAttribute ("Variables", p);
   m_nrtvVariables = p.Get<NrtvVariables> ();
+  m_frameInterval = m_nrtvVariables->GetFrameInterval ();
+  m_numOfFrames = m_nrtvVariables->GetNumOfFrames ();
+  m_numOfSlices = m_nrtvVariables->GetNumOfSlices ();
+  NS_ASSERT (m_numOfFrames > 0);
+  NS_ASSERT (m_numOfSlices > 0);
+  NS_LOG_INFO (this << " this video is " << m_numOfFrames << " frames long"
+                    << " (each frame is " << m_frameInterval.GetMilliSeconds ()
+                    << " ms long and made of " << m_numOfSlices << " slices)");
 
-  Simulator::ScheduleNow (&NrtvServerWorker::NewFrame, this);
+  socket->SetCloseCallbacks (MakeCallback (&NrtvServerVideoWorker::NormalCloseCallback,
+                                           this),
+                             MakeCallback (&NrtvServerVideoWorker::ErrorCloseCallback,
+                                           this));
+  socket->SetSendCallback (MakeCallback (&NrtvServerVideoWorker::SendCallback,
+                                         this));
+
+  Simulator::ScheduleNow (&NrtvServerVideoWorker::NewFrame, this);
 }
 
 
 void
-NrtvServerWorker::NormalCloseCallback (Ptr<Socket> socket)
+NrtvServerVideoWorker::NormalCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
   NS_ASSERT_MSG (m_socket == socket,
@@ -392,7 +398,7 @@ NrtvServerWorker::NormalCloseCallback (Ptr<Socket> socket)
 
 
 void
-NrtvServerWorker::ErrorCloseCallback (Ptr<Socket> socket)
+NrtvServerVideoWorker::ErrorCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
   NS_ASSERT_MSG (m_socket == socket,
@@ -403,8 +409,8 @@ NrtvServerWorker::ErrorCloseCallback (Ptr<Socket> socket)
 
 
 void
-NrtvServerWorker::SendCallback (Ptr<Socket> socket,
-                                uint32_t availableBufferSize)
+NrtvServerVideoWorker::SendCallback (Ptr<Socket> socket,
+                                     uint32_t availableBufferSize)
 {
   NS_LOG_FUNCTION (this << socket << availableBufferSize);
   NS_ASSERT_MSG (m_socket == socket,
@@ -413,39 +419,54 @@ NrtvServerWorker::SendCallback (Ptr<Socket> socket,
 
   if (availableBufferSize > 0)
     {
+      // this must be an unfinished transmission
       ServeFromTxBuffer ();
     }
 }
 
 
 void
-NrtvServerWorker::ScheduleNewFrame ()
+NrtvServerVideoWorker::ScheduleNewFrame ()
 {
-  NS_LOG_FUNCTION (this);
+  uint32_t frameNumber = m_numOfFramesServed + 1;
+  NS_LOG_FUNCTION (this << frameNumber << m_numOfFrames);
+  NS_ASSERT (frameNumber <= m_numOfFrames);
 
   m_eventNewFrame = Simulator::Schedule (m_frameInterval,
-                                         &NrtvServerWorker::NewFrame, this);
-  NS_LOG_INFO (this << " a new video frame will be generated in "
+                                         &NrtvServerVideoWorker::NewFrame, this);
+  NS_LOG_INFO (this << " video frame " << frameNumber << " will be generated in "
                     << m_frameInterval.GetSeconds () << " seconds");
+  NS_UNUSED (frameNumber);
 }
 
 
 void
-NrtvServerWorker::NewFrame ()
+NrtvServerVideoWorker::NewFrame ()
 {
-  NS_LOG_FUNCTION (this);
+  m_numOfFramesServed++;
+  NS_LOG_FUNCTION (this << m_numOfFramesServed << m_numOfFrames);
+
+  if (m_numOfFramesServed < m_numOfFrames)
+    {
+      ScheduleNewFrame (); // schedule the next frame
+    }
+  else
+    {
+      m_isLastFrame = true;
+      NS_LOG_INFO ("No more frame after this");
+    }
 
   m_numOfSlicesServed = 0;
-  ScheduleNewFrame (); // schedule the next frame
-  ScheduleNewSlice ();
+  ScheduleNewSlice (); // the first slice of this frame
 }
 
 
 void
-NrtvServerWorker::ScheduleNewSlice ()
+NrtvServerVideoWorker::ScheduleNewSlice ()
 {
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_numOfSlicesServed < m_numOfSlices);
+  uint16_t sliceNumber = m_numOfSlicesServed + 1;
+  NS_LOG_FUNCTION (this << sliceNumber << m_numOfSlices);
+  NS_ASSERT (sliceNumber <= m_numOfSlices);
 
   Time encodingDelay = m_nrtvVariables->GetSliceEncodingDelay ();
   NS_LOG_DEBUG (this << " encoding the slice needs "
@@ -453,13 +474,15 @@ NrtvServerWorker::ScheduleNewSlice ()
                      << " while new frame is coming in "
                      << Simulator::GetDelayLeft (m_eventNewFrame).GetMilliSeconds () << " ms");
 
-  if (encodingDelay < Simulator::GetDelayLeft (m_eventNewFrame))
+  if (m_isLastFrame
+      || (encodingDelay < Simulator::GetDelayLeft (m_eventNewFrame)))
     {
       // still time for a new slice
-      NS_LOG_INFO (this << " a new video slice will be generated in "
+      NS_LOG_INFO (this << " video slice " << sliceNumber << " will be generated in "
                         << encodingDelay.GetMilliSeconds () << " ms");
       m_eventNewSlice = Simulator::Schedule (encodingDelay,
-                                             &NrtvServerWorker::NewSlice, this);
+                                             &NrtvServerVideoWorker::NewSlice,
+                                             this);
     }
   else
     {
@@ -467,20 +490,22 @@ NrtvServerWorker::ScheduleNewSlice ()
       NS_LOG_LOGIC (this << " " << (m_numOfSlices - m_numOfSlicesServed)
                          << " slices are skipped");
     }
+
+  NS_UNUSED (sliceNumber);
 }
 
 
 void
-NrtvServerWorker::NewSlice ()
+NrtvServerVideoWorker::NewSlice ()
 {
-  NS_LOG_FUNCTION (this);
+  m_numOfSlicesServed++;
+  NS_LOG_FUNCTION (this << m_numOfSlicesServed << m_numOfSlices);
 
   uint32_t sliceSize = m_nrtvVariables->GetSliceSize ();
-  NS_LOG_INFO (this << " slice to be served is "
-                    << sliceSize << " bytes");
+  NS_LOG_INFO (this << " video slice " << m_numOfSlicesServed
+                    << " is " << sliceSize << " bytes");
   m_txBufferSize += sliceSize;
   ServeFromTxBuffer (); // this will deplete m_txBufferSize
-  m_numOfSlicesServed++;
 
   if (m_numOfSlicesServed < m_numOfSlices)
     {
@@ -490,7 +515,7 @@ NrtvServerWorker::NewSlice ()
 
 
 uint32_t
-NrtvServerWorker::ServeFromTxBuffer ()
+NrtvServerVideoWorker::ServeFromTxBuffer ()
 {
   NS_LOG_FUNCTION (this);
 
