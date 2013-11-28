@@ -457,11 +457,13 @@ NrtvClient::Receive (Ptr<Packet> packet)
 
   SeqTsHeader seqTsHeader;
   packet->RemoveHeader (seqTsHeader);
-  NS_ASSERT_MSG (seqTsHeader.GetSeq () > 0, "Invalid SeqTs header");
+  NS_ASSERT_MSG (seqTsHeader.GetSeq () > 0,
+                 "Invalid SeqTs header, seq= " << seqTsHeader.GetSeq ());
 
   NrtvHeader nrtvHeader;
   packet->RemoveHeader (nrtvHeader);
-  NS_ASSERT_MSG (nrtvHeader.GetFrameNumber () > 0, "Invalid NRTV header");
+  NS_ASSERT_MSG (nrtvHeader.GetFrameNumber () > 0,
+                 "Invalid NRTV header, frameNumber= " << nrtvHeader.GetFrameNumber ());
 
   uint16_t sliceNumber = nrtvHeader.GetSliceNumber ();
   uint16_t numOfSlices = nrtvHeader.GetNumOfSlices ();
