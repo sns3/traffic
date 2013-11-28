@@ -577,13 +577,12 @@ NrtvServerVideoWorker::NewSlice ()
   NS_LOG_INFO (this << " created packet " << packet << " of "
                     << packetSize << " bytes");
 
+#ifdef NS3_LOG_ENABLE
   int actualBytes = m_socket->Send (packet);
   NS_LOG_DEBUG (this << " Send() packet " << packet
                      << " of " << packetSize << " bytes,"
                      << " return value= " << actualBytes);
-  m_server->m_txTrace (packet);
 
-#ifdef NS3_LOG_ENABLE
   if ((unsigned) actualBytes == packetSize)
     {
       // nothing
@@ -594,6 +593,12 @@ NrtvServerVideoWorker::NewSlice ()
       NS_LOG_ERROR (this << " failure in sending packet");
     }
 #endif /* NS3_LOG_ENABLE */
+
+#ifndef NS3_LOG_ENABLE
+  m_socket->Send (packet);
+#endif /* NS3_LOG_ENABLE */
+
+  m_server->m_txTrace (packet);
 
   // make way for the next slice
   if (m_numOfSlicesServed < m_numOfSlices)
