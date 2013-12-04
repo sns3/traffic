@@ -124,6 +124,27 @@ HttpClient::GetTypeId ()
 }
 
 
+Time
+HttpClient::GetStartTime () const
+{
+  return m_startTime;
+}
+
+
+Time
+HttpClient::GetStopTime () const
+{
+  return m_stopTime;
+}
+
+
+bool
+HttpClient::IsScheduledToStop () const
+{
+  return (m_stopTime != TimeStep (0));
+}
+
+
 Address
 HttpClient::GetRemoteServerAddress () const
 {

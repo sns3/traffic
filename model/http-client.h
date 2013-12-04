@@ -47,6 +47,10 @@ public:
   virtual ~HttpClient ();
   static TypeId GetTypeId ();
 
+  Time GetStartTime () const;
+  Time GetStopTime () const;
+  bool IsScheduledToStop () const;
+
   Address GetRemoteServerAddress () const;
   uint16_t GetRemoteServerPort () const;
 

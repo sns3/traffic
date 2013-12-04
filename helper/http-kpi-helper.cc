@@ -19,12 +19,12 @@
  *
  */
 
-#include "nrtv-kpi-helper.h"
+#include "http-kpi-helper.h"
 #include <ns3/log.h>
 #include <ns3/simulator.h>
-#include <ns3/nrtv-client.h>
-#include <ns3/nrtv-server.h>
-#include <ns3/nrtv-helper.h>
+#include <ns3/http-client.h>
+#include <ns3/http-server.h>
+#include <ns3/http-helper.h>
 #include <ns3/packet.h>
 #include <ns3/inet-socket-address.h>
 #include <ns3/ipv4.h>
@@ -34,19 +34,19 @@
 #include <iomanip>
 
 
-NS_LOG_COMPONENT_DEFINE ("NrtvKpiHelper");
+NS_LOG_COMPONENT_DEFINE ("HttpKpiHelper");
 
 
 namespace ns3 {
 
 
-NrtvKpiHelper::NrtvKpiHelper ()
+HttpKpiHelper::HttpKpiHelper ()
 {
   NS_LOG_FUNCTION (this);
 }
 
 
-NrtvKpiHelper::NrtvKpiHelper (const NrtvHelper * helper)
+HttpKpiHelper::HttpKpiHelper (const HttpHelper * helper)
 {
   NS_LOG_FUNCTION (this << helper);
 
@@ -56,17 +56,25 @@ NrtvKpiHelper::NrtvKpiHelper (const NrtvHelper * helper)
 
 
 void
-NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
+HttpKpiHelper::AddClient (Ptr<HttpClient> client)
 {
   NS_LOG_FUNCTION (this << client);
 
   const Ipv4Address address = GetAddress (client->GetNode ());
-  client->TraceConnect ("Rx", AddressToString (address),
-                         MakeCallback (&NrtvKpiHelper::RxCallback, this));
+  const std::string context = AddressToString (address);
+  client->TraceConnect ("RxMainObjectPacket", context,
+                         MakeCallback (&HttpKpiHelper::RxCallback, this));
+  client->TraceConnect ("RxEmbeddedObjectPacket", context,
+                         MakeCallback (&HttpKpiHelper::RxCallback, this));
+  client->TraceConnect ("RxMainObject", context,
+                         MakeCallback (&HttpKpiHelper::RxMainObjectCallback, this));
+  client->TraceConnect ("RxEmbeddedObject", context,
+                         MakeCallback (&HttpKpiHelper::RxEmbeddedObjectCallback, this));
 
   ClientCounter_t counter;
   counter.rxBytes = 0;
-  counter.rxAppLevelPackets = 0;
+  counter.rxMainObjects = 0;
+  counter.rxEmbeddedObjects = 0;
   counter.rxIpLevelPackets = 0;
   counter.sumPacketDelay = MilliSeconds (0);
   counter.appStart = client->GetStartTime ();
@@ -91,14 +99,14 @@ NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
 
 
 void
-NrtvKpiHelper::AddClient (ApplicationContainer apps)
+HttpKpiHelper::AddClient (ApplicationContainer apps)
 {
   NS_LOG_FUNCTION (this << apps.GetN ());
 
   for (ApplicationContainer::Iterator it = apps.Begin ();
        it != apps.End (); it++)
     {
-      Ptr<NrtvClient> client = (*it)->GetObject<NrtvClient> ();
+      Ptr<HttpClient> client = (*it)->GetObject<HttpClient> ();
       NS_ASSERT (client != 0);
       AddClient (client);
     }
@@ -106,7 +114,7 @@ NrtvKpiHelper::AddClient (ApplicationContainer apps)
 
 
 void
-NrtvKpiHelper::SetServer (Ptr<NrtvServer> server)
+HttpKpiHelper::SetServer (Ptr<HttpServer> server)
 {
   NS_LOG_FUNCTION (this << server);
 
@@ -118,19 +126,19 @@ NrtvKpiHelper::SetServer (Ptr<NrtvServer> server)
 
 
 void
-NrtvKpiHelper::SetServer (ApplicationContainer apps)
+HttpKpiHelper::SetServer (ApplicationContainer apps)
 {
   NS_LOG_FUNCTION (this << apps.GetN ());
   NS_ASSERT_MSG (apps.GetN () == 1,
                  "Unable to accept more than one server applications as input");
-  Ptr<NrtvServer> server = apps.Get (0)->GetObject<NrtvServer> ();
+  Ptr<HttpServer> server = apps.Get (0)->GetObject<HttpServer> ();
   NS_ASSERT (server != 0);
   SetServer (server);
 }
 
 
 void
-NrtvKpiHelper::Print ()
+HttpKpiHelper::Print ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -158,19 +166,21 @@ NrtvKpiHelper::Print ()
 
   // PRINT HEADER
 
-  std::cout << " NRTV clients round-up statistics:" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << " HTTP clients round-up statistics:" << std::endl;
+  std::cout << " ------------------------------------------------------------------------" << std::endl;
   std::cout << std::setw (12) << "address"
             << std::setw (12) << "bytes"
             << std::setw (12) << "kbps"
-            << std::setw (12) << "packets"
+            << std::setw (12) << "main obj."
+            << std::setw (12) << "emb. obj."
             << std::setw (12) << "avg. delay" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << " ------------------------------------------------------------------------" << std::endl;
 
   // PRINT ONE LINE FOR EACH CLIENT
 
   uint64_t sumRxBytes = 0;
-  uint32_t sumRxAppLevelPackets = 0;
+  uint32_t sumRxMainObjects = 0;
+  uint32_t sumRxEmbeddedObjects = 0;
   uint32_t sumRxIpLevelPackets = 0;
   double sumPacketDelaySecond = 0.0;
 
@@ -183,13 +193,15 @@ NrtvKpiHelper::Print ()
           (it2->second.appStop - it2->second.appStart); // app stops before simulation stops
       const double userThroughput = GetKbps (it2->second.rxBytes, userDuration);
       const double userAvgDelaySecond = it2->second.sumPacketDelay.GetSeconds () / it2->second.rxIpLevelPackets;
-      std::cout << std::setw (16) << AddressToString (it2->first)
+      std::cout << std::setw (12) << AddressToString (it2->first)
                 << std::setw (12) << it2->second.rxBytes
                 << std::setw (12) << userThroughput
-                << std::setw (12) << it2->second.rxAppLevelPackets
+                << std::setw (12) << it2->second.rxMainObjects
+                << std::setw (12) << it2->second.rxEmbeddedObjects
                 << std::setw (12) << userAvgDelaySecond << std::endl;
       sumRxBytes += it2->second.rxBytes;
-      sumRxAppLevelPackets += it2->second.rxAppLevelPackets;
+      sumRxMainObjects += it2->second.rxMainObjects;
+      sumRxEmbeddedObjects += it2->second.rxEmbeddedObjects;
       sumRxIpLevelPackets += it2->second.rxIpLevelPackets;
       sumPacketDelaySecond += it2->second.sumPacketDelay.GetSeconds ();
     }
@@ -198,34 +210,52 @@ NrtvKpiHelper::Print ()
 
   const double sumThroughput = GetKbps (sumRxBytes, Simulator::Now ());
   const double avgDelaySecond = sumPacketDelaySecond / sumRxIpLevelPackets;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << " ------------------------------------------------------------------------" << std::endl;
   std::cout << std::setw (12) << "sum"
             << std::setw (12) << sumRxBytes
             << std::setw (12) << sumThroughput
-            << std::setw (12) << sumRxAppLevelPackets
+            << std::setw (12) << sumRxMainObjects
+            << std::setw (12) << sumRxEmbeddedObjects
             << std::setw (12) << avgDelaySecond << std::endl;
   std::cout << std::setw (12) << "avg"
             << std::setw (12) << static_cast<double> (sumRxBytes) / m_clientCounters.size ()
             << std::setw (12) << sumThroughput / m_clientCounters.size ()
-            << std::setw (12) << static_cast<double> (sumRxAppLevelPackets) / m_clientCounters.size ()
+            << std::setw (12) << static_cast<double> (sumRxMainObjects) / m_clientCounters.size ()
+            << std::setw (12) << static_cast<double> (sumRxEmbeddedObjects) / m_clientCounters.size ()
             << std::setw (12) << "n/a" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << " ------------------------------------------------------------------------" << std::endl;
 
 } // end of `Print()`
 
 
 void
-NrtvKpiHelper::RxCallback (std::string context, Ptr<const Packet> packet)
+HttpKpiHelper::RxCallback (std::string context, Ptr<const Packet> packet)
 {
   Ipv4Address address (context.c_str ());
   NS_ASSERT (m_clientCounters.find (address) != m_clientCounters.end ());
   m_clientCounters[address].rxBytes += packet->GetSize ();
-  m_clientCounters[address].rxAppLevelPackets++;
+}
+
+
+void
+HttpKpiHelper::RxMainObjectCallback (std::string context)
+{
+  Ipv4Address address (context.c_str ());
+  NS_ASSERT (m_clientCounters.find (address) != m_clientCounters.end ());
+  m_clientCounters[address].rxMainObjects++;
+}
+
+void
+HttpKpiHelper::RxEmbeddedObjectCallback (std::string context)
+{
+  Ipv4Address address (context.c_str ());
+  NS_ASSERT (m_clientCounters.find (address) != m_clientCounters.end ());
+  m_clientCounters[address].rxEmbeddedObjects++;
 }
 
 
 Ipv4Address
-NrtvKpiHelper::GetAddress (Ptr<Node> node)
+HttpKpiHelper::GetAddress (Ptr<Node> node)
 {
   const Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> ();
   NS_ASSERT_MSG (ipv4 != 0,
@@ -237,7 +267,7 @@ NrtvKpiHelper::GetAddress (Ptr<Node> node)
 
 
 std::string
-NrtvKpiHelper::AddressToString (Ipv4Address address)
+HttpKpiHelper::AddressToString (Ipv4Address address)
 {
   std::ostringstream oss;
   address.Print (oss);
@@ -246,7 +276,7 @@ NrtvKpiHelper::AddressToString (Ipv4Address address)
 
 
 double
-NrtvKpiHelper::GetKbps (uint64_t bytes, Time duration)
+HttpKpiHelper::GetKbps (uint64_t bytes, Time duration)
 {
   return static_cast<double> (bytes * 8) / 1000.0 / duration.GetSeconds ();
 }
