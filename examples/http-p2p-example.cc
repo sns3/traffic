@@ -301,9 +301,12 @@ PrintToFile (std::string filePath, std::string content)
  */
 int main (int argc, char *argv[])
 {
-//  LogComponentEnableAll (LOG_PREFIX_ALL);
-//  LogComponentEnable ("HttpClient", LOG_WARN);
-//  LogComponentEnable ("HttpServer", LOG_WARN);
+  LogComponentEnable ("HttpClient", LOG_PREFIX_ALL);
+  LogComponentEnable ("HttpServer", LOG_PREFIX_ALL);
+  LogComponentEnable ("HttpClient", LOG_WARN);
+  LogComponentEnable ("HttpServer", LOG_WARN);
+  LogComponentEnable ("HttpClient", LOG_ERROR);
+  LogComponentEnable ("HttpServer", LOG_ERROR);
 
   NodeContainer nodes;
   nodes.Create (2);

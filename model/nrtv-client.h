@@ -50,19 +50,6 @@ public:
   Address GetRemoteServerAddress () const;
   uint16_t GetRemoteServerPort () const;
 
-  uint32_t GetNumOfRxSlices () const;
-  Time GetDelaySum () const;
-  /**
-   * \brief Retrieve the average packet delay experienced by this client
-   *        instance (downlink).
-   * \return the average delay of all received packets from the start of the
-   *         application until now
-   *
-   * Equivalent as manually computing the average by dividing GetDelaySum()
-   * with GetNumOfRxSlices().
-   */
-  Time GetDelayAverage () const;
-
   enum State_t
   {
     NOT_STARTED = 0,
@@ -101,8 +88,6 @@ private:
   void SwitchToState (State_t state);
 
   State_t      m_state;
-  uint32_t     m_numOfRxSlices;
-  Time         m_delaySum;
   Time         m_dejitterBufferWindowSize;
   Ptr<Socket>  m_socket;
 
