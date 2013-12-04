@@ -69,6 +69,17 @@ NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
   counter.rxAppLevelPackets = 0;
   counter.rxIpLevelPackets = 0;
   counter.sumPacketDelay = MilliSeconds (0);
+  counter.appStart = client->GetStartTime ();
+  if (client->IsScheduledToStop ())
+    {
+      counter.appStop = client->GetStopTime ();
+    }
+  else
+    {
+      NS_ASSERT (Simulator::Now () <= client->GetStartTime ());
+      counter.appStop = Simulator::Now ();
+    }
+
   NS_ASSERT_MSG (m_clientCounters.find (address) == m_clientCounters.end (),
                  "Found a client with duplicate address " << address);
   m_clientCounters[address] = counter;
@@ -164,10 +175,6 @@ NrtvKpiHelper::Print ()
 
   // PRINT ONE LINE FOR EACH CLIENT
 
-  double duration = Simulator::Now ().GetSeconds ();
-  double throughput = 0.0;
-  double avgDelaySecond = 0.0;
-
   uint64_t sumRxBytes = 0;
   uint32_t sumRxAppLevelPackets = 0;
   uint32_t sumRxIpLevelPackets = 0;
@@ -176,13 +183,17 @@ NrtvKpiHelper::Print ()
   std::map<Ipv4Address, ClientCounter_t>::const_iterator it2;
   for (it2 = m_clientCounters.begin (); it2 != m_clientCounters.end (); ++it2)
     {
-      throughput = static_cast<double> (it2->second.rxBytes * 8) / 1000.0 / duration;
-      avgDelaySecond = it2->second.sumPacketDelay.GetSeconds () / it2->second.rxIpLevelPackets;
+      const Time userDuration =
+        (it2->second.appStop <= it2->second.appStart) ?
+          (Simulator::Now () - it2->second.appStart) : // app stops as simulation stops
+          (it2->second.appStop - it2->second.appStart); // app stops before simulation stops
+      const double userThroughput = GetKbps (it2->second.rxBytes, userDuration);
+      const double userAvgDelaySecond = it2->second.sumPacketDelay.GetSeconds () / it2->second.rxIpLevelPackets;
       std::cout << std::setw (16) << AddressToString (it2->first)
                 << std::setw (12) << it2->second.rxBytes
-                << std::setw (12) << throughput
+                << std::setw (12) << userThroughput
                 << std::setw (12) << it2->second.rxAppLevelPackets
-                << std::setw (12) << avgDelaySecond << std::endl;
+                << std::setw (12) << userAvgDelaySecond << std::endl;
       sumRxBytes += it2->second.rxBytes;
       sumRxAppLevelPackets += it2->second.rxAppLevelPackets;
       sumRxIpLevelPackets += it2->second.rxIpLevelPackets;
@@ -191,17 +202,17 @@ NrtvKpiHelper::Print ()
 
   // PRINT FOOTER
 
-  throughput = static_cast<double> (sumRxBytes * 8) / 1000.0 / duration;
-  avgDelaySecond = sumPacketDelaySecond / sumRxIpLevelPackets;
+  const double sumThroughput = GetKbps (sumRxBytes, Simulator::Now ());
+  const double avgDelaySecond = sumPacketDelaySecond / sumRxIpLevelPackets;
   std::cout << " ----------------------------------------------------------------" << std::endl;
   std::cout << std::setw (16) << "sum"
             << std::setw (12) << sumRxBytes
-            << std::setw (12) << throughput
+            << std::setw (12) << sumThroughput
             << std::setw (12) << sumRxAppLevelPackets
             << std::setw (12) << avgDelaySecond << std::endl;
   std::cout << std::setw (16) << "avg"
             << std::setw (12) << static_cast<double> (sumRxBytes) / m_clientCounters.size ()
-            << std::setw (12) << throughput / m_clientCounters.size ()
+            << std::setw (12) << sumThroughput / m_clientCounters.size ()
             << std::setw (12) << static_cast<double> (sumRxAppLevelPackets) / m_clientCounters.size ()
             << std::setw (12) << "n/a" << std::endl;
   std::cout << " ----------------------------------------------------------------" << std::endl;
@@ -237,6 +248,13 @@ NrtvKpiHelper::AddressToString (Ipv4Address address)
   std::ostringstream oss;
   address.Print (oss);
   return oss.str ();
+}
+
+
+double
+NrtvKpiHelper::GetKbps (uint64_t bytes, Time duration)
+{
+  return static_cast<double> (bytes * 8) / 1000.0 / duration.GetSeconds ();
 }
 
 

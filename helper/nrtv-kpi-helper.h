@@ -70,6 +70,7 @@ private:
 
   static Ipv4Address GetAddress (Ptr<Node> node);
   static std::string AddressToString (Ipv4Address address);
+  static double GetKbps (uint64_t bytes, Time duration);
 
   FlowMonitorHelper m_flowMonitorHelper;
   Ipv4Address m_serverAddress;
@@ -80,6 +81,8 @@ private:
     uint32_t rxAppLevelPackets;
     uint32_t rxIpLevelPackets;
     Time sumPacketDelay;
+    Time appStart;
+    Time appStop;
   };
   std::map<Ipv4Address, ClientCounter_t> m_clientCounters;
 

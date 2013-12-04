@@ -108,6 +108,27 @@ NrtvClient::GetTypeId ()
 }
 
 
+Time
+NrtvClient::GetStartTime () const
+{
+  return m_startTime;
+}
+
+
+Time
+NrtvClient::GetStopTime () const
+{
+  return m_stopTime;
+}
+
+
+bool
+NrtvClient::IsScheduledToStop () const
+{
+  return (m_stopTime != TimeStep (0));
+}
+
+
 Address
 NrtvClient::GetRemoteServerAddress () const
 {
