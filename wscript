@@ -1,13 +1,13 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    module = bld.create_ns3_module('traffic', ['core', 'applications'])
+    module = bld.create_ns3_module('traffic', ['core', 'applications', 'flow-monitor'])
     module.source = [
         'helper/http-client-trace-plot.cc',
         'helper/http-helper.cc',
-        'helper/nrtv-client-kpi-helper.cc',
         'helper/nrtv-client-trace-plot.cc',
         'helper/nrtv-helper.cc',
+        'helper/nrtv-kpi-helper.cc',
         'model/http-client.cc',
         'model/http-entity-header.cc',
         'model/http-server.cc',
@@ -29,9 +29,9 @@ def build(bld):
         'helper/histogram-plot-helper.h',
         'helper/http-client-trace-plot.h',
         'helper/http-helper.h',
-        'helper/nrtv-client-kpi-helper.h',
         'helper/nrtv-client-trace-plot.h',
         'helper/nrtv-helper.h',
+        'helper/nrtv-kpi-helper.h',
         'model/http-client.h',
         'model/http-entity-header.h',
         'model/http-server.h',
