@@ -183,7 +183,7 @@ NrtvKpiHelper::Print ()
           (it2->second.appStop - it2->second.appStart); // app stops before simulation stops
       const double userThroughput = GetKbps (it2->second.rxBytes, userDuration);
       const double userAvgDelaySecond = it2->second.sumPacketDelay.GetSeconds () / it2->second.rxIpLevelPackets;
-      std::cout << std::setw (16) << AddressToString (it2->first)
+      std::cout << std::setw (12) << AddressToString (it2->first)
                 << std::setw (12) << it2->second.rxBytes
                 << std::setw (12) << userThroughput
                 << std::setw (12) << it2->second.rxAppLevelPackets
