@@ -38,7 +38,8 @@ NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
  */
 int main (int argc, char *argv[])
 {
-//  LogComponentEnableAll (LOG_PREFIX_ALL);
+  LogComponentEnable ("NrtvClient", LOG_PREFIX_ALL);
+  LogComponentEnable ("NrtvServer", LOG_PREFIX_ALL);
   LogComponentEnable ("NrtvClient", LOG_WARN);
   LogComponentEnable ("NrtvServer", LOG_WARN);
   LogComponentEnable ("NrtvClient", LOG_ERROR);
@@ -69,7 +70,7 @@ int main (int argc, char *argv[])
   Ptr<NrtvClientTracePlot> plot = CreateObject<NrtvClientTracePlot> (
     nrtvHelper.GetClients ().Get (0)->GetObject<NrtvClient> ());
 
-  Simulator::Stop (Seconds (10000.0));
+  Simulator::Stop (Seconds (1000.0));
   Simulator::Run ();
   Simulator::Destroy ();
 

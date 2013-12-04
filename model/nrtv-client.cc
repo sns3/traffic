@@ -47,6 +47,8 @@ NS_OBJECT_ENSURE_REGISTERED (NrtvClient);
 
 NrtvClient::NrtvClient ()
   : m_state (NOT_STARTED),
+    m_numOfRxSlices (0),
+    m_delaySum (MilliSeconds (0)),
     m_socket (0),
     m_nrtvVariables (CreateObject<NrtvVariables> ())
 {
@@ -119,6 +121,27 @@ uint16_t
 NrtvClient::GetRemoteServerPort () const
 {
   return m_remoteServerPort;
+}
+
+
+uint32_t
+NrtvClient::GetNumOfRxSlices () const
+{
+  return m_numOfRxSlices;
+}
+
+
+Time
+NrtvClient::GetDelaySum () const
+{
+  return m_delaySum;
+}
+
+
+Time
+NrtvClient::GetDelayAverage () const
+{
+  return Seconds (m_delaySum.GetSeconds () / static_cast<double> (m_numOfRxSlices));
 }
 
 
@@ -455,11 +478,18 @@ NrtvClient::Receive (Ptr<Packet> packet)
   NS_ASSERT_MSG (packet->GetSize () >= headerSize,
                  "Invalid packet, it is too small");
 
+  // retrieve SeqTs header
   SeqTsHeader seqTsHeader;
   packet->RemoveHeader (seqTsHeader);
   NS_ASSERT_MSG (seqTsHeader.GetSeq () > 0,
                  "Invalid SeqTs header, seq= " << seqTsHeader.GetSeq ());
 
+  // calculate packet delay
+  Time packetDelay = Simulator::Now () - seqTsHeader.GetTs ();
+  m_delaySum += packetDelay;
+  m_numOfRxSlices++;
+
+  // retrieve NRTV header
   NrtvHeader nrtvHeader;
   packet->RemoveHeader (nrtvHeader);
   NS_ASSERT_MSG (nrtvHeader.GetFrameNumber () > 0,
@@ -468,7 +498,8 @@ NrtvClient::Receive (Ptr<Packet> packet)
   uint16_t sliceNumber = nrtvHeader.GetSliceNumber ();
   uint16_t numOfSlices = nrtvHeader.GetNumOfSlices ();
   NS_LOG_INFO (this << " received slice " << sliceNumber
-                    << " out of " << numOfSlices << " slices");
+                    << " out of " << numOfSlices << " slices"
+                    << " (delay= " << packetDelay.GetMilliSeconds () << " ms)");
   m_rxSliceTrace (sliceNumber, numOfSlices);
 
   if (sliceNumber == numOfSlices)

@@ -573,6 +573,8 @@ NrtvServerVideoWorker::NewSlice ()
   uint32_t packetSize = packet->GetSize ();
   NS_ASSERT (packetSize == (contentSize + headerSize));
   NS_ASSERT (packetSize <= socketSize);
+  NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
+                 "Packet size shall not be larger than MTU size");
 
   NS_LOG_INFO (this << " created packet " << packet << " of "
                     << packetSize << " bytes");

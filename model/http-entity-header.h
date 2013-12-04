@@ -33,7 +33,7 @@ namespace ns3 {
  *        applications.
  *
  * The header is 6 bytes in length. The first 2 bytes are for the Content-Type
- * header, while the remaining 4 bytes are for the Content-Length header.
+ * field, while the remaining 4 bytes are for the Content-Length field.
  *
  * The following is the usage example in the case of transmitting a packet.
  * First create a plain header:
@@ -101,7 +101,7 @@ public:
   void SetContentType (ContentType_t contentType);
 
   /**
-   * \return the current value of the ContentType-field of this header instance
+   * \return the current value of the Content-Type field of this header instance
    */
   ContentType_t GetContentType () const;
 
@@ -131,8 +131,8 @@ public:
   virtual TypeId GetInstanceTypeId () const;
 
 private:
-  uint16_t m_contentType;
-  uint32_t m_contentLength;
+  uint16_t m_contentType;    ///< Content-Type field.
+  uint32_t m_contentLength;  ///< Content-Length field.
 
 }; // end of `class HttpEntityHeader`
 
