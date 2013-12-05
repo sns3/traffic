@@ -36,8 +36,8 @@ NS_OBJECT_ENSURE_REGISTERED (HttpClientTracePlot);
 
 
 HttpClientTracePlot::HttpClientTracePlot (Ptr<HttpClient> httpClient)
-: m_httpClient (httpClient),
-  m_outputName ("http-client-trace")
+  : m_httpClient (httpClient),
+    m_outputName ("http-client-trace")
 {
   NS_LOG_FUNCTION (this << httpClient << m_outputName);
 

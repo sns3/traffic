@@ -135,7 +135,7 @@ std::string
 NrtvServer::GetStateString (NrtvServer::State_t state)
 {
   switch (state)
-  {
+    {
     case NOT_STARTED:
       return "NOT_STARTED";
       break;
@@ -148,7 +148,7 @@ NrtvServer::GetStateString (NrtvServer::State_t state)
     default:
       NS_FATAL_ERROR ("Unknown state");
       break;
-  }
+    }
 }
 
 
@@ -346,7 +346,7 @@ NrtvServer::NotifyVideoCompleted (Ptr<Socket> socket)
 
   // remove the worker entry
   std::map<Ptr<Socket>, Ptr<NrtvServerVideoWorker> >::iterator it
-      = m_workers.find (socket);
+    = m_workers.find (socket);
   NS_ASSERT (it != m_workers.end ());
   m_workers.erase (it); // this will destroy the worker and close its socket
 }

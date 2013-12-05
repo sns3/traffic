@@ -157,7 +157,7 @@ std::string
 HttpServer::GetStateString (HttpServer::State_t state)
 {
   switch (state)
-  {
+    {
     case NOT_STARTED:
       return "NOT_STARTED";
       break;
@@ -170,7 +170,7 @@ HttpServer::GetStateString (HttpServer::State_t state)
     default:
       NS_FATAL_ERROR ("Unknown state");
       break;
-  }
+    }
 }
 
 
@@ -200,8 +200,8 @@ HttpServer::StartApplication ()
           if (m_protocol != TcpSocketFactory::GetTypeId ())
             {
               NS_FATAL_ERROR ("Socket other than "
-                << TcpSocketFactory::GetTypeId ().GetName ()
-                << " are not supported at the moment");
+                              << TcpSocketFactory::GetTypeId ().GetName ()
+                              << " are not supported at the moment");
             }
 
           // find the current default MTU value of TCP sockets
@@ -434,7 +434,7 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
 
       Time delay;
       switch (httpEntity.GetContentType ())
-      {
+        {
         case HttpEntityHeader::MAIN_OBJECT:
           delay = m_httpVariables->GetMainObjectGenerationDelay ();
           NS_LOG_INFO (this << " will finish generating a main object"
@@ -458,7 +458,7 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
         default:
           NS_FATAL_ERROR ("Invalid packet header");
           break;
-      }
+        }
 
     } // end of `while ((packet = socket->RecvFrom (from)))`
 
@@ -479,7 +479,7 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
       if (actualSent < txBufferSize)
         {
           switch (m_txBuffer->GetBufferContentType (socket))
-          {
+            {
             case HttpEntityHeader::MAIN_OBJECT:
               NS_LOG_INFO (this << " transmission of main object is suspended"
                                 << " after " << actualSent << " bytes");
@@ -491,12 +491,12 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
             default:
               NS_FATAL_ERROR ("Invalid Tx buffer content type");
               break;
-          }
+            }
         }
       else
         {
           switch (m_txBuffer->GetBufferContentType (socket))
-          {
+            {
             case HttpEntityHeader::MAIN_OBJECT:
               NS_LOG_INFO (this << " finished sending a whole main object");
               break;
@@ -506,7 +506,7 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
             default:
               NS_FATAL_ERROR ("Invalid Tx buffer content type");
               break;
-          }
+            }
         }
 #endif /* NS3_LOG_ENABLE */
 
@@ -598,7 +598,7 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
       if (socketSize > headerSize)
         {
           HttpEntityHeader::ContentType_t txBufferContentType
-              = m_txBuffer->GetBufferContentType (socket);
+            = m_txBuffer->GetBufferContentType (socket);
           uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
 
           // size of actual content to be sent now, has to fit into the socket
@@ -859,7 +859,7 @@ HttpServerTxBuffer::WriteNewObject (Ptr<Socket> socket,
                  "Socket " << socket << " cannot be found");
   NS_ASSERT_MSG (it->second.txBufferSize == 0,
                  "Cannot write to Tx buffer of socket " << socket
-                 << " until the previous content has been completely transmitted");
+                                                        << " until the previous content has been completely transmitted");
   it->second.txBufferContentType = contentType;
   it->second.txBufferSize = objectSize;
   it->second.hasTxedPartOfObject = false;

@@ -177,7 +177,7 @@ std::string
 HttpClient::GetStateString (HttpClient::State_t state)
 {
   switch (state)
-  {
+    {
     case NOT_STARTED:
       return "NOT_STARTED";
       break;
@@ -202,7 +202,7 @@ HttpClient::GetStateString (HttpClient::State_t state)
     default:
       NS_FATAL_ERROR ("Unknown state");
       break;
-  }
+    }
 }
 
 
@@ -264,12 +264,12 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
       if (m_embeddedObjectsToBeRequested > 0)
         {
           m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-            &HttpClient::RequestEmbeddedObject, this);
+              &HttpClient::RequestEmbeddedObject, this);
         }
       else
         {
           m_eventRequestMainObject = Simulator::ScheduleNow (
-            &HttpClient::RequestMainObject, this);
+              &HttpClient::RequestMainObject, this);
         }
     }
   else
@@ -290,7 +290,7 @@ HttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
       if (socket->GetErrno () != Socket::ERROR_NOTERROR)
         {
           m_eventRetryConnection = Simulator::ScheduleNow (
-            &HttpClient::RetryConnection, this);
+              &HttpClient::RetryConnection, this);
         }
     }
   else
@@ -310,7 +310,7 @@ HttpClient::NormalCloseCallback (Ptr<Socket> socket)
   if (socket->GetErrno () != Socket::ERROR_NOTERROR)
     {
       m_eventRetryConnection = Simulator::ScheduleNow (
-        &HttpClient::RetryConnection, this);
+          &HttpClient::RetryConnection, this);
       /// \todo This won't work because the socket is already closed
     }
 }
@@ -325,7 +325,7 @@ HttpClient::ErrorCloseCallback (Ptr<Socket> socket)
   if (socket->GetErrno () != Socket::ERROR_NOTERROR)
     {
       m_eventRetryConnection = Simulator::ScheduleNow (
-        &HttpClient::RetryConnection, this);
+          &HttpClient::RetryConnection, this);
       /// \todo This won't work because the socket is already closed
     }
 }
@@ -362,7 +362,7 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
         }
 
       switch (m_state)
-      {
+        {
         case EXPECTING_MAIN_OBJECT:
           ReceiveMainObject (packet);
           break;
@@ -373,7 +373,7 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
           NS_LOG_WARN (this << " invalid state " << GetStateString ()
                             << " for ReceivedData");
           break;
-      }
+        }
 
     } // end of `while ((packet = socket->RecvFrom (from)))`
 
@@ -398,8 +398,8 @@ HttpClient::OpenConnection ()
       if (m_protocol != TcpSocketFactory::GetTypeId ())
         {
           NS_FATAL_ERROR ("Socket other than "
-            << TcpSocketFactory::GetTypeId ().GetName ()
-            << " are not supported at the moment");
+                          << TcpSocketFactory::GetTypeId ().GetName ()
+                          << " are not supported at the moment");
         }
 
       m_socket = Socket::CreateSocket (GetNode (), m_protocol);
@@ -638,7 +638,7 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
            * and wait until they arrive.
            */
           NS_LOG_INFO (this << " " << m_objectBytesToBeReceived << " byte(s)"
-                       << " remains from this chunk of main object");
+                            << " remains from this chunk of main object");
         }
       else
         {
@@ -685,7 +685,7 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
            * still and wait until they arrive.
            */
           NS_LOG_INFO (this << " " << m_objectBytesToBeReceived << " byte(s)"
-                       << " remains from this chunk of embedded object");
+                            << " remains from this chunk of embedded object");
         }
       else
         {
@@ -704,20 +704,20 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
           if (m_embeddedObjectsToBeRequested > 0)
             {
               NS_LOG_INFO (this << " " << m_embeddedObjectsToBeRequested
-                           << " more embedded object(s) to be requested");
+                                << " more embedded object(s) to be requested");
 
               if (m_isBurstMode)
                 {
                   // open a new connection
                   m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                    &HttpClient::OpenConnection, this);
+                      &HttpClient::OpenConnection, this);
                   // RequestEmbeddedObject will follow after connection is established
                 }
               else
                 {
                   // immediately request another using the existing connection
                   m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                    &HttpClient::RequestEmbeddedObject, this);
+                      &HttpClient::RequestEmbeddedObject, this);
                 }
             }
           else
@@ -831,13 +831,13 @@ HttpClient::EnterParsingTime ()
                         << " will complete in "
                         << parsingTime.GetSeconds () << " seconds");
       m_eventParseMainObject = Simulator::Schedule (
-        parsingTime, &HttpClient::ParseMainObject, this);
+          parsingTime, &HttpClient::ParseMainObject, this);
       SwitchToState (PARSING_MAIN_OBJECT);
     }
   else
     {
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
-                   << " for EnterParsingTime");
+                        << " for EnterParsingTime");
     }
 }
 
@@ -860,14 +860,14 @@ HttpClient::ParseMainObject ()
             {
               // open a new connection
               m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                &HttpClient::OpenConnection, this);
+                  &HttpClient::OpenConnection, this);
               // RequestEmbeddedObject will follow after connection is established
             }
           else
             {
               // immediately request an embedded object using the existing connection
               m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                &HttpClient::RequestEmbeddedObject, this);
+                  &HttpClient::RequestEmbeddedObject, this);
             }
         }
       else
@@ -883,7 +883,7 @@ HttpClient::ParseMainObject ()
   else
     {
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
-                   << " for ParseMainObject");
+                        << " for ParseMainObject");
     }
 }
 
@@ -905,14 +905,14 @@ HttpClient::EnterReadingTime ()
           // open a new connection
           NS_ASSERT (m_embeddedObjectsToBeRequested == 0);
           m_eventRequestMainObject = Simulator::Schedule (
-            readingTime, &HttpClient::OpenConnection, this);
+              readingTime, &HttpClient::OpenConnection, this);
           // RequestMainObject will follow after connection is established
         }
       else
         {
           // reuse the existing connection
           m_eventRequestMainObject = Simulator::Schedule (
-            readingTime, &HttpClient::RequestMainObject, this);
+              readingTime, &HttpClient::RequestMainObject, this);
         }
 
       SwitchToState (READING);
@@ -920,7 +920,7 @@ HttpClient::EnterReadingTime ()
   else
     {
       NS_LOG_WARN (this << " invalid state " << GetStateString ()
-                   << " for EnterReadingTime");
+                        << " for EnterReadingTime");
     }
 
 }
@@ -978,9 +978,9 @@ HttpClient::SwitchToState (HttpClient::State_t state)
       if (m_objectBytesToBeReceived > 0)
         {
           NS_FATAL_ERROR ("Cannot start a new receiving session"
-            << " if the previous object"
-            << " (" << m_objectBytesToBeReceived << " bytes)"
-            << " is not completely received yet");
+                          << " if the previous object"
+                          << " (" << m_objectBytesToBeReceived << " bytes)"
+                          << " is not completely received yet");
         }
     }
 

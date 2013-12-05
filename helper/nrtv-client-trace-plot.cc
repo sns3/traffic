@@ -36,8 +36,8 @@ NS_OBJECT_ENSURE_REGISTERED (NrtvClientTracePlot);
 
 
 NrtvClientTracePlot::NrtvClientTracePlot (Ptr<NrtvClient> nrtvClient)
-: m_nrtvClient (nrtvClient),
-  m_outputName ("nrtv-client-trace")
+  : m_nrtvClient (nrtvClient),
+    m_outputName ("nrtv-client-trace")
 {
   NS_LOG_FUNCTION (this << nrtvClient << m_outputName);
 

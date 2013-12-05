@@ -109,7 +109,7 @@ TrafficBoundedParetoVariable::RefreshBaseParameters ()
   if (fabs (shape - 1.0) < 0.000001)
     {
       NS_FATAL_ERROR ("Shape parameter of a Pareto distribution must not equal to 1.0"
-        << " (the current value is " << shape << ")");
+                      << " (the current value is " << shape << ")");
     }
 
   double mean = (shape * m_scale) / (shape - 1.0);

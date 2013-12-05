@@ -161,7 +161,7 @@ std::string
 NrtvClient::GetStateString (NrtvClient::State_t state)
 {
   switch (state)
-  {
+    {
     case NOT_STARTED:
       return "NOT_STARTED";
       break;
@@ -180,7 +180,7 @@ NrtvClient::GetStateString (NrtvClient::State_t state)
     default:
       NS_FATAL_ERROR ("Unknown state");
       break;
-  }
+    }
 }
 
 
@@ -256,7 +256,7 @@ NrtvClient::ConnectionFailedCallback (Ptr<Socket> socket)
       if (socket->GetErrno () != Socket::ERROR_NOTERROR)
         {
           m_eventRetryConnection = Simulator::ScheduleNow (
-            &NrtvClient::RetryConnection, this);
+              &NrtvClient::RetryConnection, this);
         }
     }
   else
@@ -288,7 +288,7 @@ NrtvClient::ErrorCloseCallback (Ptr<Socket> socket)
 
   CancelAllPendingEvents ();
   m_eventRetryConnection = Simulator::ScheduleNow (
-    &NrtvClient::RetryConnection, this);
+      &NrtvClient::RetryConnection, this);
   /// \todo This won't work because the socket is already closed
 }
 

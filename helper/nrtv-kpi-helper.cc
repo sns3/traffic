@@ -62,7 +62,7 @@ NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
 
   const Ipv4Address address = GetAddress (client->GetNode ());
   client->TraceConnect ("Rx", AddressToString (address),
-                         MakeCallback (&NrtvKpiHelper::RxCallback, this));
+                        MakeCallback (&NrtvKpiHelper::RxCallback, this));
 
   ClientCounter_t counter;
   counter.rxBytes = 0;
@@ -158,14 +158,14 @@ NrtvKpiHelper::Print ()
 
   // PRINT HEADER
 
-  std::cout << " NRTV clients round-up statistics:" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << "NRTV clients round-up statistics:" << std::endl;
+  std::cout << "-------------------------------------------------------------" << std::endl;
   std::cout << std::setw (12) << "address"
             << std::setw (12) << "bytes"
             << std::setw (12) << "kbps"
             << std::setw (12) << "packets"
             << std::setw (12) << "avg. delay" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------------------" << std::endl;
 
   // PRINT ONE LINE FOR EACH CLIENT
 
@@ -179,8 +179,8 @@ NrtvKpiHelper::Print ()
     {
       const Time userDuration =
         (it2->second.appStop <= it2->second.appStart) ?
-          (Simulator::Now () - it2->second.appStart) : // app stops as simulation stops
-          (it2->second.appStop - it2->second.appStart); // app stops before simulation stops
+        (Simulator::Now () - it2->second.appStart) : // app stops as simulation stops
+        (it2->second.appStop - it2->second.appStart); // app stops before simulation stops
       const double userThroughput = GetKbps (it2->second.rxBytes, userDuration);
       const double userAvgDelaySecond = it2->second.sumPacketDelay.GetSeconds () / it2->second.rxIpLevelPackets;
       std::cout << std::setw (12) << AddressToString (it2->first)
@@ -198,7 +198,7 @@ NrtvKpiHelper::Print ()
 
   const double sumThroughput = GetKbps (sumRxBytes, Simulator::Now ());
   const double avgDelaySecond = sumPacketDelaySecond / sumRxIpLevelPackets;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------------------" << std::endl;
   std::cout << std::setw (12) << "sum"
             << std::setw (12) << sumRxBytes
             << std::setw (12) << sumThroughput
@@ -209,7 +209,7 @@ NrtvKpiHelper::Print ()
             << std::setw (12) << sumThroughput / m_clientCounters.size ()
             << std::setw (12) << static_cast<double> (sumRxAppLevelPackets) / m_clientCounters.size ()
             << std::setw (12) << "n/a" << std::endl;
-  std::cout << " ------------------------------------------------------------" << std::endl;
+  std::cout << "-------------------------------------------------------------" << std::endl;
 
 } // end of `Print()`
 

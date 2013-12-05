@@ -55,7 +55,7 @@ HttpEntityHeader::SetContentType (HttpEntityHeader::ContentType_t contentType)
 {
   NS_LOG_FUNCTION (this << static_cast<uint16_t> (contentType));
   switch (contentType)
-  {
+    {
     case NOT_SET:
       m_contentType = 0;
       break;
@@ -68,7 +68,7 @@ HttpEntityHeader::SetContentType (HttpEntityHeader::ContentType_t contentType)
     default:
       NS_FATAL_ERROR ("Unknown Content-Type: " << contentType);
       break;
-  }
+    }
 }
 
 
@@ -77,7 +77,7 @@ HttpEntityHeader::GetContentType () const
 {
   ContentType_t ret;
   switch (m_contentType)
-  {
+    {
     case 0:
       ret = NOT_SET;
       break;
@@ -90,7 +90,7 @@ HttpEntityHeader::GetContentType () const
     default:
       NS_FATAL_ERROR ("Unknown Content-Type: " << m_contentType);
       break;
-  }
+    }
   return ret;
 }
 

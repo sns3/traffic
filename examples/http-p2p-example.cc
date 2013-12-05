@@ -69,7 +69,7 @@ int main (int argc, char *argv[])
   httpHelper.GetClients ().Start (Seconds (1.0));
 
   Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (
-    httpHelper.GetClients ().Get (0)->GetObject<HttpClient> ());
+      httpHelper.GetClients ().Get (0)->GetObject<HttpClient> ());
 
   Simulator::Stop (Seconds (1000.0));
   Simulator::Run ();

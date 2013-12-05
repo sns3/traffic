@@ -68,9 +68,9 @@ int main (int argc, char *argv[])
   nrtvHelper.GetClients ().Start (Seconds (2.0));
 
   Ptr<NrtvClientTracePlot> plot = CreateObject<NrtvClientTracePlot> (
-    nrtvHelper.GetClients ().Get (0)->GetObject<NrtvClient> ());
+      nrtvHelper.GetClients ().Get (0)->GetObject<NrtvClient> ());
 
-  Simulator::Stop (Seconds (1000.0));
+  Simulator::Stop (Seconds (100.0));
   Simulator::Run ();
   Simulator::Destroy ();
 
