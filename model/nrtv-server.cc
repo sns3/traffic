@@ -416,10 +416,10 @@ NrtvServerVideoWorker::~NrtvServerVideoWorker ()
   NS_LOG_FUNCTION (this);
 
   // close the socket
-  m_socket->Close ();
   m_socket->SetCloseCallbacks (MakeNullCallback<void, Ptr<Socket> > (),
                                MakeNullCallback<void, Ptr<Socket> > ());
   m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  m_socket->Close ();
 }
 
 
@@ -431,6 +431,9 @@ NrtvServerVideoWorker::NormalCloseCallback (Ptr<Socket> socket)
                  "Socket " << m_socket << " is expected, "
                            << "but socket " << socket << " is received");
   m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  CancelAllPendingEvents (); // cancel any scheduled transmission
+  Simulator::ScheduleNow (&NrtvServer::NotifyVideoCompleted,
+                          m_server, m_socket); // tell the server I'm done
 }
 
 
@@ -442,6 +445,9 @@ NrtvServerVideoWorker::ErrorCloseCallback (Ptr<Socket> socket)
                  "Socket " << m_socket << " is expected, "
                            << "but socket " << socket << " is received");
   m_socket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+  CancelAllPendingEvents (); // cancel any scheduled transmission
+  Simulator::ScheduleNow (&NrtvServer::NotifyVideoCompleted,
+                          m_server, m_socket); // tell the server I'm done
 }
 
 
@@ -609,6 +615,29 @@ NrtvServerVideoWorker::NewSlice ()
     }
 
 } // end of `void NewSlice ()`
+
+
+void
+NrtvServerVideoWorker::CancelAllPendingEvents ()
+{
+  NS_LOG_FUNCTION (this);
+
+  if (!Simulator::IsExpired (m_eventNewFrame))
+    {
+      NS_LOG_INFO (this << " canceling NewFrame which is due in "
+                        << Simulator::GetDelayLeft (m_eventNewFrame).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventNewFrame);
+    }
+
+  if (!Simulator::IsExpired (m_eventNewSlice))
+    {
+      NS_LOG_INFO (this << " canceling NewSlice which is due in "
+                        << Simulator::GetDelayLeft (m_eventNewSlice).GetSeconds ()
+                        << " seconds");
+      Simulator::Cancel (m_eventNewSlice);
+    }
+}
 
 
 } // end of `namespace ns3`

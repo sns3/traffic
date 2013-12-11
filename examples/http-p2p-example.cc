@@ -76,13 +76,13 @@ int main (int argc, char *argv[])
 
   HttpHelper httpHelper ("ns3::TcpSocketFactory");
   httpHelper.InstallUsingIpv4 (nodes.Get (1), nodes.Get (0));
-  httpHelper.GetServer ().Start (Seconds (0.0));
-  httpHelper.GetClients ().Start (Seconds (1.0));
+  httpHelper.GetServer ().Start (Seconds (1.0));
+  httpHelper.GetClients ().Start (Seconds (2.0));
 
   Ptr<HttpClientTracePlot> plot = CreateObject<HttpClientTracePlot> (
       httpHelper.GetClients ().Get (0)->GetObject<HttpClient> ());
 
-  Simulator::Stop (Seconds (1000.0));
+  Simulator::Stop (Seconds (100.0));
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;

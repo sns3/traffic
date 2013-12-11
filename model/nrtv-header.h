@@ -156,10 +156,10 @@ public:
   virtual TypeId GetInstanceTypeId () const;
 
 private:
-  uint32_t m_frameNumber;
-  uint32_t m_numOfFrames;
-  uint16_t m_sliceNumber;
-  uint16_t m_numOfSlices;
+  uint32_t m_frameNumber;  ///< Frame number field (an index starting from 0).
+  uint32_t m_numOfFrames;  ///< Number of frames field.
+  uint16_t m_sliceNumber;  ///< Slice number field (an index starting from 0).
+  uint16_t m_numOfSlices;  ///< Number of slices field.
 
 }; // end of `class NrtvHeader`
 

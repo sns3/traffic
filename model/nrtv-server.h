@@ -73,7 +73,7 @@ protected:
   virtual void StopApplication ();
 
 private:
-  // SOCKET CALLBACKS
+  // LISTENER SOCKET CALLBACK METHODS
 
   bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
   void NewConnectionCreatedCallback (Ptr<Socket> socket,
@@ -81,8 +81,10 @@ private:
   void NormalCloseCallback (Ptr<Socket> socket);
   void ErrorCloseCallback (Ptr<Socket> socket);
 
-  // VIDEO WORKER CALLBACK
-
+  /**
+   * \brief Invoked by NrtvServerVideoWorker instance if it has completed the
+   *        transmission of a video.
+   */
   void NotifyVideoCompleted (Ptr<Socket> socket);
 
   void SwitchToState (State_t state);
@@ -111,38 +113,88 @@ private:
 /**
  * \internal
  * \ingroup traffic
- * \brief
+ * \brief Represent a single video session and its transmission over the network
+ *        to a client.
  */
 class NrtvServerVideoWorker : public SimpleRefCount<NrtvServerVideoWorker>
 {
 public:
-  NrtvServerVideoWorker (NrtvServer* server, Ptr<Socket> socket);
-  virtual ~NrtvServerVideoWorker ();
 
-  void NormalCloseCallback (Ptr<Socket> socket);
-  void ErrorCloseCallback (Ptr<Socket> socket);
-  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+  /**
+   * \brief Creates a new instance of worker.
+   *
+   * \param server pointer to the parent server instance, which is the source
+   *               of random variables used by the worker, and will be notified
+   *               on every packet transmitted by the worker and upon the
+   *               completion of the video transmission
+   * \param socket pointer to the socket (must be already connected to a
+   *               destination client) that will be utilized by the worker to
+   *               transmit video packets
+   *
+   * The worker will determine the length of video by calling the parent's
+   * server random variable. Other variables are also retrieved from this
+   * variable, such as number of frames per second (frame rate) and number of
+   * slices per frame.
+   *
+   * The first video frame starts immediately. Each frame has a fixed number of
+   * slices, and each slice is preceded by a random length of encoding delay.
+   * The size of each slice is also determined randomly.
+   *
+   * Each frame always abides to the given frame rate, i.e., the start of each
+   * frame is always punctual according to the frame rate. If the transmission
+   * of the slices takes longer than the length of a single frame, then the
+   * remaining untransmitted slices would be discarded, without* postponing the
+   * start time of the next frame.
+   *
+   * Each slice transmitted will trigger the `Tx` trace source in the parent
+   * server.
+   *
+   * Finally, when all the frames of the video have been transmitted, the worker
+   * will call the parent's server NrtvServer::NotifyVideoCompleted() method.
+   * The parent server is expected to destroy the worker to close the socket.
+   */
+  NrtvServerVideoWorker (NrtvServer* server, Ptr<Socket> socket);
+
+  /// Object destructor, will close the socket.
+  virtual ~NrtvServerVideoWorker ();
 
 private:
   void ScheduleNewFrame ();
   void NewFrame ();
   void ScheduleNewSlice ();
   void NewSlice ();
+  void CancelAllPendingEvents ();
+
+  // SOCKET CALLBACK METHODS
+
+  /// Invoked if the client disconnects.
+  void NormalCloseCallback (Ptr<Socket> socket);
+  /// Invoked if the client disconnects abruptly.
+  void ErrorCloseCallback (Ptr<Socket> socket);
+  /// Invoked if the socket has space for transmission.
+  void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
 
   // EVENTS
 
   EventId m_eventNewFrame;
   EventId m_eventNewSlice;
 
-  NrtvServer*         m_server;
-  Ptr<Socket>         m_socket;
-  uint32_t            m_packetSeq;
-  Time                m_frameInterval;
-  uint32_t            m_numOfFrames;
-  uint32_t            m_numOfFramesServed;
-  uint16_t            m_numOfSlices;
-  uint16_t            m_numOfSlicesServed;
-  Ptr<NrtvVariables>  m_nrtvVariables;
+  NrtvServer*         m_server;  ///< Pointer to the parent's server instance.
+  Ptr<Socket>         m_socket;  ///< Pointer to the socket for transmission.
+  Ptr<NrtvVariables>  m_nrtvVariables;  ///< Pointer to parent's server random variable.
+
+  /// Packet index, starting from 1, to be written in the packet header.
+  uint32_t m_packetSeq;
+  /// Length of time between consecutive frames.
+  Time m_frameInterval;
+  /// Number of frames, i.e., indicating the length of the video.
+  uint32_t m_numOfFrames;
+  /// The number of frames that has been transmitted.
+  uint32_t m_numOfFramesServed;
+  /// Number of slices in one frame.
+  uint16_t m_numOfSlices;
+  /// The number of slices that has been transmitted, resets to 0 after completing a frame.
+  uint16_t m_numOfSlicesServed;
 
 }; // end of `class NrtvServerVideoWorker`
 
