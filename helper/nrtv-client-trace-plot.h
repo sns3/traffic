@@ -103,7 +103,7 @@ public:
   void SetOutputName (std::string outputName);
 
   /**
-   * return the name of the plot file
+   * \return the name of the plot file
    */
   std::string GetOutputName () const;
 

@@ -130,8 +130,8 @@ public:
   uint16_t GetSliceNumber () const;
 
   /**
-   * \param numOfSlice the value for the "number of slices" field of this
-   *                   header instance
+   * \param numOfSlices the value for the "number of slices" field of this
+   *                    header instance
    */
   void SetNumOfSlices (uint16_t numOfSlices);
 

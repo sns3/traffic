@@ -49,11 +49,61 @@ namespace ns3 {
 class HistogramPlotHelper
 {
 public:
+  /**
+   * \brief Write a Gnuplot file of a histogram from a given random variable.
+   *
+   * \param valueStream a callback to the function that returns a random value
+   *                    of type `T` (must be specified as the function's
+   *                    template argument)
+   * \param name the name of the plot, which determines the output file name
+   * \param plotTitle the text to be printed on top of the histogram
+   * \param axisLabel the text to be printed as the label of the histogram's
+   *                  X axis
+   * \param numOfSamples determines how many samples are retrieved from the
+   *                     function specified in `valueStream` argument; higher
+   *                     values produces smoother curve but requires more
+   *                     processing time
+   * \param binWidth the width of each histogram bar (in the same unit as the
+   *                 return values of the function specified in `valueStream`
+   *                 argument)
+   * \param referenceMean a mean value (in the same unit as the return values of
+   *                      the function specified in `valueStream` argument) to
+   *                      be printed on the histogram for comparison purpose
+   * \param max an optional argument that can be specified to determine the
+   *            maximum value of the random values to be considered in the
+   *            histogram; if unspecified, the histogram will automatically
+   *            compute the maximum value in proportion to the `referenceMean`
+   *            argument
+   *
+   * For usage example, see `http-variables-plot.cc` and `nrtv-variables-plot.cc`
+   * in `src/traffic/examples/`.
+   *
+   * Taking for example "histogram" as the value of the parameter `name`, then
+   * this method will generate a Gnuplot file in the current working directory
+   * with the name "histogram.plt". This file can be further converted to an
+   * image file (named "histogram.png") using the following command:
+   *
+   *     $ gnuplot histogram.plt
+   *
+   * The method will print the sentence "Output file written: histogram.plt" to
+   * the standard output when it completes successfully.
+   *
+   * The generated histogram is the graphical representation of the distribution
+   * of random values. The random values are grouped (i.e., tabulated) into
+   * discrete intervals called "bins", which are represented in the histogram as
+   * vertical bars. The height of the bar is the frequency of observations in
+   * the interval over all the retrieved random value samples.
+   *
+   * The function also computes the mean of all the retrieved samples and print
+   * it on the histogram as the "actual mean". In addition, a "reference mean",
+   * which is provided as an argument, is also printed on the histogram for
+   * comparison purpose.
+   */
   template<typename T> static void
   Plot (Callback<T> valueStream, std::string name,
         std::string plotTitle, std::string axisLabel,
         uint32_t numOfSamples, T binWidth,
-        double theoreticalMean, T max = 0);
+        double referenceMean, T max = 0);
 };
 
 
@@ -62,56 +112,6 @@ public:
  * function like this is not visible to the linker if put in .cc file.
  */
 
-/**
- * \brief Write a Gnuplot file of a histogram from a given random variable.
- *
- * \param valueStream a callback to the function that returns a random value of
- *                    type `T` (must be specified as the function's template
- *                    argument)
- * \param name the name of the plot, which determines the output file name
- * \param plotTitle the text to be printed on top of the histogram
- * \param axisLabel the text to be printed as the label of the histogram's
- *                  X axis
- * \param numOfSamples determines how many samples are retrieved from the
- *                     function specified in `valueStream` argument; higher
- *                     values produces smoother curve but requires more
- *                     processing time
- * \param binWidth the width of each histogram bar (in the same unit as the
- *                 return values of the function specified in `valueStream`
- *                 argument)
- * \param referenceMean a mean value (in the same unit as the return values of
- *                      the function specified in `valueStream` argument) to be
- *                      printed on the histogram for comparison purpose
- * \param max an optional argument that can be specified to determine the
- *            maximum value of the random values to be considered in the
- *            histogram; if unspecified, the histogram will automatically
- *            compute the maximum value in proportion to the `referenceMean`
- *            argument
- *
- * For usage example, see `http-variables-plot.cc` and `nrtv-variables-plot.cc`
- * in `src/traffic/examples/`.
- *
- * Taking for example "histogram" as the value of the parameter `name`, then
- * this method will generate a Gnuplot file in the current working directory
- * with the name "histogram.plt". This file can be further converted to an image
- * file (named "histogram.png") using the following command:
- *
- *     $ gnuplot histogram.plt
- *
- * The method will print the sentence "Output file written: histogram.plt" to
- * the standard output when it completes successfully.
- *
- * The generated histogram is the graphical representation of the distribution
- * of random values. The random values are grouped (i.e., tabulated) into
- * discrete intervals called "bins", which are represented in the histogram as
- * vertical bars. The height of the bar is the frequency of observations in the
- * interval over all the retrieved random value samples.
- *
- * The function also computes the mean of all the retrieved samples and print it
- * on the histogram as the "actual mean". In addition, a "reference mean", which
- * is provided as an argument, is also printed on the histogram for comparison
- * purpose.
- */
 template<typename T> void
 HistogramPlotHelper::Plot (Callback<T> valueStream, std::string name,
                            std::string plotTitle, std::string axisLabel,

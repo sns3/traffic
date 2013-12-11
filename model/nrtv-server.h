@@ -105,7 +105,7 @@ public:
   std::string GetStateString () const;
 
   /**
-   * \param an arbitrary state of an application
+   * \param state an arbitrary state of an application
    * \return the state equivalently expressed in string format
    */
   static std::string GetStateString (State_t state);

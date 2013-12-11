@@ -92,6 +92,7 @@ public:
 
   /**
    * \brief Get a random value of Maximum Transmission Unit (MTU) size in bytes.
+   * \return MTU size in bytes
    *
    * The possible MTU sizes are 1460 bytes and 536 bytes with 76% and 24%
    * chances, respectively. The selected value is typically used by the sockets
@@ -102,6 +103,7 @@ public:
 
   /**
    * \brief Get the constant HTTP request size in bytes.
+   * \return request size in bytes
    *
    * By default, HTTP request size is 350 bytes, which can be modified by
    * setting the `RequestSize` attribute or calling the SetRequestSize() method.
@@ -113,6 +115,7 @@ public:
   /**
    * \brief Get the constant length of time needed by an HTTP server to generate
    *        a main object.
+   * \return the delay for generating a main object
    *
    * By default, main objects are generated instantly, i.e., zero delay. This
    * can be modified by setting the `MainObjectGenerationDelay` attribute or by
@@ -123,6 +126,7 @@ public:
   /**
    * \brief Get a random size (in bytes) of a main object to be sent by an HTTP
    *        server.
+   * \return main object size in bytes
    *
    * The size of main objects are determined by a truncated log-normal random
    * distribution. The default distribution settings produces random integers
@@ -135,6 +139,7 @@ public:
   /**
    * \brief Get the constant length of time needed by an HTTP server to generate
    *        an embedded object.
+   * \return the delay for generating an embedded object
    *
    * By default, embedded objects are generated instantly, i.e., zero delay.
    * This can be modified by setting the `EmbeddedObjectGenerationDelay`
@@ -145,6 +150,7 @@ public:
   /**
    * \brief Get a random size (in bytes) of an embedded object to be sent by an
    *        HTTP server.
+   * \return embedded object size in bytes
    *
    * The size of embedded objects are determined by a truncated log-normal
    * random distribution. The default distribution settings produces random
@@ -157,6 +163,7 @@ public:
   /**
    * \brief Get a random integer indicating the number of embedded objects in a
    *        main object.
+   * \return the number of embedded objects
    *
    * The number of embedded objects in a main object is typically discovered
    * when the HTTP client is parsing the main object in question. This number is
@@ -170,6 +177,7 @@ public:
    * \brief Get a random length of time which is spent by a hypothetical human
    *        user (HTTP client) to read a web page before transitioning to
    *        another web page.
+   * \return time interval for reading a web page
    *
    * Reading time is determined by an exponential distribution. The default
    * distribution settings produces random values with a mean of 30 seconds
@@ -182,6 +190,7 @@ public:
    * \brief Get a random length of time which simulate the small delay caused
    *        by HTTP client looking for any embedded objects within the received
    *        main object.
+   * \return time interval for parsing a main object
    *
    * Parsing time is determined by an exponential distribution. The default
    * distribution settings produces random values with a mean of 130 ms without

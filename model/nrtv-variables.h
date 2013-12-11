@@ -80,6 +80,7 @@ public:
   /**
    * \brief Get a random length of video (in number of frames) to be sent by an
    *        NRTV server.
+   * \return the number of frames in the video
    *
    * Number of frames per video is determined by a truncated log-norma
    * distribution. The default distribution settings produces random integers
@@ -91,6 +92,7 @@ public:
 
   /**
    * \brief Get a constant length of time between consecutive frames.
+   * \return time interval between frames
    *
    * By default, frame interval is a constant value of 100 ms, which is
    * equivalent with a frame rate of 10 frames per second.
@@ -106,6 +108,7 @@ public:
 
   /**
    * \brief Get a constant number of slices (packets) per frame.
+   * \return the number of slices per frame
    *
    * By default, each frame consists of 8 slices, which can be modified by
    * setting the `NumOfSlices` attribute or calling the SetNumOfSlices()
@@ -115,6 +118,7 @@ public:
 
   /**
    * \brief Get a random integer indicating the size of a slice (in bytes).
+   * \return slice size in bytes
    *
    * Slice size is determined by a truncated Pareto distribution. The default
    * distribution settings produces (after truncation) random integers between
@@ -125,6 +129,7 @@ public:
   /**
    * \brief Get a random length of delay which is introduced by a hypothetical
    *        video encoder at NRTV server/application before serving each slice.
+   * \return the delay for encoding a video slice
    *
    * Slice encoding delay is determined by truncated Pareto distribution. The
    * default distribution settings produces (after truncation) random values
@@ -137,6 +142,7 @@ public:
 
   /**
    * \brief Get a constant length of NRTV client's de-jitter buffer window size.
+   * \return length of de-jitter buffer window
    *
    * De-jitter buffer window is used to guarantee a continuous display of video
    * streaming data. Its default size is a constant value of 5 seconds. This
@@ -150,6 +156,7 @@ public:
    *        user (NRTV client) to "rest" after a video session (e.g., posting a
    *        comment about the video, selecting the next video) before
    *        transitioning to the next video session.
+   * \return time interval between videos
    *
    * Client's idle time is determined by an exponential distribution. The
    * default distribution settings produces random values with a mean of
