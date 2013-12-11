@@ -42,28 +42,98 @@ class HttpServerTxBuffer;
 
 /**
  * \ingroup traffic
- * \brief
+ * \brief Model application which simulates the traffic of a Hypertext Transfer
+ *        Protocol (HTTP) service, i.e., a web server.
+ *
+ * The application works by responding to requests from clients (HttpClient).
+ * Each request is a packet of data which must begin with an HttpEntityHeader.
+ * The value of the Content-Type field of the header determines the type of
+ * object that the client is requesting. The possible type is either a main
+ * object or an embedded object. The Content-Length field is ignored.
+ *
+ * After a tiny delay (zero second, by default), the application responds by
+ * sending back the right type of object. The size of each object to be sent is
+ * randomly determined. Main objects and embedded objects use separate random
+ * distribution (see HttpVariables).
+ *
+ * The transmission of a single object works as follows. The first packet of the
+ * object always contain an HttpEntityHeader. The Content-Type field indicates
+ * the type of the object and the Content-Length field indicates the size of the
+ * object in bytes. If the socket does not have enough space to absorb the whole
+ * packet, then this first packet would be created as the same size of whatever
+ * space the socket has to offer. The remaining part of the object would be kept
+ * and sent at a later time after the socket has made some space available for
+ * transmission. This same process repeats, so a large object may end up
+ * fragmented into many packets. An exception is on the HttpEntityHeader, which
+ * is only added to the first packet and not added to the subsequent packets.
+ *
+ * To assist with the transmission, the application maintains several instances
+ * of HttpServerTxBuffer. Each instance keeps track of the object type to be
+ * served and the number of bytes left to be sent.
+ *
+ * The application accepts connection request from clients. Every connection is
+ * kept open until the client disconnects.
  */
 class HttpServer : public Application
 {
 public:
+
+  /**
+   * \brief Creates a new instance of HTTP server application.
+   *
+   * After creation, the application must be further configured through
+   * attributes. To avoid having to do this process manually, please use one of
+   * the helper classes (either HttpHelper or HttpServerHelper).
+   *
+   * \warning At the moment, only TCP protocol and IPv4 is supported.
+   *
+   * Upon creation, the application randomly determines the MTU size that it
+   * will use (either 536 or 1460 bytes). The chosen size will be used while
+   * creating the listener socket. The value does not affect how the application
+   * splits an object into multiple packets.
+   */
   HttpServer ();
-  virtual ~HttpServer ();
+
+  // inherited from ObjectBase base class
   static TypeId GetTypeId ();
 
+  /**
+   * \return the maximum transmission unit of the server
+   */
   uint32_t GetMtuSize () const;
-  Address GetAddress () const;
-  uint16_t GetPort () const;
 
+  /**
+   * \return the address bound to the server
+   */
+  Address GetLocalAddress () const;
+
+  /**
+   * \return the port the server listens to
+   */
+  uint16_t GetLocalPort () const;
+
+  /// The possible states of the application.
   enum State_t
   {
-    NOT_STARTED = 0,
-    STARTED,
-    STOPPED
+    NOT_STARTED = 0,  ///< Before StartApplication() is invoked.
+    STARTED,          ///< Passively listening and responding to requests.
+    STOPPED           ///< After StopApplication() is invoked.
   };
 
+  /**
+   * \return the current state of the application
+   */
   State_t GetState () const;
+
+  /**
+   * \return the current state of the application in string format
+   */
   std::string GetStateString () const;
+
+  /**
+   * \param an arbitrary state of an application
+   * \return the state equivalently expressed in string format
+   */
   static std::string GetStateString (State_t state);
 
 protected:
@@ -75,6 +145,7 @@ protected:
   virtual void StopApplication ();
 
 private:
+  // SOCKET CALLBACK METHODS
   bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
   void NewConnectionCreatedCallback (Ptr<Socket> socket,
                                      const Address & address);

@@ -95,7 +95,7 @@ public:
    *
    * The possible MTU sizes are 1460 bytes and 536 bytes with 76% and 24%
    * chances, respectively. The selected value is typically used by the sockets
-   * of HTTP servers to transmit the response packets (both main objects and
+   * of HTTP servers to send the response packets (both main objects and
    * embedded objects) to the requesting HTTP clients.
    */
   uint32_t GetMtuSize ();
@@ -121,8 +121,8 @@ public:
   Time GetMainObjectGenerationDelay ();
 
   /**
-   * \brief Get a random size (in bytes) of a main object to be transmitted by
-   *        an HTTP server.
+   * \brief Get a random size (in bytes) of a main object to be sent by an HTTP
+   *        server.
    *
    * The size of main objects are determined by a truncated log-normal random
    * distribution. The default distribution settings produces random integers
@@ -143,8 +143,8 @@ public:
   Time GetEmbeddedObjectGenerationDelay ();
 
   /**
-   * \brief Get a random size (in bytes) of an embedded object to be transmitted
-   *        by an HTTP server.
+   * \brief Get a random size (in bytes) of an embedded object to be sent by an
+   *        HTTP server.
    *
    * The size of embedded objects are determined by a truncated log-normal
    * random distribution. The default distribution settings produces random

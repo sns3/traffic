@@ -39,29 +39,75 @@ class NrtvServerVideoWorker;
 
 /**
  * \ingroup traffic
- * \brief
+ * \brief Model application which simulates the traffic of a Near Real Time
+ *        Video (NRTV) service, i.e., a video streaming service.
+ *
+ * In summary, the application works as follows. Upon start, the application
+ * opens a socket and listens to connection requests from clients (NrtvClient).
+ * Once the request is accepted (always) and a connection is established, the
+ * application begins to send a video (as a stream of packets) to the client.
+ * When the transmission of the whole video is completed, the application
+ * disconnects the client.
+ *
+ * The application maintains several workers (NrtvServerVideoWorker). Each
+ * worker is responsible for sending a single video for a single client.
+ *
+ * The packets served by the worker share a common format. Each packet begins
+ * with a SeqTsHeader for 12 bytes. Then it is followed immediately by an
+ * NrtvHeader for another 12 bytes. After that, the real video content begins
+ * until the end of the packet, which size is randomly determined by
+ * NrtvVariables.
  */
 class NrtvServer : public Application
 {
 public:
+
+  /**
+   * \brief Creates a new instance of NRTV server application.
+   *
+   * After creation, the application must be further configured through
+   * attributes. To avoid having to do this process manually, please use one of
+   * the helper classes (either NrtvHelper or NrtvServerHelper).
+   *
+   * \warning At the moment, only TCP protocol and IPv4 is supported.
+   */
   NrtvServer ();
-  virtual ~NrtvServer ();
 
   // inherited from ObjectBase base class
   static TypeId GetTypeId ();
 
+  /**
+   * \return the address bound to the server
+   */
   Address GetLocalAddress () const;
+
+  /**
+   * \return the port the server listens to
+   */
   uint16_t GetLocalPort () const;
 
+  /// The possible states of the application.
   enum State_t
   {
-    NOT_STARTED = 0,
-    STARTED,
-    STOPPED
+    NOT_STARTED = 0,  ///< Before StartApplication() is invoked.
+    STARTED,          ///< Passively waiting for connections and/or actively sending videos.
+    STOPPED           ///< After StopApplication() is invoked.
   };
 
+  /**
+   * \return the current state of the application
+   */
   State_t GetState () const;
+
+  /**
+   * \return the current state of the application in string format
+   */
   std::string GetStateString () const;
+
+  /**
+   * \param an arbitrary state of an application
+   * \return the state equivalently expressed in string format
+   */
   static std::string GetStateString (State_t state);
 
 protected:
@@ -74,7 +120,6 @@ protected:
 
 private:
   // LISTENER SOCKET CALLBACK METHODS
-
   bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
   void NewConnectionCreatedCallback (Ptr<Socket> socket,
                                      const Address & address);
@@ -93,6 +138,7 @@ private:
   Ptr<Socket>   m_initialSocket;
 
   friend class NrtvServerVideoWorker;
+  /// Keeping all the active workers.
   std::map<Ptr<Socket>, Ptr<NrtvServerVideoWorker> > m_workers;
 
   // ATTRIBUTES
@@ -121,15 +167,15 @@ class NrtvServerVideoWorker : public SimpleRefCount<NrtvServerVideoWorker>
 public:
 
   /**
-   * \brief Creates a new instance of worker.
+   * \brief Creates a new instance of worker and starts the transmission.
    *
    * \param server pointer to the parent server instance, which is the source
    *               of random variables used by the worker, and will be notified
-   *               on every packet transmitted by the worker and upon the
-   *               completion of the video transmission
+   *               on every packet sent by the worker and upon the completion of
+   *               the video transmission
    * \param socket pointer to the socket (must be already connected to a
    *               destination client) that will be utilized by the worker to
-   *               transmit video packets
+   *               send video packets
    *
    * The worker will determine the length of video by calling the parent's
    * server random variable. Other variables are also retrieved from this
@@ -143,28 +189,21 @@ public:
    * Each frame always abides to the given frame rate, i.e., the start of each
    * frame is always punctual according to the frame rate. If the transmission
    * of the slices takes longer than the length of a single frame, then the
-   * remaining untransmitted slices would be discarded, without* postponing the
-   * start time of the next frame.
+   * remaining unsent slices would be discarded, without postponing the start
+   * time of the next frame.
    *
-   * Each slice transmitted will trigger the `Tx` trace source in the parent
-   * server.
+   * Each slice sent will trigger the `Tx` trace source in the parent server.
    *
-   * Finally, when all the frames of the video have been transmitted, the worker
-   * will call the parent's server NrtvServer::NotifyVideoCompleted() method.
-   * The parent server is expected to destroy the worker to close the socket.
+   * Finally, when all the frames of the video have been sent, the worker will
+   * call the parent's server NrtvServer::NotifyVideoCompleted() method. The
+   * parent server is expected to destroy the worker to close the socket.
    */
   NrtvServerVideoWorker (NrtvServer* server, Ptr<Socket> socket);
 
-  /// Object destructor, will close the socket.
+  /// Instance destructor, will close the socket.
   virtual ~NrtvServerVideoWorker ();
 
 private:
-  void ScheduleNewFrame ();
-  void NewFrame ();
-  void ScheduleNewSlice ();
-  void NewSlice ();
-  void CancelAllPendingEvents ();
-
   // SOCKET CALLBACK METHODS
 
   /// Invoked if the client disconnects.
@@ -173,6 +212,12 @@ private:
   void ErrorCloseCallback (Ptr<Socket> socket);
   /// Invoked if the socket has space for transmission.
   void SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize);
+
+  void ScheduleNewFrame ();
+  void NewFrame ();
+  void ScheduleNewSlice ();
+  void NewSlice ();
+  void CancelAllPendingEvents ();
 
   // EVENTS
 
@@ -189,11 +234,11 @@ private:
   Time m_frameInterval;
   /// Number of frames, i.e., indicating the length of the video.
   uint32_t m_numOfFrames;
-  /// The number of frames that has been transmitted.
+  /// The number of frames that has been sent.
   uint32_t m_numOfFramesServed;
   /// Number of slices in one frame.
   uint16_t m_numOfSlices;
-  /// The number of slices that has been transmitted, resets to 0 after completing a frame.
+  /// The number of slices that has been sent, resets to 0 after completing a frame.
   uint16_t m_numOfSlicesServed;
 
 }; // end of `class NrtvServerVideoWorker`

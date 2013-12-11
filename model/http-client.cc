@@ -64,12 +64,6 @@ HttpClient::HttpClient ()
 }
 
 
-HttpClient::~HttpClient ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
 TypeId
 HttpClient::GetTypeId ()
 {
@@ -263,11 +257,19 @@ HttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
 
       if (m_embeddedObjectsToBeRequested > 0)
         {
+          /*
+           * This case is for burst mode: after parsing a main object or after
+           * receiving an object but need to request more.
+           */
           m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
               &HttpClient::RequestEmbeddedObject, this);
         }
       else
         {
+          /*
+           * This case is for the first connection attempt or for burst mode
+           * after reading.
+           */
           m_eventRequestMainObject = Simulator::ScheduleNow (
               &HttpClient::RequestMainObject, this);
         }
@@ -395,13 +397,8 @@ HttpClient::OpenConnection ()
   if (m_state == NOT_STARTED || m_state == EXPECTING_EMBEDDED_OBJECT
       || m_state == PARSING_MAIN_OBJECT || m_state == READING)
     {
-      if (m_protocol != TcpSocketFactory::GetTypeId ())
-        {
-          NS_FATAL_ERROR ("Socket other than "
-                          << TcpSocketFactory::GetTypeId ().GetName ()
-                          << " are not supported at the moment");
-        }
-
+      NS_ASSERT_MSG (m_protocol == TcpSocketFactory::GetTypeId (),
+                     "Protocols other than TCP are not supported");
       m_socket = Socket::CreateSocket (GetNode (), m_protocol);
 
 #ifdef NS3_LOG_ENABLE
@@ -541,16 +538,19 @@ HttpClient::RequestMainObject ()
       HttpEntityHeader httpEntity;
       httpEntity.SetContentLength (0); // request does not need content length
       httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
-      uint32_t requestSize = m_httpVariables->GetRequestSize ();
-      Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
+      const uint32_t requestSize = m_httpVariables->GetRequestSize ();
+      Ptr<Packet> packet = Create<Packet> (requestSize);
       packet->AddHeader (httpEntity);
+      const uint32_t packetSize = packet->GetSize ();
+      NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
+                     "Packet size shall not be larger than MTU size");
       m_txMainObjectRequestTrace (packet);
-      int actualBytes = m_socket->Send (packet);
+      const int actualBytes = m_socket->Send (packet);
       NS_LOG_DEBUG (this << " Send() packet " << packet
                          << " of " << packet->GetSize () << " bytes,"
                          << " return value= " << actualBytes);
 
-      if ((unsigned) actualBytes != requestSize)
+      if ((unsigned) actualBytes != packetSize)
         {
           NS_LOG_INFO (this << " failed to send request for embedded object,"
                             << " GetErrNo= " << m_socket->GetErrno () << ","
@@ -584,16 +584,19 @@ HttpClient::RequestEmbeddedObject ()
           HttpEntityHeader httpEntity;
           httpEntity.SetContentLength (0); // request does not need content length
           httpEntity.SetContentType (HttpEntityHeader::EMBEDDED_OBJECT);
-          uint32_t requestSize = m_httpVariables->GetRequestSize ();
-          Ptr<Packet> packet = Create<Packet> (requestSize - httpEntity.GetSerializedSize ());
+          const uint32_t requestSize = m_httpVariables->GetRequestSize ();
+          Ptr<Packet> packet = Create<Packet> (requestSize);
           packet->AddHeader (httpEntity);
+          const uint32_t packetSize = packet->GetSize ();
+          NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
+                         "Packet size shall not be larger than MTU size");
           m_txEmbeddedObjectRequestTrace (packet);
-          int actualBytes = m_socket->Send (packet);
+          const int actualBytes = m_socket->Send (packet);
           NS_LOG_DEBUG (this << " Send() packet " << packet
                              << " of " << packet->GetSize () << " bytes,"
                              << " return value= " << actualBytes);
 
-          if ((unsigned) actualBytes != requestSize)
+          if ((unsigned) actualBytes != packetSize)
             {
               NS_LOG_INFO (this << " failed to send request for embedded object,"
                                 << " GetErrNo= " << m_socket->GetErrno () << ","

@@ -128,7 +128,7 @@ NrtvClientTracePlot::Plot ()
   Gnuplot plot (m_outputName + ".png");
   plot.SetTitle ("NRTV Client Traffic Trace");
   plot.SetTerminal ("png");
-  plot.SetLegend ("Time (in seconds)", "Bytes transmitted");
+  plot.SetLegend ("Time (in seconds)", "Bytes received");
   plot.AddDataset (m_packet);
   std::string plotFileName = m_outputName + ".plt";
   std::ofstream plotFile (plotFileName.c_str ());

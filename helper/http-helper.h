@@ -37,11 +37,6 @@ namespace ns3 {
 
 
 /**
- * \defgroup traffic Traffic Generators
- * \brief Collection of applications which model realistic network traffic.
- */
-
-/**
  * \ingroup traffic
  * \brief Helper to make it easier to instantiate an HttpClient on a set of
  *        nodes.
@@ -215,10 +210,7 @@ public:
    */
   HttpHelper (std::string protocol);
 
-  /**
-   * \internal
-   * \brief Object destructor.
-   */
+  /// Instance destructor.
   virtual ~HttpHelper ();
 
   /**

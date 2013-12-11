@@ -31,6 +31,12 @@ namespace ns3 {
 
 
 /**
+ * \defgroup traffic Traffic Generators
+ * \brief Collection of applications which model realistic network traffic.
+ */
+
+
+/**
  * \ingroup traffic
  * \brief Class with a static method to generate a histogram (as a Gnuplot file)
  *        from a specified random variable.

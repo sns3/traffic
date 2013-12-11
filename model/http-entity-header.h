@@ -36,8 +36,8 @@ namespace ns3 {
  * The header is 6 bytes in length. The first 2 bytes are for the Content-Type
  * field, while the remaining 4 bytes are for the Content-Length field.
  *
- * The following is the usage example in the case of transmitting a packet.
- * First create a plain header:
+ * The following is the usage example in the case of sending a packet. First,
+ * create a plain header:
  *
  *     HttpEntityHeader httpEntity;
  *

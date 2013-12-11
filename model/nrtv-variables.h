@@ -78,8 +78,8 @@ public:
   // THE MORE USEFUL METHODS
 
   /**
-   * \brief Get a random length of video (in number of frames) to be transmitted
-   *        by an NRTV server.
+   * \brief Get a random length of video (in number of frames) to be sent by an
+   *        NRTV server.
    *
    * Number of frames per video is determined by a truncated log-norma
    * distribution. The default distribution settings produces random integers

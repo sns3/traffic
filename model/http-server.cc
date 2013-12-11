@@ -60,12 +60,6 @@ HttpServer::HttpServer ()
 }
 
 
-HttpServer::~HttpServer ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
 TypeId
 HttpServer::GetTypeId ()
 {
@@ -126,14 +120,14 @@ HttpServer::GetMtuSize () const
 
 
 Address
-HttpServer::GetAddress () const
+HttpServer::GetLocalAddress () const
 {
   return m_localAddress;
 }
 
 
 uint16_t
-HttpServer::GetPort () const
+HttpServer::GetLocalPort () const
 {
   return m_localPort;
 }
@@ -197,12 +191,8 @@ HttpServer::StartApplication ()
     {
       if (m_initialSocket == 0)
         {
-          if (m_protocol != TcpSocketFactory::GetTypeId ())
-            {
-              NS_FATAL_ERROR ("Socket other than "
-                              << TcpSocketFactory::GetTypeId ().GetName ()
-                              << " are not supported at the moment");
-            }
+          NS_ASSERT_MSG (m_protocol == TcpSocketFactory::GetTypeId (),
+                         "Protocols other than TCP are not supported");
 
           // find the current default MTU value of TCP sockets
           Ptr<const ns3::AttributeValue> previousSocketMtu;
@@ -304,6 +294,7 @@ HttpServer::StopApplication ()
   // close all accepted sockets
   m_txBuffer->CloseAllSockets ();
 
+  // stop listening
   if (m_initialSocket != 0)
     {
       m_initialSocket->Close ();
@@ -472,8 +463,8 @@ HttpServer::SendCallback (Ptr<Socket> socket, uint32_t availableBufferSize)
 
   if (!m_txBuffer->IsBufferEmpty (socket))
     {
-      uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
-      uint32_t actualSent = ServeFromTxBuffer (socket);
+      const uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
+      const uint32_t actualSent = ServeFromTxBuffer (socket);
 
 #ifdef NS3_LOG_ENABLE
       if (actualSent < txBufferSize)
@@ -524,12 +515,12 @@ HttpServer::ServeNewMainObject (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  uint32_t objectSize = m_httpVariables->GetMainObjectSize ();
+  const uint32_t objectSize = m_httpVariables->GetMainObjectSize ();
   NS_LOG_INFO (this << " main object to be served is "
                     << objectSize << " bytes");
   m_txBuffer->WriteNewObject (socket, HttpEntityHeader::MAIN_OBJECT,
                               objectSize);
-  uint32_t actualSent = ServeFromTxBuffer (socket);
+  const uint32_t actualSent = ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
     {
@@ -548,12 +539,12 @@ HttpServer::ServeNewEmbeddedObject (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
-  uint32_t objectSize = m_httpVariables->GetEmbeddedObjectSize ();
+  const uint32_t objectSize = m_httpVariables->GetEmbeddedObjectSize ();
   NS_LOG_INFO (this << " embedded object to be served is "
                     << objectSize << " bytes");
   m_txBuffer->WriteNewObject (socket, HttpEntityHeader::EMBEDDED_OBJECT,
                               objectSize);
-  uint32_t actualSent = ServeFromTxBuffer (socket);
+  const uint32_t actualSent = ServeFromTxBuffer (socket);
 
   if (actualSent < objectSize)
     {
@@ -578,7 +569,7 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
     }
   else
     {
-      bool hasTxedPartOfObject = m_txBuffer->HasTxedPartOfObject (socket);
+      const bool hasTxedPartOfObject = m_txBuffer->HasTxedPartOfObject (socket);
 
       uint32_t headerSize; // how many bytes needed for header
       if (hasTxedPartOfObject)
@@ -588,10 +579,11 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
         }
       else
         {
+          // the first packet of the object always begins with a header
           headerSize = HttpEntityHeader::GetStaticSerializedSize ();
         }
 
-      uint32_t socketSize = socket->GetTxAvailable ();
+      const uint32_t socketSize = socket->GetTxAvailable ();
       NS_LOG_DEBUG (this << " socket has " << socketSize
                          << " bytes available for Tx");
 
@@ -599,11 +591,11 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
         {
           HttpEntityHeader::ContentType_t txBufferContentType
             = m_txBuffer->GetBufferContentType (socket);
-          uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
+          const uint32_t txBufferSize = m_txBuffer->GetBufferSize (socket);
 
           // size of actual content to be sent now, has to fit into the socket
-          uint32_t contentSize = std::min (txBufferSize,
-                                           socketSize - headerSize);
+          const uint32_t contentSize = std::min (txBufferSize,
+                                                 socketSize - headerSize);
           //contentSize = std::min (contentSize, m_mtuSize - headerSize);
           Ptr<Packet> packet = Create<Packet> (contentSize);
 
@@ -616,7 +608,7 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
               packet->AddHeader (httpEntityHeader);
             }
 
-          uint32_t packetSize = packet->GetSize ();
+          const uint32_t packetSize = packet->GetSize ();
           NS_ASSERT (packetSize == (contentSize + headerSize));
           NS_ASSERT (packetSize <= socketSize);
 
@@ -633,7 +625,7 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
             {
               // the packet go through successfully
               m_txBuffer->DepleteBufferSize (socket, contentSize);
-              NS_LOG_INFO (this << " remaining object to be transmitted "
+              NS_LOG_INFO (this << " remaining object to be sent "
                                 << m_txBuffer->GetBufferSize (socket) << " bytes");
               return contentSize;
             }
@@ -859,7 +851,7 @@ HttpServerTxBuffer::WriteNewObject (Ptr<Socket> socket,
                  "Socket " << socket << " cannot be found");
   NS_ASSERT_MSG (it->second.txBufferSize == 0,
                  "Cannot write to Tx buffer of socket " << socket
-                                                        << " until the previous content has been completely transmitted");
+                                                        << " until the previous content has been completely sent");
   it->second.txBufferContentType = contentType;
   it->second.txBufferSize = objectSize;
   it->second.hasTxedPartOfObject = false;

@@ -210,10 +210,7 @@ public:
    */
   NrtvHelper (std::string protocol);
 
-  /**
-   * \internal
-   * \brief Object destructor.
-   */
+  /// Instance destructor.
   virtual ~NrtvHelper ();
 
   /**

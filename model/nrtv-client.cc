@@ -59,12 +59,6 @@ NrtvClient::NrtvClient ()
 }
 
 
-NrtvClient::~NrtvClient ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
 TypeId
 NrtvClient::GetTypeId ()
 {
@@ -348,6 +342,8 @@ NrtvClient::OpenConnection ()
 
   if (m_state == NOT_STARTED || m_state == IDLE)
     {
+      NS_ASSERT_MSG (m_protocol == TcpSocketFactory::GetTypeId (),
+                     "Protocols other than TCP are not supported");
       m_socket = Socket::CreateSocket (GetNode (), m_protocol);
       NS_LOG_INFO (this << " created socket " << m_socket
                         << " of " << m_protocol.GetName ());

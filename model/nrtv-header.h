@@ -38,8 +38,8 @@ namespace ns3 {
  * - slice number (2 bytes, an index starting from 0); and
  * - number of slices in the current frame (2 bytes).
  *
- * The following is the usage example in the case of transmitting a packet.
- * First create a plain header:
+ * The following is the usage example in the case of sending a packet. First,
+ * create a plain header:
  *
  *     NrtvHeader nrtvHeader;
  *

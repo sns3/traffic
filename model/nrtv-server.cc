@@ -59,12 +59,6 @@ NrtvServer::NrtvServer ()
 }
 
 
-NrtvServer::~NrtvServer ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-
 TypeId
 NrtvServer::GetTypeId ()
 {
@@ -175,6 +169,8 @@ NrtvServer::StartApplication ()
     {
       if (m_initialSocket == 0)
         {
+          NS_ASSERT_MSG (m_protocol == TcpSocketFactory::GetTypeId (),
+                         "Protocols other than TCP are not supported");
           m_initialSocket = Socket::CreateSocket (GetNode (), m_protocol);
           int ret;
 
@@ -277,8 +273,10 @@ NrtvServer::StopApplication ()
       it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
     }
 
+  // destroy all workers
   m_workers.clear ();
 
+  // stop listening
   if (m_initialSocket != 0)
     {
       m_initialSocket->Close ();
@@ -377,13 +375,14 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
 {
   NS_LOG_FUNCTION (this << socket);
 
+  // accessing the parent's server random variable
   PointerValue p;
   server->GetAttribute ("Variables", p);
   m_nrtvVariables = p.Get<NrtvVariables> ();
-  m_frameInterval = m_nrtvVariables->GetFrameInterval ();
-  m_numOfFrames = m_nrtvVariables->GetNumOfFrames ();
-  m_numOfSlices = m_nrtvVariables->GetNumOfSlices ();
+  m_frameInterval = m_nrtvVariables->GetFrameInterval ();  // frame rate
+  m_numOfFrames = m_nrtvVariables->GetNumOfFrames ();      // length of video
   NS_ASSERT (m_numOfFrames > 0);
+  m_numOfSlices = m_nrtvVariables->GetNumOfSlices ();      // slices per frame
   NS_ASSERT (m_numOfSlices > 0);
   NS_LOG_INFO (this << " this video is " << m_numOfFrames << " frames long"
                     << " (each frame is " << m_frameInterval.GetMilliSeconds ()
@@ -394,20 +393,8 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
                              MakeCallback (&NrtvServerVideoWorker::ErrorCloseCallback,
                                            this));
 
-  /*
-   * The following callback is not used, because we assume our Tx rate is rather
-   * mild (i.e., individual packet sizes are relatively small), so socket is
-   * assumed to be always available for transmission.
-   *
-   * \todo Might be a wrong assumption.
-   */
-#ifdef NS3_LOG_ENABLE
-  socket->SetSendCallback (MakeCallback (&NrtvServerVideoWorker::SendCallback,
-                                         this));
-#endif /* NS3_LOG_ENABLE */
-
+  // start the first frame now
   Simulator::ScheduleNow (&NrtvServerVideoWorker::NewFrame, this);
-
 }
 
 
@@ -556,6 +543,10 @@ NrtvServerVideoWorker::NewSlice ()
   uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
   uint32_t contentSize = std::min (sliceSize,
                                    socketSize - headerSize);
+  /*
+   * We simply assume that our packets are rather small and the socket will
+   * always has space to fit these packets.
+   */
   NS_ASSERT_MSG (contentSize == sliceSize, "Socket size is too small");
 
   m_packetSeq++;
@@ -570,7 +561,7 @@ NrtvServerVideoWorker::NewSlice ()
 
   Ptr<Packet> packet = Create<Packet> (contentSize);
   /*
-   * Adding the headers in reverse order, so that when the client receive the
+   * Adding the headers in reverse order, so that when the client receives the
    * packet, the SeqTs header will be the first to be read.
    */
   packet->AddHeader (nrtvHeader);
