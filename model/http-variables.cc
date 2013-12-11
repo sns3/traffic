@@ -181,7 +181,7 @@ HttpVariables::GetTypeId ()
 bool
 HttpVariables::IsBurstMode ()
 {
-  double r = m_httpVersionRng->GetValue ();
+  const double r = m_httpVersionRng->GetValue ();
   NS_ASSERT (r >= 0.0);
   NS_ASSERT (r < 1.0);
   return (r < 0.5);
@@ -191,7 +191,7 @@ HttpVariables::IsBurstMode ()
 uint32_t
 HttpVariables::GetMtuSize ()
 {
-  double r = m_mtuSizeRng->GetValue ();
+  const double r = m_mtuSizeRng->GetValue ();
   NS_ASSERT (r >= 0.0);
   NS_ASSERT (r < 1.0);
   if (r < 0.76)

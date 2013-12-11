@@ -130,7 +130,7 @@ NrtvClientTracePlot::Plot ()
   plot.SetTerminal ("png");
   plot.SetLegend ("Time (in seconds)", "Bytes received");
   plot.AddDataset (m_packet);
-  std::string plotFileName = m_outputName + ".plt";
+  const std::string plotFileName = m_outputName + ".plt";
   std::ofstream plotFile (plotFileName.c_str ());
   plot.GenerateOutput (plotFile);
   plotFile.close ();

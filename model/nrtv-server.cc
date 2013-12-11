@@ -176,9 +176,9 @@ NrtvServer::StartApplication ()
 
           if (Ipv4Address::IsMatchingType (m_localAddress))
             {
-              Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_localAddress);
-              InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                                m_localPort);
+              const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_localAddress);
+              const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                                      m_localPort);
               NS_LOG_INFO (this << " binding on " << ipv4
                                 << " port " << m_localPort
                                 << " / " << inetSocket);
@@ -202,9 +202,9 @@ NrtvServer::StartApplication ()
             }
           else if (Ipv6Address::IsMatchingType (m_localAddress))
             {
-              Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_localAddress);
-              Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                                   m_localPort);
+              const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_localAddress);
+              const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                         m_localPort);
               NS_LOG_INFO (this << " binding on " << ipv6
                                 << " port " << m_localPort
                                 << " / " << inet6Socket);
@@ -353,8 +353,8 @@ NrtvServer::NotifyVideoCompleted (Ptr<Socket> socket)
 void
 NrtvServer::SwitchToState (NrtvServer::State_t state)
 {
-  std::string oldState = GetStateString ();
-  std::string newState = GetStateString (state);
+  const std::string oldState = GetStateString ();
+  const std::string newState = GetStateString (state);
   NS_LOG_FUNCTION (this << oldState << newState);
   m_state = state;
   NS_LOG_INFO (this << " NrtvServer " << oldState << " --> " << newState);
@@ -495,7 +495,7 @@ NrtvServerVideoWorker::ScheduleNewSlice ()
   NS_LOG_FUNCTION (this << sliceNumber << m_numOfSlices);
   NS_ASSERT (sliceNumber <= m_numOfSlices);
 
-  Time encodingDelay = m_nrtvVariables->GetSliceEncodingDelay ();
+  const Time encodingDelay = m_nrtvVariables->GetSliceEncodingDelay ();
   NS_LOG_DEBUG (this << " encoding the slice needs "
                      << encodingDelay.GetMilliSeconds () << " ms,"
                      << " while new frame is coming in "
@@ -527,11 +527,11 @@ NrtvServerVideoWorker::NewSlice ()
   m_numOfSlicesServed++;
   NS_LOG_FUNCTION (this << m_numOfSlicesServed << m_numOfSlices);
 
-  uint32_t socketSize = m_socket->GetTxAvailable ();
+  const uint32_t socketSize = m_socket->GetTxAvailable ();
   NS_LOG_DEBUG (this << " socket has " << socketSize
                      << " bytes available for Tx");
 
-  uint32_t sliceSize = m_nrtvVariables->GetSliceSize ();
+  const uint32_t sliceSize = m_nrtvVariables->GetSliceSize ();
   NS_LOG_INFO (this << " video slice " << m_numOfSlicesServed
                     << " is " << sliceSize << " bytes");
 
@@ -540,9 +540,9 @@ NrtvServerVideoWorker::NewSlice ()
    * Unfortunately we can't avoid hard-coding the size of SeqTsHeader (12 bytes)
    * here.
    */
-  uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
-  uint32_t contentSize = std::min (sliceSize,
-                                   socketSize - headerSize);
+  const uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
+  const uint32_t contentSize = std::min (sliceSize,
+                                         socketSize - headerSize);
   /*
    * We simply assume that our packets are rather small and the socket will
    * always has space to fit these packets.
@@ -567,7 +567,7 @@ NrtvServerVideoWorker::NewSlice ()
   packet->AddHeader (nrtvHeader);
   packet->AddHeader (seqTsHeader);
 
-  uint32_t packetSize = packet->GetSize ();
+  const uint32_t packetSize = packet->GetSize ();
   NS_ASSERT (packetSize == (contentSize + headerSize));
   NS_ASSERT (packetSize <= socketSize);
   NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
@@ -577,7 +577,7 @@ NrtvServerVideoWorker::NewSlice ()
                     << packetSize << " bytes");
 
 #ifdef NS3_LOG_ENABLE
-  int actualBytes = m_socket->Send (packet);
+  const int actualBytes = m_socket->Send (packet);
   NS_LOG_DEBUG (this << " Send() packet " << packet
                      << " of " << packetSize << " bytes,"
                      << " return value= " << actualBytes);

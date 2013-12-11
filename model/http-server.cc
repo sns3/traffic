@@ -196,7 +196,7 @@ HttpServer::StartApplication ()
 
           // find the current default MTU value of TCP sockets
           Ptr<const ns3::AttributeValue> previousSocketMtu;
-          TypeId tcpSocketTid = TypeId::LookupByName ("ns3::TcpSocket");
+          const TypeId tcpSocketTid = TypeId::LookupByName ("ns3::TcpSocket");
           for (uint32_t i = 0; i < tcpSocketTid.GetAttributeN (); i++)
             {
               struct TypeId::AttributeInformation attrInfo = tcpSocketTid.GetAttribute (i);
@@ -228,9 +228,9 @@ HttpServer::StartApplication ()
 
           if (Ipv4Address::IsMatchingType (m_localAddress))
             {
-              Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_localAddress);
-              InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                                m_localPort);
+              const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_localAddress);
+              const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                                      m_localPort);
               NS_LOG_INFO (this << " binding on " << ipv4
                                 << " port " << m_localPort
                                 << " / " << inetSocket);
@@ -240,9 +240,9 @@ HttpServer::StartApplication ()
             }
           else if (Ipv6Address::IsMatchingType (m_localAddress))
             {
-              Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_localAddress);
-              Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                                   m_localPort);
+              const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_localAddress);
+              const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                         m_localPort);
               NS_LOG_INFO (this << " binding on " << ipv6
                                 << " port " << m_localPort
                                 << " / " << inet6Socket);
@@ -655,8 +655,8 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
 void
 HttpServer::SwitchToState (HttpServer::State_t state)
 {
-  std::string oldState = GetStateString ();
-  std::string newState = GetStateString (state);
+  const std::string oldState = GetStateString ();
+  const std::string newState = GetStateString (state);
   NS_LOG_FUNCTION (this << oldState << newState);
   m_state = state;
   NS_LOG_INFO (this << " HttpServer " << oldState << " --> " << newState);

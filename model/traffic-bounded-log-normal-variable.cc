@@ -135,12 +135,12 @@ TrafficBoundedLogNormalVariable::RefreshBaseParameters ()
 {
   NS_LOG_FUNCTION (this);
 
-  double a1 = pow (m_stdDev, 2);
-  double a2 = pow (m_mean, 2);
-  double a = log (1 + (a1 / a2));
+  const double a1 = pow (m_stdDev, 2);
+  const double a2 = pow (m_mean, 2);
+  const double a = log (1 + (a1 / a2));
 
-  double mu = log (m_mean) - (0.5 * a);
-  double sigma = sqrt (a);
+  const double mu = log (m_mean) - (0.5 * a);
+  const double sigma = sqrt (a);
   NS_LOG_INFO (this << " Mu= " << mu << " Sigma= " << sigma);
 
   // updating attributes of parent class

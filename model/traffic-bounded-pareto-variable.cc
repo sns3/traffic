@@ -76,7 +76,7 @@ TrafficBoundedParetoVariable::GetBoundedNormalizedInteger ()
 {
   NS_LOG_FUNCTION (this);
 
-  uint32_t x = GetBoundedInteger ();
+  const uint32_t x = GetBoundedInteger ();
   NS_ASSERT (x >= m_scale);
   return (x - m_scale);
 }
@@ -105,14 +105,14 @@ TrafficBoundedParetoVariable::RefreshBaseParameters ()
 {
   NS_LOG_FUNCTION (this);
 
-  double shape = GetShape (); // extracting parameter value from parent class
+  const double shape = GetShape (); // extracting parameter value from parent class
   if (fabs (shape - 1.0) < 0.000001)
     {
       NS_FATAL_ERROR ("Shape parameter of a Pareto distribution must not equal to 1.0"
                       << " (the current value is " << shape << ")");
     }
 
-  double mean = (shape * m_scale) / (shape - 1.0);
+  const double mean = (shape * m_scale) / (shape - 1.0);
   NS_LOG_INFO (this << " mean= " << mean);
 
   // updating attribute of parent class

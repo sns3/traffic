@@ -418,9 +418,9 @@ HttpClient::OpenConnection ()
           NS_LOG_DEBUG (this << " Bind() return value= " << ret
                              << " GetErrNo= " << m_socket->GetErrno ());
 
-          Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-          InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                            m_remoteServerPort);
+          const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+          const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                                  m_remoteServerPort);
           NS_LOG_INFO (this << " connecting to " << ipv4
                             << " port " << m_remoteServerPort
                             << " / " << inetSocket);
@@ -434,9 +434,9 @@ HttpClient::OpenConnection ()
           NS_LOG_DEBUG (this << " Bind6() return value= " << ret
                              << " GetErrNo= " << m_socket->GetErrno ());
 
-          Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-          Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                               m_remoteServerPort);
+          const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+          const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                     m_remoteServerPort);
           NS_LOG_INFO (this << " connecting to " << ipv6
                             << " port " << m_remoteServerPort
                             << " / " << inet6Socket);
@@ -480,9 +480,9 @@ HttpClient::RetryConnection ()
 
   if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
     {
-      Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-      InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                        m_remoteServerPort);
+      const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+      const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                              m_remoteServerPort);
       NS_LOG_INFO (this << " retrying connecting to " << ipv4
                         << " port " << m_remoteServerPort
                         << " / " << inetSocket);
@@ -493,9 +493,9 @@ HttpClient::RetryConnection ()
     }
   else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
     {
-      Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-      Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                           m_remoteServerPort);
+      const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+      const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                 m_remoteServerPort);
       NS_LOG_INFO (this << " retrying connection to " << ipv6
                         << " port " << m_remoteServerPort
                         << " / " << inet6Socket);
@@ -829,7 +829,7 @@ HttpClient::EnterParsingTime ()
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
-      Time parsingTime = m_httpVariables->GetParsingTime ();
+      const Time parsingTime = m_httpVariables->GetParsingTime ();
       NS_LOG_INFO (this << " the parsing of this main object"
                         << " will complete in "
                         << parsingTime.GetSeconds () << " seconds");
@@ -898,7 +898,7 @@ HttpClient::EnterReadingTime ()
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT || m_state == PARSING_MAIN_OBJECT)
     {
-      Time readingTime = m_httpVariables->GetReadingTime ();
+      const Time readingTime = m_httpVariables->GetReadingTime ();
       NS_LOG_INFO (this << " will finish reading this web page in "
                         << readingTime.GetSeconds () << " seconds");
 
@@ -972,8 +972,8 @@ HttpClient::CancelAllPendingEvents ()
 void
 HttpClient::SwitchToState (HttpClient::State_t state)
 {
-  std::string oldState = GetStateString ();
-  std::string newState = GetStateString (state);
+  const std::string oldState = GetStateString ();
+  const std::string newState = GetStateString (state);
   NS_LOG_FUNCTION (this << oldState << newState);
 
   if ((state == EXPECTING_MAIN_OBJECT) || (state == EXPECTING_EMBEDDED_OBJECT))

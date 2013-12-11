@@ -268,7 +268,7 @@ NrtvClient::NormalCloseCallback (Ptr<Socket> socket)
 
   CancelAllPendingEvents ();
   SwitchToState (IDLE);
-  Time idleTime = m_nrtvVariables->GetIdleTime ();
+  const Time idleTime = m_nrtvVariables->GetIdleTime ();
   NS_LOG_INFO (this << " a video has just completed, now waiting for "
                     << idleTime.GetSeconds () << " seconds before the next video");
   Simulator::Schedule (idleTime, &NrtvClient::OpenConnection, this);
@@ -355,9 +355,9 @@ NrtvClient::OpenConnection ()
           NS_LOG_DEBUG (this << " Bind() return value= " << ret
                              << " GetErrNo= " << m_socket->GetErrno ());
 
-          Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-          InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                            m_remoteServerPort);
+          const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+          const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                                  m_remoteServerPort);
           NS_LOG_INFO (this << " connecting to " << ipv4
                             << " port " << m_remoteServerPort
                             << " / " << inetSocket);
@@ -371,9 +371,9 @@ NrtvClient::OpenConnection ()
           NS_LOG_DEBUG (this << " Bind6() return value= " << ret
                              << " GetErrNo= " << m_socket->GetErrno ());
 
-          Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-          Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                               m_remoteServerPort);
+          const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+          const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                     m_remoteServerPort);
           NS_LOG_INFO (this << " connecting to " << ipv6
                             << " port " << m_remoteServerPort
                             << " / " << inet6Socket);
@@ -414,9 +414,9 @@ NrtvClient::RetryConnection ()
 
   if (Ipv4Address::IsMatchingType (m_remoteServerAddress))
     {
-      Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
-      InetSocketAddress inetSocket = InetSocketAddress (ipv4,
-                                                        m_remoteServerPort);
+      const Ipv4Address ipv4 = Ipv4Address::ConvertFrom (m_remoteServerAddress);
+      const InetSocketAddress inetSocket = InetSocketAddress (ipv4,
+                                                              m_remoteServerPort);
       NS_LOG_INFO (this << " retrying connecting to " << ipv4
                         << " port " << m_remoteServerPort
                         << " / " << inetSocket);
@@ -427,9 +427,9 @@ NrtvClient::RetryConnection ()
     }
   else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
     {
-      Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
-      Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
-                                                           m_remoteServerPort);
+      const Ipv6Address ipv6 = Ipv6Address::ConvertFrom (m_remoteServerAddress);
+      const Inet6SocketAddress inet6Socket = Inet6SocketAddress (ipv6,
+                                                                 m_remoteServerPort);
       NS_LOG_INFO (this << " retrying connection to " << ipv6
                         << " port " << m_remoteServerPort
                         << " / " << inet6Socket);
@@ -475,8 +475,8 @@ NrtvClient::CancelAllPendingEvents ()
 void
 NrtvClient::SwitchToState (NrtvClient::State_t state)
 {
-  std::string oldState = GetStateString ();
-  std::string newState = GetStateString (state);
+  const std::string oldState = GetStateString ();
+  const std::string newState = GetStateString (state);
   NS_LOG_FUNCTION (this << oldState << newState);
 
   m_state = state;

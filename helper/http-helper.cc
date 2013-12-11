@@ -163,7 +163,7 @@ HttpHelper::SetServerAttribute (std::string name, const AttributeValue &value)
 ApplicationContainer
 HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 {
-  ApplicationContainer ret;
+  ApplicationContainer ret; // the return value of the function
 
   Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
   if (ipv4 == 0)
@@ -173,8 +173,8 @@ HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
   else
     {
       /// \todo Still unclear if the hard-coded indices below will work in any possible cases.
-      Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
-      Ipv4Address serverAddress = interfaceAddress.GetLocal ();
+      const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
+      const Ipv4Address serverAddress = interfaceAddress.GetLocal ();
 
       m_serverHelper->SetAttribute ("LocalAddress",
                                     AddressValue (serverAddress));
@@ -193,7 +193,7 @@ HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 ApplicationContainer
 HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
 {
-  ApplicationContainer ret;
+  ApplicationContainer ret; // the return value of the function
 
   Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
   if (ipv4 == 0)
@@ -203,8 +203,8 @@ HttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
   else
     {
       /// \todo Still unclear if the hard-coded indices below will work in any possible cases.
-      Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
-      Ipv4Address serverAddress = interfaceAddress.GetLocal ();
+      const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
+      const Ipv4Address serverAddress = interfaceAddress.GetLocal ();
 
       m_serverHelper->SetAttribute ("LocalAddress",
                                     AddressValue (serverAddress));

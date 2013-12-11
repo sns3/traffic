@@ -194,7 +194,7 @@ HttpClientTracePlot::Plot ()
       plot.AddDataset (m_embeddedObjectAck);
     }
 
-  std::string plotFileName = m_outputName + ".plt";
+  const std::string plotFileName = m_outputName + ".plt";
   std::ofstream plotFile (plotFileName.c_str ());
   plot.GenerateOutput (plotFile);
   plotFile.close ();
