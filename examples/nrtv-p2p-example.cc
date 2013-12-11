@@ -28,14 +28,26 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
 
 /**
  * \ingroup traffic
  * \brief Simple example of two nodes connected by a point-to-point link. One
- *        acts as a video streaming server, while the other node acts as the
+ *        acts as a video streaming server, while the other one acts as the
  *        client.
+ *
+ * This example demonstrates the use of NrtvClientTracePlot helper class to
+ * generate a plot to visualise the Rx traffic experienced by the client. After
+ * the example ends, locate the file "nrtv-client-trace.plt" in the working
+ * directory, and convert it to a PNG image file using the following command:
+ *
+ *     $ gnuplot nrtv-client-trace.plt
+ *
+ * After that, the plot can be seen in the "nrtv-client-trace.png", which can
+ * also be found in the working directory.
  */
+NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
+
+
 int main (int argc, char *argv[])
 {
   LogComponentEnable ("NrtvClient", LOG_PREFIX_ALL);

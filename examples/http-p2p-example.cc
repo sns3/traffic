@@ -28,15 +28,26 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("HttpP2pExample");
-
 
 /**
  * \ingroup traffic
  * \brief Simple example of two nodes connected by a point-to-point link. One
- *        acts as a web server, while the other node acts as the web browsing
+ *        acts as a web server, while the other one acts as the web browsing
  *        client.
+ *
+ * This example demonstrates the use of HttpClientTracePlot helper class to
+ * generate a plot to visualise the Rx traffic experienced by the client. After
+ * the example ends, locate the file "http-client-trace.plt" in the working
+ * directory, and convert it to a PNG image file using the following command:
+ *
+ *     $ gnuplot http-client-trace.plt
+ *
+ * After that, the plot can be seen in the "http-client-trace.png", which can
+ * also be found in the working directory.
  */
+NS_LOG_COMPONENT_DEFINE ("HttpP2pExample");
+
+
 int main (int argc, char *argv[])
 {
   LogComponentEnable ("HttpClient", LOG_PREFIX_ALL);

@@ -60,8 +60,12 @@ HttpKpiHelper::AddClient (Ptr<HttpClient> client)
 {
   NS_LOG_FUNCTION (this << client);
 
+  // CONNECT TO THE CLIENT'S TRACE SOURCES
+
+  // use the client's IP address as the context
   const Ipv4Address address = GetAddress (client->GetNode ());
   const std::string context = AddressToString (address);
+
   client->TraceConnect ("RxMainObjectPacket", context,
                         MakeCallback (&HttpKpiHelper::RxCallback, this));
   client->TraceConnect ("RxEmbeddedObjectPacket", context,
@@ -72,6 +76,8 @@ HttpKpiHelper::AddClient (Ptr<HttpClient> client)
   client->TraceConnect ("RxEmbeddedObject", context,
                         MakeCallback (&HttpKpiHelper::RxEmbeddedObjectCallback,
                                       this));
+
+  // INITIALIZE A SET OF COUNTERS FOR THIS CLIENT
 
   ClientCounter_t counter;
   counter.rxBytes = 0;
@@ -94,10 +100,13 @@ HttpKpiHelper::AddClient (Ptr<HttpClient> client)
                  "Found a client with duplicate address " << address);
   m_clientCounters[address] = counter;
 
+  // INSTALL FLOW MONITOR ON THIS CLIENT
+
   Ptr<Node> node = client->GetNode ();
   NS_ASSERT (node->GetObject<Ipv4L3Protocol> () != 0);
   m_flowMonitorHelper.Install (node);
-}
+
+} // end of `void AddClient (Ptr<HttpClient> client)`
 
 
 void
@@ -119,6 +128,8 @@ void
 HttpKpiHelper::SetServer (Ptr<HttpServer> server)
 {
   NS_LOG_FUNCTION (this << server);
+
+  // INSTALL FLOW MONITOR ON THIS SERVER
 
   Ptr<Node> node = server->GetNode ();
   NS_ASSERT (node->GetObject<Ipv4L3Protocol> () != 0);
@@ -146,7 +157,7 @@ HttpKpiHelper::Print ()
 
   // GET PACKET DELAY INFORMATION FROM FLOW MONITOR
 
-  // in order to make sure all possibly lost packets are accounted for
+  // this ensures all possibly lost packets are accounted for
   const Ptr<FlowMonitor> flowMonitor = m_flowMonitorHelper.GetMonitor ();
   flowMonitor->CheckForLostPackets ();
 

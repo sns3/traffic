@@ -79,6 +79,7 @@ NrtvClientTracePlot::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::NrtvClientTracePlot")
     .SetParent<Object> ()
+    // for future attributes to configure how the plot is drawn?
   ;
   return tid;
 }

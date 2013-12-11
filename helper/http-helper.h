@@ -38,9 +38,7 @@ namespace ns3 {
 
 /**
  * \defgroup traffic Traffic Generators
- * \brief Applications modeling realistic network traffic.
- *
- *
+ * \brief Collection of applications which model realistic network traffic.
  */
 
 /**
@@ -67,7 +65,7 @@ public:
 
   /**
    * \brief Helper function used to set the underlying application attributes,
-   *        but _not_ the socket attributes.
+   *        but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -144,7 +142,7 @@ public:
 
   /**
    * \brief Helper function used to set the underlying application attributes,
-   *        but _not_ the socket attributes.
+   *        but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -213,19 +211,19 @@ public:
    *
    * The protocol argument is a string identifying the socket factory type used
    * to create sockets for the applications. A typical value would be
-   *  or "ns3::UdpSocketFactory".
+   * "ns3::TcpSocketFactory".
    */
   HttpHelper (std::string protocol);
 
   /**
    * \internal
-   * \brief Class destructor.
+   * \brief Object destructor.
    */
   virtual ~HttpHelper ();
 
   /**
    * \brief Helper function used to set the underlying HttpClient application
-   *        attributes, but _not_ the socket attributes.
+   *        attributes, but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -236,7 +234,7 @@ public:
 
   /**
    * \brief Helper function used to set the underlying HttpClient application
-   *        attributes, but _not_ the socket attributes.
+   *        attributes, but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -287,19 +285,19 @@ public:
 
   /**
    * \brief Retrieve pointers to the HTTP clients which were installed by the
-   *        previous call of Install().
+   *        previous call of InstallUsingIpv4().
    *
    * \return an application container containing HTTP clients, or an empty
-   *         container if Install() has never been called before
+   *         container if InstallUsingIpv4() has never been called before
    */
   ApplicationContainer GetClients () const;
 
   /**
    * \brief Retrieve a pointer to the HTTP server which was installed by the
-   *        previous call of Install().
+   *        previous call of InstallUsingIpv4().
    *
    * \return an application container containing a single HTTP server, or an
-   *         empty container if Install() has never been called before
+   *         empty container if InstallUsingIpv4() has never been called before
    */
   ApplicationContainer GetServer () const;
 

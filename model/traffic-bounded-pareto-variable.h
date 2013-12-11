@@ -49,8 +49,9 @@ namespace ns3 {
  *     Ptr<TrafficBoundedParetoVariable> x = CreateObject<TrafficBoundedParetoVariable> ();
  *     SetAttribute ("Bound", DoubleValue (100.0));
  *
- * \warning The scale parameter must *not* be greater than the Bound attribute.
- *          This is the case in the default configuration of the class.
+ * \warning The scale parameter must *not* be greater than the `Bound`
+ *          attribute. This is the case in the default configuration of the
+ *          class.
  */
 class TrafficBoundedParetoVariable : public ParetoRandomVariable
 {

@@ -29,7 +29,8 @@ namespace ns3 {
 
 
 /**
- * \brief Simplified HTTP entity header, used by HTTP Client and Server
+ * \ingroup traffic
+ * \brief Simplified HTTP entity header, used by HTTP client and server
  *        applications.
  *
  * The header is 6 bytes in length. The first 2 bytes are for the Content-Type

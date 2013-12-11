@@ -56,6 +56,9 @@ using namespace ns3;
  *     $ gnuplot *.plt
  *
  */
+NS_LOG_COMPONENT_DEFINE ("HttpVariablesPlot");
+
+
 int main (int argc, char *argv[])
 {
   uint32_t numOfSamples = 100000;

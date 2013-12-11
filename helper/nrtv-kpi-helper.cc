@@ -60,9 +60,14 @@ NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
 {
   NS_LOG_FUNCTION (this << client);
 
+  // CONNECT TO THE CLIENT'S TRACE SOURCES
+
+  // use the client's IP address as the context
   const Ipv4Address address = GetAddress (client->GetNode ());
   client->TraceConnect ("Rx", AddressToString (address),
                         MakeCallback (&NrtvKpiHelper::RxCallback, this));
+
+  // INITIALIZE A SET OF COUNTERS FOR THIS CLIENT
 
   ClientCounter_t counter;
   counter.rxBytes = 0;
@@ -84,10 +89,13 @@ NrtvKpiHelper::AddClient (Ptr<NrtvClient> client)
                  "Found a client with duplicate address " << address);
   m_clientCounters[address] = counter;
 
+  // INSTALL FLOW MONITOR ON THIS CLIENT
+
   Ptr<Node> node = client->GetNode ();
   NS_ASSERT (node->GetObject<Ipv4L3Protocol> () != 0);
   m_flowMonitorHelper.Install (node);
-}
+
+} // end of `void AddClient (Ptr<NrtvClient> client)`
 
 
 void
@@ -109,6 +117,8 @@ void
 NrtvKpiHelper::SetServer (Ptr<NrtvServer> server)
 {
   NS_LOG_FUNCTION (this << server);
+
+  // INSTALL FLOW MONITOR ON THIS SERVER
 
   Ptr<Node> node = server->GetNode ();
   NS_ASSERT (node->GetObject<Ipv4L3Protocol> () != 0);
@@ -136,7 +146,7 @@ NrtvKpiHelper::Print ()
 
   // GET PACKET DELAY INFORMATION FROM FLOW MONITOR
 
-  // in order to make sure all possibly lost packets are accounted for
+  // this ensures all possibly lost packets are accounted for
   const Ptr<FlowMonitor> flowMonitor = m_flowMonitorHelper.GetMonitor ();
   flowMonitor->CheckForLostPackets ();
 

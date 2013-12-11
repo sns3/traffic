@@ -31,11 +31,12 @@ namespace ns3 {
 
 
 /**
+ * \ingroup traffic
  * \brief Class with a static method to generate a histogram (as a Gnuplot file)
  *        from a specified random variable.
  *
  * For usage example, see http-variables-plot.cc and nrtv-variables-plot.cc in
- * src/traffic/examples/.
+ * `src/traffic/examples/`.
  *
  * \sa Plot()
  */
@@ -52,11 +53,12 @@ public:
 
 /*
  * The following method is defined here in .h file, because static templated
- * function like this is not visible to linker if put in .cc file.
+ * function like this is not visible to the linker if put in .cc file.
  */
 
 /**
  * \brief Write a Gnuplot file of a histogram from a given random variable.
+ *
  * \param valueStream a callback to the function that returns a random value of
  *                    type `T` (must be specified as the function's template
  *                    argument)
@@ -128,6 +130,11 @@ HistogramPlotHelper::Plot (Callback<T> valueStream, std::string name,
 
   if (static_cast<uint32_t> (max) == 0)
     {
+      /*
+       * Maximum value is not specified as input argument, so we compute it
+       * "automatically" here. Nothing really special in the formula, just a
+       * value that produces rather good-looking results.
+       */
       ofs << "set xrange [0:" << 2 * exp (1) * referenceMean << "]"
           << std::endl;
     }
@@ -137,20 +144,22 @@ HistogramPlotHelper::Plot (Callback<T> valueStream, std::string name,
       ofs << "set xrange [0:" << 1.1 * max << "]" << std::endl;
     }
 
+  // ignoring negative values (if any)
   ofs << "set yrange [0:]" << std::endl;
-
+  // so that tics don't step on the histogram
   ofs << "set tics out nomirror" << std::endl;
+// the width of each bar
   ofs << "set boxwidth " << binWidth << std::endl;
-
+  // the function to determine which bin a sample belongs to
   ofs << "bin(x)=" << binWidth << "*floor(x/" << binWidth << ")"
       << "+" << (0.5 * binWidth) << std::endl;
-
+  // definition of the histogram plot
   ofs << "plot '-' using (bin($1)):(1.0/" << numOfSamples << ") "
       << "smooth freq with boxes notitle, "
       << "'-' title 'Reference mean' with points, "
       << "'-' title 'Actual mean' with points" << std::endl;
 
-  // start writing the histogram data points
+  // start writing the data points for the histogram
   T value;
   T sum = 0;
   for (uint32_t i = 0; i < numOfSamples; i++)
@@ -159,21 +168,21 @@ HistogramPlotHelper::Plot (Callback<T> valueStream, std::string name,
       sum += value;
       ofs << valueStream () << std::endl;
     }
-
-  ofs << "e" << std::endl;
+  ofs << "e" << std::endl; // separator between series
 
   // write the reference mean data point
   ofs << referenceMean << " 0" << std::endl;
-  ofs << "e" << std::endl;
+  ofs << "e" << std::endl; // separator between series
 
   // write the actual mean data point
   ofs << (sum / static_cast<double> (numOfSamples)) << " 0" << std::endl;
-  ofs << "e" << std::endl;
+  ofs << "e" << std::endl; // separator between series
 
   ofs.close ();
 
   std::cout << "Output file written: " << plotFileName << std::endl;
-}
+
+} // end of `void Plot (...)`
 
 
 } // end of `namespace ns3`

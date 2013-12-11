@@ -158,7 +158,7 @@ public:
    */
   Time GetIdleTime ();
 
-  /// Equivalent with GetIdleTIme(), but only for plotting purpose.
+  /// Equivalent with GetIdleTime(), but only for plotting purpose.
   double GetIdleTimeSeconds ();
 
   /**

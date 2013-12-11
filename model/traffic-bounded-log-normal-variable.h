@@ -40,9 +40,9 @@ namespace ns3 {
  * \warning Random numbers produced by calling the base class methods GetValue()
  *          and GetInteger() are not truncated in this way.
  *
- * The mean, standard deviation, min, and max are configurable by calling the
- * corresponding class methods SetMean(), SetStdDev(), SetMin(), and SetMax(),
- * respectively.
+ * The mean, standard deviation, `min`, and `max` are configurable by calling
+ * the corresponding class methods SetMean(), SetStdDev(), SetMin(), and
+ * SetMax(), respectively.
  */
 class TrafficBoundedLogNormalVariable : public LogNormalRandomVariable
 {

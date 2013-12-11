@@ -54,13 +54,13 @@ public:
    *
    * The protocol argument is a string identifying the socket factory type used
    * to create sockets for the applications. A typical value would be
-   * "ns3::TcpSocketFactory" or "ns3::UdpSocketFactory".
+   * "ns3::TcpSocketFactory".
    */
   NrtvClientHelper (std::string protocol, Address address);
 
   /**
    * \brief Helper function used to set the underlying application attributes,
-   *        but _not_ the socket attributes.
+   *        but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -131,13 +131,13 @@ public:
    *
    * The protocol argument is a string identifying the socket factory type used
    * to create sockets for the applications. A typical value would be
-   * "ns3::TcpSocketFactory" or "ns3::UdpSocketFactory".
+   * "ns3::TcpSocketFactory".
    */
   NrtvServerHelper (std::string protocol, Address address);
 
   /**
    * \brief Helper function used to set the underlying application attributes,
-   *        but _not_ the socket attributes.
+   *        but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -206,19 +206,19 @@ public:
    *
    * The protocol argument is a string identifying the socket factory type used
    * to create sockets for the applications. A typical value would be
-   *  or "ns3::UdpSocketFactory".
+   * "ns3::TcpSocketFactory".
    */
   NrtvHelper (std::string protocol);
 
   /**
    * \internal
-   * \brief Class destructor.
+   * \brief Object destructor.
    */
   virtual ~NrtvHelper ();
 
   /**
    * \brief Helper function used to set the underlying NrtvClient application
-   *        attributes, but _not_ the socket attributes.
+   *        attributes, but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
@@ -229,7 +229,7 @@ public:
 
   /**
    * \brief Helper function used to set the underlying NrtvClient application
-   *        attributes, but _not_ the socket attributes.
+   *        attributes, but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set

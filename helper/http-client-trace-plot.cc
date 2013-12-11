@@ -79,6 +79,7 @@ HttpClientTracePlot::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::HttpClientTracePlot")
     .SetParent<Object> ()
+    // for future attributes to configure how the plot is drawn?
   ;
   return tid;
 }

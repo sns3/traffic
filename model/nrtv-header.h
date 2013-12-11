@@ -29,6 +29,7 @@ namespace ns3 {
 
 
 /**
+ * \ingroup traffic
  * \brief Simple packet header for use in NRTV traffic models.
  *
  * The header is 12 bytes in length. There are 4 fields in the header:
