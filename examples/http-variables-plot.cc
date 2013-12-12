@@ -19,14 +19,9 @@
  *
  */
 
-#include <ns3/core-module.h>
-#include <ns3/traffic-module.h>
-
-
-using namespace ns3;
-
-
 /**
+ * \file
+ *
  * \ingroup traffic
  * \brief Example script for plotting histograms from some of the random
  *        variable distributions used in HTTP traffic model.
@@ -56,6 +51,14 @@ using namespace ns3;
  *     $ gnuplot *.plt
  *
  */
+
+#include <ns3/core-module.h>
+#include <ns3/traffic-module.h>
+
+
+using namespace ns3;
+
+
 NS_LOG_COMPONENT_DEFINE ("HttpVariablesPlot");
 
 

@@ -19,17 +19,9 @@
  *
  */
 
-#include <ns3/core-module.h>
-#include <ns3/network-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/point-to-point-module.h>
-#include <ns3/applications-module.h>
-#include <ns3/traffic-module.h>
-
-using namespace ns3;
-
-
 /**
+ * \file
+ *
  * \ingroup traffic
  * \brief Simple example of two nodes connected by a point-to-point link. One
  *        acts as a video streaming server, while the other one acts as the
@@ -45,6 +37,17 @@ using namespace ns3;
  * After that, the plot can be seen in the "nrtv-client-trace.png", which can
  * also be found in the working directory.
  */
+
+#include <ns3/core-module.h>
+#include <ns3/network-module.h>
+#include <ns3/internet-module.h>
+#include <ns3/point-to-point-module.h>
+#include <ns3/applications-module.h>
+#include <ns3/traffic-module.h>
+
+using namespace ns3;
+
+
 NS_LOG_COMPONENT_DEFINE ("NrtvP2pExample");
 
 
