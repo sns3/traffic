@@ -32,11 +32,12 @@ namespace ns3 {
  * \ingroup traffic
  * \brief Simple packet header for use in NRTV traffic models.
  *
- * The header is 12 bytes in length. There are 4 fields in the header:
+ * The header is 16 bytes in length. There are 5 fields in the header:
  * - frame number (4 bytes, an index starting from 0);
  * - number of frames in the current video session (4 bytes);
- * - slice number (2 bytes, an index starting from 0); and
- * - number of slices in the current frame (2 bytes).
+ * - slice number (2 bytes, an index starting from 0);
+ * - number of slices in the current frame (2 bytes); and
+ * - slice size in bytes, not including the header (4 bytes).
  *
  * The following is the usage example in the case of sending a packet. First,
  * create a plain header:
@@ -49,17 +50,18 @@ namespace ns3 {
  *     nrtvHeader.SetNumOfFrames (3000);
  *     nrtvHeader.SetSliceNumber (1);
  *     nrtvHeader.SetNumOfSlices (8);
+ *     nrtvHeader.SetSliceSize (250);
  *
  * Finally, we can append the header to a packet, e.g.:
  *
  *     Ptr<Packet> packet = Create<Packet> (250);
  *     packet->AddHeader (nrtvHeader);
  *
- * The header is 12 bytes long, so the resulting packet in the above example
- * will become 262 bytes long.
+ * The header is 16 bytes long, so the resulting packet in the above example
+ * will become 266 bytes long.
  *
  * Another use case is upon receiving a packet and reading the header content.
- * First of all, make sure the received packet is at least 12 bytes long (we
+ * First of all, make sure the received packet is at least 16 bytes long (we
  * may use GetStaticSerializedSize() to avoid hard-coding a bare figure).
  * Then strip the header from the packet to read its content, for example:
  *
@@ -69,19 +71,20 @@ namespace ns3 {
  *       }
  *     else
  *       {
- *         NrtvHeader nrtvEntity;
- *         packet->RemoveHeader (nrtvEntity);
+ *         NrtvHeader nrtvHeader;
+ *         packet->RemoveHeader (nrtvHeader);
  *         uint32_t frameNumber = nrtvHeader.GetFrameNumber ();
  *         uint32_t numOfFrames = nrtvHeader.GetNumOfFrames ();
  *         uint32_t sliceNumber = nrtvHeader.GetSliceNumber ();
  *         uint32_t numOfSlices = nrtvHeader.GetNumOfSlices ();
+ *         uint32_t sliceSize = nrtvHeader.GetSliceSize ();
  *       }
  *
  * Instead of Packet::RemoveHeader(), we may use Packet::PeekHeader() if we
  * want to keep the header in the packet.
  *
  * \warning You will get an error if you invoke Packet::RemoveHeader() or
- *          Packet::PeekHeader() on a packet smaller than 12 bytes,
+ *          Packet::PeekHeader() on a packet smaller than 16 bytes,
  *
  */
 class NrtvHeader : public Header
@@ -142,6 +145,18 @@ public:
   uint16_t GetNumOfSlices () const;
 
   /**
+   * \param sliceSize the value for the "slice size" field of this header
+   *                    instance
+   */
+  void SetSliceSize (uint32_t sliceSize);
+
+  /**
+   * \return the current value of the "slice size" field of this header
+   *         instance
+   */
+  uint32_t GetSliceSize () const;
+
+  /**
    * \return the constant length of any instances of this header (6 bytes)
    */
   static uint32_t GetStaticSerializedSize ();
@@ -160,6 +175,7 @@ private:
   uint32_t m_numOfFrames;  ///< Number of frames field.
   uint16_t m_sliceNumber;  ///< Slice number field (an index starting from 0).
   uint16_t m_numOfSlices;  ///< Number of slices field.
+  uint16_t m_sliceSize;  ///< Slice size field.
 
 }; // end of `class NrtvHeader`
 

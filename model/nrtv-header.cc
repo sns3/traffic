@@ -35,7 +35,8 @@ NrtvHeader::NrtvHeader ()
   : m_frameNumber (0),
     m_numOfFrames (0),
     m_sliceNumber (0),
-    m_numOfSlices (0)
+    m_numOfSlices (0),
+    m_sliceSize (0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -110,10 +111,25 @@ NrtvHeader::GetNumOfSlices () const
 }
 
 
+void
+NrtvHeader::SetSliceSize (uint32_t sliceSize)
+{
+  NS_LOG_FUNCTION (this << sliceSize);
+  m_sliceSize = sliceSize;
+}
+
+
+uint32_t
+NrtvHeader::GetSliceSize () const
+{
+  return m_sliceSize;
+}
+
+
 uint32_t
 NrtvHeader::GetStaticSerializedSize ()
 {
-  return 12;
+  return 16;
 }
 
 
@@ -130,7 +146,8 @@ NrtvHeader::Print (std::ostream &os) const
   os << "(frameNumber: " << m_frameNumber
      << " numOfFrames: " << m_numOfFrames
      << " sliceNumber: " << m_sliceNumber
-     << " numOfSlices: " << m_numOfSlices << ")";
+     << " numOfSlices: " << m_numOfSlices
+     << " sliceSize: " << m_sliceSize << ")";
 }
 
 
@@ -143,6 +160,7 @@ NrtvHeader::Serialize (Buffer::Iterator start) const
   i.WriteHtonU32 (m_numOfFrames);
   i.WriteHtonU16 (m_sliceNumber);
   i.WriteHtonU16 (m_numOfSlices);
+  i.WriteHtonU32 (m_sliceSize);
 }
 
 
@@ -155,6 +173,7 @@ NrtvHeader::Deserialize (Buffer::Iterator start)
   m_numOfFrames = i.ReadNtohU32 ();
   m_sliceNumber = i.ReadNtohU16 ();
   m_numOfSlices = i.ReadNtohU16 ();
+  m_sliceSize = i.ReadNtohU32 ();
   return GetSerializedSize ();
 }
 

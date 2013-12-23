@@ -37,7 +37,7 @@ class TrafficBoundedParetoVariable;
 /**
  * \ingroup traffic
  * \brief Container of various random variables for assisting the generation of
- *        streaming traffic pattern by the Near Real Time Video (NRTV) traffic
+ *        streaming traffic pattern by the Near Real-Time Video (NRTV) traffic
  *        model.
  *
  * The default configuration of some of the underlying random distributions are

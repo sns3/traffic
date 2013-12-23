@@ -558,6 +558,7 @@ NrtvServerVideoWorker::NewSlice ()
   nrtvHeader.SetNumOfFrames (m_numOfFrames);
   nrtvHeader.SetSliceNumber (m_numOfSlicesServed);
   nrtvHeader.SetNumOfSlices (m_numOfSlices);
+  nrtvHeader.SetSliceSize (sliceSize);
 
   Ptr<Packet> packet = Create<Packet> (contentSize);
   /*

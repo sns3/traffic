@@ -39,7 +39,7 @@ class NrtvServerVideoWorker;
 
 /**
  * \ingroup traffic
- * \brief Model application which simulates the traffic of a Near Real Time
+ * \brief Model application which simulates the traffic of a Near Real-Time
  *        Video (NRTV) service, i.e., a video streaming service.
  *
  * In summary, the application works as follows. Upon start, the application
