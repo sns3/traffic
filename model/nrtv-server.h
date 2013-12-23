@@ -53,10 +53,8 @@ class NrtvServerVideoWorker;
  * worker is responsible for sending a single video for a single client.
  *
  * The packets served by the worker share a common format. Each packet begins
- * with a SeqTsHeader for 12 bytes. Then it is followed immediately by an
- * NrtvHeader for another 12 bytes. After that, the real video content begins
- * until the end of the packet, which size is randomly determined by
- * NrtvVariables.
+ * with a 24-byte NrtvHeader. After that, the actual video content begins until
+ * the end of the packet, which size is randomly determined by NrtvVariables.
  */
 class NrtvServer : public Application
 {
@@ -228,8 +226,6 @@ private:
   Ptr<Socket>         m_socket;  ///< Pointer to the socket for transmission.
   Ptr<NrtvVariables>  m_nrtvVariables;  ///< Pointer to parent's server random variable.
 
-  /// Packet index, starting from 1, to be written in the packet header.
-  uint32_t m_packetSeq;
   /// Length of time between consecutive frames.
   Time m_frameInterval;
   /// Number of frames, i.e., indicating the length of the video.

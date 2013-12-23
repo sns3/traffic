@@ -27,7 +27,6 @@
 #include <ns3/uinteger.h>
 #include <ns3/nrtv-variables.h>
 #include <ns3/nrtv-header.h>
-#include <ns3/seq-ts-header.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -369,7 +368,6 @@ NrtvServerVideoWorker::NrtvServerVideoWorker (NrtvServer* server,
                                               Ptr<Socket> socket)
   : m_server (server),
     m_socket (socket),
-    m_packetSeq (0),
     m_numOfFramesServed (0),
     m_numOfSlicesServed (0)
 {
@@ -535,12 +533,7 @@ NrtvServerVideoWorker::NewSlice ()
   NS_LOG_INFO (this << " video slice " << m_numOfSlicesServed
                     << " is " << sliceSize << " bytes");
 
-  /*
-   * The headers of the slice (packet) consist of SeqTsHeader and NrtvHeader.
-   * Unfortunately we can't avoid hard-coding the size of SeqTsHeader (12 bytes)
-   * here.
-   */
-  const uint32_t headerSize = 12 + NrtvHeader::GetStaticSerializedSize ();
+  const uint32_t headerSize = NrtvHeader::GetStaticSerializedSize ();
   const uint32_t contentSize = std::min (sliceSize,
                                          socketSize - headerSize);
   /*
@@ -548,10 +541,6 @@ NrtvServerVideoWorker::NewSlice ()
    * always has space to fit these packets.
    */
   NS_ASSERT_MSG (contentSize == sliceSize, "Socket size is too small");
-
-  m_packetSeq++;
-  SeqTsHeader seqTsHeader;
-  seqTsHeader.SetSeq (m_packetSeq);
 
   NrtvHeader nrtvHeader;
   nrtvHeader.SetFrameNumber (m_numOfFramesServed);
@@ -561,12 +550,7 @@ NrtvServerVideoWorker::NewSlice ()
   nrtvHeader.SetSliceSize (sliceSize);
 
   Ptr<Packet> packet = Create<Packet> (contentSize);
-  /*
-   * Adding the headers in reverse order, so that when the client receives the
-   * packet, the SeqTs header will be the first to be read.
-   */
   packet->AddHeader (nrtvHeader);
-  packet->AddHeader (seqTsHeader);
 
   const uint32_t packetSize = packet->GetSize ();
   NS_ASSERT (packetSize == (contentSize + headerSize));

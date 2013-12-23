@@ -21,6 +21,7 @@
 
 #include "nrtv-header.h"
 #include <ns3/log.h>
+#include <ns3/simulator.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("NrtvHeader");
@@ -36,7 +37,8 @@ NrtvHeader::NrtvHeader ()
     m_numOfFrames (0),
     m_sliceNumber (0),
     m_numOfSlices (0),
-    m_sliceSize (0)
+    m_sliceSize (0),
+    m_arrivalTime (Simulator::Now ().GetTimeStep ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -126,10 +128,17 @@ NrtvHeader::GetSliceSize () const
 }
 
 
+Time
+NrtvHeader::GetArrivalTime () const
+{
+  return TimeStep (m_arrivalTime);
+}
+
+
 uint32_t
 NrtvHeader::GetStaticSerializedSize ()
 {
-  return 16;
+  return 24;
 }
 
 
@@ -147,7 +156,8 @@ NrtvHeader::Print (std::ostream &os) const
      << " numOfFrames: " << m_numOfFrames
      << " sliceNumber: " << m_sliceNumber
      << " numOfSlices: " << m_numOfSlices
-     << " sliceSize: " << m_sliceSize << ")";
+     << " sliceSize: " << m_sliceSize
+     << " arrivalTime: " << m_arrivalTime << ")";
 }
 
 
@@ -161,6 +171,7 @@ NrtvHeader::Serialize (Buffer::Iterator start) const
   i.WriteHtonU16 (m_sliceNumber);
   i.WriteHtonU16 (m_numOfSlices);
   i.WriteHtonU32 (m_sliceSize);
+  i.WriteHtonU64 (m_arrivalTime);
 }
 
 
@@ -174,6 +185,7 @@ NrtvHeader::Deserialize (Buffer::Iterator start)
   m_sliceNumber = i.ReadNtohU16 ();
   m_numOfSlices = i.ReadNtohU16 ();
   m_sliceSize = i.ReadNtohU32 ();
+  m_arrivalTime = i.ReadNtohU64 ();
   return GetSerializedSize ();
 }
 
