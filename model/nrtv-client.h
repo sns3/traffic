@@ -26,6 +26,7 @@
 #include <ns3/address.h>
 #include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
+#include <list>
 
 
 namespace ns3 {
@@ -34,12 +35,13 @@ namespace ns3 {
 class Socket;
 class Packet;
 class NrtvVariables;
+class NrtvClientRxBuffer;
 
 
 /**
  * \ingroup traffic
  * \brief Model application which simulates the traffic of a client of a Near
- *        Real Time Video (NRTV) service, i.e., a client accessing a video
+ *        Real-Time Video (NRTV) service, i.e., a client accessing a video
  *        streaming service.
  *
  * Upon start, the application sends a connection request to the destination
@@ -147,13 +149,14 @@ private:
   void OpenConnection ();
   void RetryConnection ();
   void CloseConnection ();
-  uint32_t Receive (Ptr<Packet> packet);
+  uint32_t ReceiveVideoSlice ();
   void CancelAllPendingEvents ();
   void SwitchToState (State_t state);
 
-  State_t      m_state;
-  Time         m_dejitterBufferWindowSize;
-  Ptr<Socket>  m_socket;
+  State_t                  m_state;
+  Time                     m_dejitterBufferWindowSize;
+  Ptr<Socket>              m_socket;
+  Ptr<NrtvClientRxBuffer>  m_rxBuffer;
 
   // ATTRIBUTES
 
@@ -164,16 +167,88 @@ private:
 
   // TRACE SOURCES
 
-  TracedCallback<Ptr<const Packet> >        m_rxTrace;
-  TracedCallback<uint16_t, uint16_t>        m_rxSliceTrace;
-  TracedCallback<uint32_t, uint32_t>        m_rxFrameTrace;
-  TracedCallback<std::string, std::string>  m_stateTransitionTrace;
+  TracedCallback<Ptr<const Packet> > m_rxTrace;
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxSliceCallback (std::string context,
+   *                           uint16_t sliceNumber, uint16_t numOfSlices,
+   *                           uint32_t sliceSize, Time delay);
+   */
+  TracedCallback<uint16_t, uint16_t, uint32_t, Time> m_rxSliceTrace;
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxFrameCallback (std::string context,
+   *                           uint32_t frameNumber, uint32_t numOfFrames);
+   */
+  TracedCallback<uint32_t, uint32_t> m_rxFrameTrace;
+  TracedCallback<std::string, std::string> m_stateTransitionTrace;
 
   // EVENTS
 
   EventId m_eventRetryConnection;
 
 }; // end of `class NrtvClient`
+
+
+/**
+ * \brief Receive (possibly) fragmented packets from NrtvServer and re-assemble
+ *        them to the original video slices they were sent.
+ */
+class NrtvClientRxBuffer : public SimpleRefCount<NrtvClientRxBuffer>
+{
+public:
+  /// Create an empty instance of Rx buffer.
+  NrtvClientRxBuffer ();
+
+  /**
+   * \return true if the buffer is completely empty
+   */
+  bool IsEmpty () const;
+
+  /**
+   * \return true if the buffer contains at least a complete video slice, hence
+   *         allowing PopVideoSlice() to be called
+   */
+  bool HasVideoSlice () const;
+
+  /**
+   * \brief Insert a received packet into the buffer.
+   * \param packet the packet data to be added
+   *
+   * \warning If the packet is the first packet of a video slice, it must
+   *          contain an NrtvHeader.
+   */
+  void PushPacket (Ptr<const Packet> packet);
+
+  /**
+   * \return the next video slice, re-assembled from the packets which have been
+   *         received (still including its NrtvHeader)
+   *
+   * \warning As pre-conditions, IsEmpty() must be false and HasVideoSlice()
+   *          must be true before calling this method.
+   */
+  Ptr<Packet> PopVideoSlice ();
+
+private:
+
+  /**
+   * \param packet the packet to be read
+   * \return the slice size field of the NRTV header embedded in the packet
+   *
+   * \warning An NRTV header must be found in the beginning of the packet.
+   */
+  static uint32_t PeekSliceSize (Ptr<const Packet> packet);
+
+  /// The buffer, containing copies of packets received.
+  std::list<Ptr<Packet> > m_rxBuffer;
+  /// Overall size of buffer in bytes (including header).
+  uint32_t m_totalBytes;
+  /// The expected size of the next video slice (zero if size is not yet known).
+  uint32_t m_sizeOfVideoSlice;
+
+}; // end of `class NrtvClientRxBuffer`
 
 
 }  // end of `namespace ns3`

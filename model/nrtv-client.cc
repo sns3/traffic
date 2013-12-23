@@ -27,7 +27,6 @@
 #include <ns3/uinteger.h>
 #include <ns3/nrtv-variables.h>
 #include <ns3/nrtv-header.h>
-#include <ns3/seq-ts-header.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -42,12 +41,17 @@ NS_LOG_COMPONENT_DEFINE ("NrtvClient");
 
 namespace ns3 {
 
+
+// NRTV CLIENT ////////////////////////////////////////////////////////////////
+
+
 NS_OBJECT_ENSURE_REGISTERED (NrtvClient);
 
 
 NrtvClient::NrtvClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
+    m_rxBuffer (Create<NrtvClientRxBuffer> ()),
     m_nrtvVariables (CreateObject<NrtvVariables> ())
 {
   NS_LOG_FUNCTION (this);
@@ -321,7 +325,13 @@ NrtvClient::ReceivedDataCallback (Ptr<Socket> socket)
             }
 #endif /* NS3_LOG_ENABLE */
 
+          m_rxBuffer->PushPacket (packet);
           m_rxTrace (packet);
+
+          while (m_rxBuffer->HasVideoSlice ())
+            {
+              ReceiveVideoSlice ();
+            }
 
         } // end of `while ((packet = socket->RecvFrom (from)))`
 
@@ -457,6 +467,41 @@ NrtvClient::CloseConnection ()
 }
 
 
+uint32_t
+NrtvClient::ReceiveVideoSlice ()
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<Packet> slice = m_rxBuffer->PopVideoSlice ();
+  NS_ASSERT_MSG (slice->GetSize () >= NrtvHeader::GetStaticSerializedSize (),
+                 "The video slice contains no NRTV header");
+
+  NrtvHeader nrtvHeader;
+  slice->RemoveHeader (nrtvHeader);
+  const uint32_t frameNumber = nrtvHeader.GetFrameNumber ();
+  const uint32_t numOfFrames = nrtvHeader.GetNumOfFrames ();
+  const uint16_t sliceNumber = nrtvHeader.GetSliceNumber ();
+  const uint16_t numOfSlices = nrtvHeader.GetNumOfSlices ();
+  const uint32_t sliceSize = nrtvHeader.GetSliceSize ();
+  NS_ASSERT (sliceSize == slice->GetSize ());
+  const Time delay = Simulator::Now () - nrtvHeader.GetArrivalTime ();
+
+  NS_LOG_INFO (this << " received a " << sliceSize << "-byte video slice"
+                    << " for frame " << frameNumber
+                    << " and slice " << sliceNumber
+                    << " (delay= " << delay << ")");
+  m_rxSliceTrace (sliceNumber, numOfSlices, sliceSize, delay);
+
+  if (sliceNumber == numOfSlices)
+    {
+      // this is the last slice of the frame
+      m_rxFrameTrace (frameNumber, numOfFrames);
+    }
+
+  return sliceSize;
+}
+
+
 void
 NrtvClient::CancelAllPendingEvents ()
 {
@@ -482,6 +527,191 @@ NrtvClient::SwitchToState (NrtvClient::State_t state)
   m_state = state;
   NS_LOG_INFO (this << " NrtvClient " << oldState << " --> " << newState);
   m_stateTransitionTrace (oldState, newState);
+}
+
+
+// NRTV CLIENT TX BUFFER //////////////////////////////////////////////////////
+
+
+NS_LOG_COMPONENT_DEFINE ("NrtvClientRxBuffer");
+
+
+NrtvClientRxBuffer::NrtvClientRxBuffer ()
+  : m_totalBytes (0),
+    m_sizeOfVideoSlice (0)
+{
+  NS_LOG_FUNCTION (this);
+}
+
+
+bool
+NrtvClientRxBuffer::IsEmpty () const
+{
+  if (m_totalBytes == 0)
+    {
+      NS_ASSERT (m_rxBuffer.size () == 0);
+      return true;
+    }
+  else
+    {
+      NS_ASSERT (m_rxBuffer.size () > 0);
+      return false;
+    }
+}
+
+
+bool
+NrtvClientRxBuffer::HasVideoSlice () const
+{
+  return m_totalBytes >= (m_sizeOfVideoSlice + NrtvHeader::GetStaticSerializedSize ());
+}
+
+
+void
+NrtvClientRxBuffer::PushPacket (Ptr<const Packet> packet)
+{
+  const uint32_t packetSize = packet->GetSize ();
+  NS_LOG_FUNCTION (this << packet << packetSize);
+
+  if (m_sizeOfVideoSlice == 0)
+    {
+      // we don't know the size of slice yet
+
+      if (IsEmpty ())
+        {
+          m_rxBuffer.push_back (packet->Copy ());
+        }
+      else
+        {
+          /*
+           * The existing packet in the buffer must be a very small packet that
+           * contains part of the header. So we combine it together with this
+           * packet.
+           */
+          NS_ASSERT (m_rxBuffer.size () == 1);
+          const uint32_t priorRemain = m_rxBuffer.back ()->GetSize ();
+          NS_ASSERT (priorRemain < NrtvHeader::GetStaticSerializedSize ());
+          NS_LOG_LOGIC (this << " combining a " << priorRemain << "-byte"
+                             << " left over from previous slice with "
+                             << packetSize << " bytes of packet");
+          m_rxBuffer.back ()->AddAtEnd (packet);
+        }
+
+      NS_ASSERT (m_rxBuffer.size () == 1);
+      // now we assume that the buffer contains an NRTV header to be read
+      m_sizeOfVideoSlice = PeekSliceSize (m_rxBuffer.back ());
+      NS_LOG_INFO (this << " now expecting a video slice of "
+                        << m_sizeOfVideoSlice << " bytes");
+    }
+  else
+    {
+      m_rxBuffer.push_back (packet->Copy ());
+    }
+
+  // increase the buffer size counter
+  m_totalBytes += packetSize;
+  NS_LOG_DEBUG (this << " Rx buffer now contains "
+                     << m_rxBuffer.size () << " packet(s)"
+                     << " (" << m_totalBytes << " bytes)");
+}
+
+
+Ptr<Packet>
+NrtvClientRxBuffer::PopVideoSlice ()
+{
+  NS_LOG_FUNCTION (this);
+  NS_ASSERT_MSG (!IsEmpty (), "Unable to pop from an empty Rx buffer");
+  NS_ASSERT_MSG (HasVideoSlice (),
+                 "Not enough packets to constitute a complete video slice");
+  NS_ASSERT (PeekSliceSize (m_rxBuffer.front ()) == m_sizeOfVideoSlice);
+
+  Ptr<Packet> slice = Create<Packet> ();
+  const uint32_t expectedPacketSize = m_sizeOfVideoSlice + NrtvHeader::GetStaticSerializedSize ();
+  uint32_t bytesToFetch = expectedPacketSize;
+
+  while (bytesToFetch > 0)
+    {
+      NS_ASSERT (!m_rxBuffer.empty ()); // ensure that front() is not undefined
+      const uint32_t packetSize = m_rxBuffer.front ()->GetSize ();
+      NS_LOG_INFO (this << " using a " << packetSize << "-byte packet"
+                        << " to compose a video slice"
+                        << " (" << bytesToFetch << " bytes to go)");
+
+      if (packetSize <= bytesToFetch)
+        {
+         // absorb the whole packet
+          slice->AddAtEnd (m_rxBuffer.front ());
+          bytesToFetch -= packetSize;
+          m_rxBuffer.pop_front ();
+        }
+      else
+        {
+          // absorb only the first part of the packet
+          slice->AddAtEnd (m_rxBuffer.front ()->CreateFragment (0,
+                                                                bytesToFetch));
+
+          // leave the second part in the buffer
+          const uint32_t residueBytes = packetSize - bytesToFetch;
+          NS_LOG_LOGIC (this << " setting aside " << residueBytes << " bytes"
+                             << " for the next video slice");
+          m_rxBuffer.front ()->RemoveAtStart (bytesToFetch);
+          NS_ASSERT (m_rxBuffer.front ()->GetSize () == residueBytes);
+          bytesToFetch = 0; // this exits the loop
+          NS_UNUSED (residueBytes);
+        }
+
+    } // end of `while (bytesToFetch > 0)`
+
+
+  const uint32_t packetSize = slice->GetSize ();
+  NS_ASSERT (packetSize == expectedPacketSize);
+
+  // deplete the buffer size counter
+  NS_ASSERT (m_totalBytes >= packetSize);
+  m_totalBytes -= packetSize;
+  NS_LOG_DEBUG (this << " Rx buffer now contains "
+                     << m_rxBuffer.size () << " packet(s)"
+                     << " (" << m_totalBytes << " bytes)");
+
+  // determine the size of next slice to receive
+  if (m_rxBuffer.empty ())
+    {
+      /*
+       * The buffer is empty, so we can only tell about the next slice later
+       * after the next packet is received.
+       */
+      m_sizeOfVideoSlice = 0;
+    }
+  else if (m_rxBuffer.front ()->GetSize () >= NrtvHeader::GetStaticSerializedSize ())
+    {
+      // the buffer is not empty and we can read an NRTV header from it
+      m_sizeOfVideoSlice = PeekSliceSize (m_rxBuffer.front ());
+      NS_LOG_INFO (this << " now expecting a video slice of "
+                        << m_sizeOfVideoSlice << " bytes");
+    }
+  else
+    {
+      // the buffer is not empty, but we cannot read an NRTV header
+      m_sizeOfVideoSlice = 0;
+      NS_LOG_INFO (this << " cannot read the header yet,"
+                        << " it must have been split,"
+                        << " so the rest will come in the next packet");
+    }
+
+  return slice;
+
+} // end of `Ptr<Packet> PopVideoSlice ()`
+
+
+uint32_t // static
+NrtvClientRxBuffer::PeekSliceSize (Ptr<const Packet> packet)
+{
+  NS_LOG_FUNCTION (packet << packet->GetSize ());
+  NS_ASSERT_MSG (packet->GetSize () >= NrtvHeader::GetStaticSerializedSize (),
+                 "The packet contains no NRTV header");
+  NrtvHeader nrtvHeader;
+  packet->PeekHeader (nrtvHeader);
+  return nrtvHeader.GetSliceSize ();
 }
 
 
