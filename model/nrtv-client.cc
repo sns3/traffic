@@ -598,10 +598,19 @@ NrtvClientRxBuffer::PushPacket (Ptr<const Packet> packet)
         }
 
       NS_ASSERT (m_rxBuffer.size () == 1);
-      // now we assume that the buffer contains an NRTV header to be read
-      m_sizeOfVideoSlice = PeekSliceSize (m_rxBuffer.back ());
-      NS_LOG_INFO (this << " now expecting a video slice of "
-                        << m_sizeOfVideoSlice << " bytes");
+      if (m_rxBuffer.back ()->GetSize () >= NrtvHeader::GetStaticSerializedSize ())
+        {
+          m_sizeOfVideoSlice = PeekSliceSize (m_rxBuffer.back ());
+          NS_LOG_INFO (this << " now expecting a video slice of "
+                            << m_sizeOfVideoSlice << " bytes");
+        }
+      else
+        {
+          /*
+           * Still not enough packets to constitute a 24-byte header (sigh).
+           * m_sizeOfVideoSlice stays at zero.
+           */
+        }
     }
   else
     {
