@@ -1,7 +1,10 @@
 # -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    module = bld.create_ns3_module('traffic', ['core', 'applications', 'flow-monitor'])
+    module = bld.create_ns3_module('traffic', ['core',
+                                               'applications',
+                                               'flow-monitor',
+                                               'point-to-point'])
     module.source = [
         'helper/http-client-trace-plot.cc',
         'helper/http-helper.cc',
@@ -22,7 +25,9 @@ def build(bld):
         ]
 
     module_test = bld.create_ns3_module_test_library('traffic')
-    module_test.source = []
+    module_test.source = [
+        'test/nrtv-test.cc',
+        ]
 
     headers = bld.new_task_gen(features=['ns3header'])
     headers.module = 'traffic'
