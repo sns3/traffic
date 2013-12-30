@@ -88,9 +88,7 @@ private:
   // CALLBACK FUNCTIONS
   void TxCallback (std::string context, Ptr<const Packet> packet);
   void RxCallback (std::string context, Ptr<const Packet> packet);
-  void RxSliceCallback (std::string context,
-                        uint16_t sliceNumber, uint16_t numOfSlices,
-                        uint32_t sliceSize, Time delay);
+  void RxSliceCallback (std::string context, Ptr<const Packet> packet);
 
   /// Size of packets currently in transit in the channel.
   std::list<uint32_t> m_packetsInTransit;
@@ -213,18 +211,21 @@ NrtvClientRxBufferTestCase::RxCallback (std::string context,
 
 void
 NrtvClientRxBufferTestCase::RxSliceCallback (std::string context,
-                                             uint16_t sliceNumber,
-                                             uint16_t numOfSlices,
-                                             uint32_t sliceSize, Time delay)
+                                             Ptr<const Packet> slice)
 {
-  NS_LOG_FUNCTION (this << sliceNumber << numOfSlices
-                        << sliceSize << delay.GetSeconds ());
+  const uint32_t packetSize = slice->GetSize ();
+  NS_LOG_FUNCTION (this << slice << packetSize);
   NS_ASSERT_MSG (m_packetsInTransit.size () > 0,
                  "Received a slice before any packet was transmitted before");
-  const uint32_t packetSize = sliceSize + NrtvHeader::GetStaticSerializedSize ();
+
+  Ptr<Packet> copy = slice->Copy ();
+  NrtvHeader nrtvHeader;
+  copy->RemoveHeader (nrtvHeader);
+  const uint32_t sliceSize = nrtvHeader.GetSliceSize ();
+  NS_TEST_ASSERT_MSG_EQ (sliceSize, copy->GetSize (),
+                         "Inconsistent packet size at " << Simulator::Now ().GetSeconds ());
   NS_TEST_ASSERT_MSG_EQ (packetSize, m_packetsInTransit.front (),
                          "Unexpected packet size at " << Simulator::Now ().GetSeconds ());
-  NS_UNUSED (packetSize);
   m_packetsInTransit.pop_front ();
 }
 

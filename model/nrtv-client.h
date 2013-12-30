@@ -167,15 +167,18 @@ private:
 
   // TRACE SOURCES
 
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxCallback (std::string context, Ptr<const Packet> packet);
+   */
   TracedCallback<Ptr<const Packet> > m_rxTrace;
   /*
    * Example signature of callback function (with context):
    *
-   *     void RxSliceCallback (std::string context,
-   *                           uint16_t sliceNumber, uint16_t numOfSlices,
-   *                           uint32_t sliceSize, Time delay);
+   *     void RxSliceCallback (std::string context, Ptr<const Packet> slice);
    */
-  TracedCallback<uint16_t, uint16_t, uint32_t, Time> m_rxSliceTrace;
+  TracedCallback<Ptr<const Packet> > m_rxSliceTrace;
   /*
    * Example signature of callback function (with context):
    *
