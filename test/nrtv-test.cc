@@ -269,7 +269,8 @@ NrtvTestSuite::NrtvTestSuite ()
                                                   "ns3::TcpSocketFactory",
                                                   tcpSocketType[i],
                                                   MilliSeconds (delayMs[j]),
-                                                  Seconds (5)));
+                                                  Seconds (5)),
+                  TestCase::QUICK);
             }
         }
     }

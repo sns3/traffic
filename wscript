@@ -29,7 +29,7 @@ def build(bld):
         'test/nrtv-test.cc',
         ]
 
-    headers = bld.new_task_gen(features=['ns3header'])
+    headers = bld(features='ns3header')
     headers.module = 'traffic'
     headers.source = [
         'helper/histogram-plot-helper.h',
@@ -51,5 +51,5 @@ def build(bld):
         'model/traffic-bounded-pareto-variable.h',
         ]
 
-    if bld.env.ENABLE_EXAMPLES:
-        bld.add_subdirs('examples')
+    if (bld.env['ENABLE_EXAMPLES']):
+        bld.recurse('examples')
