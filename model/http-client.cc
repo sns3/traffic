@@ -113,6 +113,9 @@ HttpClient::GetTypeId ()
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition",
                      MakeTraceSourceAccessor (&HttpClient::m_stateTransitionTrace))
+    .AddTraceSource ("Rx",
+                     "General trace for receiving a packet of any kind",
+                     MakeTraceSourceAccessor (&HttpClient::m_rxTrace))
   ;
   return tid;
 }
@@ -362,6 +365,8 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
                             << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
                             << " / " << InetSocketAddress::ConvertFrom (from));
         }
+
+      m_rxTrace (packet, from);
 
       switch (m_state)
         {

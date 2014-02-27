@@ -218,6 +218,14 @@ private:
   TracedCallback<>                          m_rxEmbeddedObjectTrace;
   TracedCallback<std::string, std::string>  m_stateTransitionTrace;
 
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxCallback (std::string context, Ptr<const Packet> packet,
+   *                      const Address & from);
+   */
+  TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
+
   // EVENTS
 
   EventId m_eventRequestMainObject;
