@@ -144,7 +144,8 @@ private:
 
   // TRACE CALLBACK FUNCTIONS
 
-  void RxCallback (std::string context, Ptr<const Packet> packet);
+  void RxCallback (std::string context, Ptr<const Packet> packet,
+                   const Address & from);
 
   // STATIC UTILITY FUNCTIONS
 

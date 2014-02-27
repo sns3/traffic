@@ -170,9 +170,10 @@ private:
   /*
    * Example signature of callback function (with context):
    *
-   *     void RxCallback (std::string context, Ptr<const Packet> packet);
+   *     void RxCallback (std::string context, Ptr<const Packet> packet,
+   *                      const Address & from);
    */
-  TracedCallback<Ptr<const Packet> > m_rxTrace;
+  TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
   /*
    * Example signature of callback function (with context):
    *

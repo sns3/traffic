@@ -327,7 +327,7 @@ NrtvClient::ReceivedDataCallback (Ptr<Socket> socket)
 #endif /* NS3_LOG_ENABLE */
 
           m_rxBuffer->PushPacket (packet);
-          m_rxTrace (packet);
+          m_rxTrace (packet, from);
 
           while (m_rxBuffer->HasVideoSlice ())
             {

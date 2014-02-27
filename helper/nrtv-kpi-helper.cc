@@ -225,7 +225,8 @@ NrtvKpiHelper::Print ()
 
 
 void
-NrtvKpiHelper::RxCallback (std::string context, Ptr<const Packet> packet)
+NrtvKpiHelper::RxCallback (std::string context, Ptr<const Packet> packet,
+                           const Address & from)
 {
   Ipv4Address address (context.c_str ());
   NS_ASSERT (m_clientCounters.find (address) != m_clientCounters.end ());
