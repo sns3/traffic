@@ -87,7 +87,8 @@ private:
 
   // CALLBACK FUNCTIONS
   void TxCallback (std::string context, Ptr<const Packet> packet);
-  void RxCallback (std::string context, Ptr<const Packet> packet);
+  void RxCallback (std::string context, Ptr<const Packet> packet,
+                   const Address & from);
   void RxSliceCallback (std::string context, Ptr<const Packet> packet);
 
   /// Size of packets currently in transit in the channel.
@@ -192,7 +193,8 @@ NrtvClientRxBufferTestCase::TxCallback (std::string context,
 
 void
 NrtvClientRxBufferTestCase::RxCallback (std::string context,
-                                        Ptr<const Packet> packet)
+                                        Ptr<const Packet> packet,
+                                        const Address & from)
 {
   const uint32_t packetSize = packet->GetSize ();
   NS_LOG_FUNCTION (this << packet << packetSize);
