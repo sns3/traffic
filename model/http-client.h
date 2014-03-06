@@ -68,12 +68,14 @@ class HttpVariables;
  *
  * The application expects to receive packets in the following format. The first
  * packet of each object (either main or embedded) must contain the
- * HttpEntityHeader. The value of the Content-Type field of the header must
- * match with the type of object that the applications is expecting. Then the
- * Content-Length field shall contain the *object size* in bytes. If the
- * received packet is smaller than the object size, then the application will
- * expect more packets to come. The combined size of the packets (minus the
- * header on the first packet) must be equal to the object size.
+ * HttpEntityHeader header and the HttpSeqTsTag byte tag. The value of the
+ * Content-Type field of the header must match with the type of object that the
+ * applications is expecting. Then the Content-Length field shall contain the
+ * *object size* in bytes. If the received packet is smaller than the object
+ * size, then the application will expect more packets to come. The combined
+ * size of the packets (minus the header on the first packet) must be equal to
+ * the object size. The information in the tag is used for computing the delay
+ * of the object.
  */
 class HttpClient : public Application
 {
@@ -184,8 +186,8 @@ private:
 
   void RequestMainObject ();
   void RequestEmbeddedObject ();
-  void ReceiveMainObject (Ptr<Packet> packet);
-  void ReceiveEmbeddedObject (Ptr<Packet> packet);
+  void ReceiveMainObject (Ptr<Packet> packet, const Address &from);
+  void ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from);
   uint32_t Receive (Ptr<Packet> packet,
                     HttpEntityHeader::ContentType_t expectedContentType);
   void EnterParsingTime ();
@@ -199,6 +201,7 @@ private:
   bool         m_isBurstMode;
   Ptr<Socket>  m_socket;
   uint32_t     m_objectBytesToBeReceived;
+  Time         m_objectArrivalTime;
   uint32_t     m_embeddedObjectsToBeRequested;
 
   // ATTRIBUTES
@@ -225,6 +228,14 @@ private:
    *                      const Address & from);
    */
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
+
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxDelayCallback (std::string context, Time delay,
+   *                           const Address & from);
+   */
+  TracedCallback<Time, const Address &> m_rxDelayTrace;
 
   // EVENTS
 

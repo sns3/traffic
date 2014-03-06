@@ -26,6 +26,7 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/http-variables.h>
+#include <ns3/http-seq-ts-tag.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -606,6 +607,14 @@ HttpServer::ServeFromTxBuffer (Ptr<Socket> socket)
               httpEntityHeader.SetContentType (txBufferContentType);
               httpEntityHeader.SetContentLength (txBufferSize);
               packet->AddHeader (httpEntityHeader);
+
+              /*
+               * Packet tag would be a better option than byte tag. But we
+               * tested packet tag and we observed that it apparently disappear
+               * somewhere at lower layers, even in a simple P2P scenario.
+               * Thereby we use byte tag.
+               */
+              packet->AddByteTag (HttpSeqTsTag ());
             }
 
           const uint32_t packetSize = packet->GetSize ();

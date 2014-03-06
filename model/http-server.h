@@ -57,12 +57,14 @@ class HttpServerTxBuffer;
  * distribution (see HttpVariables).
  *
  * The transmission of a single object works as follows. The first packet of the
- * object always contain an HttpEntityHeader. The Content-Type field indicates
- * the type of the object and the Content-Length field indicates the size of the
- * object in bytes. If the socket does not have enough space to absorb the whole
- * packet, then this first packet would be created as the same size of whatever
- * space the socket has to offer. The remaining part of the object would be kept
- * and sent at a later time after the socket has made some space available for
+ * object always contain an HttpEntityHeader header and an HttpSeqTsTag byte
+ * tag. The Content-Type field of the header indicates the type of the object
+ * and the Content-Length field indicates the size of the object in bytes. The
+ * information in the tag will be used by the client to compute the delay of the
+ * packet. If the socket does not have enough space to absorb the whole packet,
+ * then this first packet would be created as the same size of whatever space
+ * the socket has to offer. The remaining part of the object would be kept and
+ * sent at a later time after the socket has made some space available for
  * transmission. This same process repeats, so a large object may end up
  * fragmented into many packets. An exception is on the HttpEntityHeader, which
  * is only added to the first packet and not added to the subsequent packets.

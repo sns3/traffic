@@ -26,6 +26,7 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/http-variables.h>
+#include <ns3/http-seq-ts-tag.h>
 #include <ns3/packet.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
@@ -46,6 +47,7 @@ HttpClient::HttpClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
     m_objectBytesToBeReceived (0),
+    m_objectArrivalTime (MilliSeconds (0)),
     m_embeddedObjectsToBeRequested (0),
     m_httpVariables (CreateObject<HttpVariables> ())
 {
@@ -116,6 +118,9 @@ HttpClient::GetTypeId ()
     .AddTraceSource ("Rx",
                      "General trace for receiving a packet of any kind",
                      MakeTraceSourceAccessor (&HttpClient::m_rxTrace))
+    .AddTraceSource ("RxDelay",
+                     "General trace of delay for receiving a complete object",
+                     MakeTraceSourceAccessor (&HttpClient::m_rxDelayTrace))
   ;
   return tid;
 }
@@ -371,10 +376,10 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
       switch (m_state)
         {
         case EXPECTING_MAIN_OBJECT:
-          ReceiveMainObject (packet);
+          ReceiveMainObject (packet, from);
           break;
         case EXPECTING_EMBEDDED_OBJECT:
-          ReceiveEmbeddedObject (packet);
+          ReceiveEmbeddedObject (packet, from);
           break;
         default:
           NS_LOG_WARN (this << " invalid state " << GetStateString ()
@@ -629,13 +634,14 @@ HttpClient::RequestEmbeddedObject ()
 
 
 void
-HttpClient::ReceiveMainObject (Ptr<Packet> packet)
+HttpClient::ReceiveMainObject (Ptr<Packet> packet, const Address &from)
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this << packet << from);
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
       // m_objectBytesToBeReceived will be updated below
+      // m_objectArrivalTime may be updated below
       Receive (packet, HttpEntityHeader::MAIN_OBJECT);
       m_rxMainObjectPacketTrace (packet);
 
@@ -657,6 +663,12 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
           NS_LOG_INFO (this << " finished receiving a main object");
           m_rxMainObjectTrace ();
 
+          if (!m_objectArrivalTime.IsZero ())
+            {
+              m_rxDelayTrace (Simulator::Now () - m_objectArrivalTime, from);
+              m_objectArrivalTime = MilliSeconds (0); // reset back to zero
+            }
+
           if (m_isBurstMode)
             {
               CloseConnection ();
@@ -676,13 +688,14 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
 
 
 void
-HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
+HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from)
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this << packet << from);
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT)
     {
       // m_objectBytesToBeReceived will be updated below
+      // m_objectArrivalTime may be updated below
       Receive (packet, HttpEntityHeader::EMBEDDED_OBJECT);
       m_rxEmbeddedObjectPacketTrace (packet);
 
@@ -703,6 +716,12 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
            */
           NS_LOG_INFO (this << " finished receiving an embedded object");
           m_rxEmbeddedObjectTrace ();
+
+          if (!m_objectArrivalTime.IsZero ())
+            {
+              m_rxDelayTrace (Simulator::Now () - m_objectArrivalTime, from);
+              m_objectArrivalTime = MilliSeconds (0); // reset back to zero
+            }
 
           if (m_isBurstMode)
             {
@@ -789,6 +808,29 @@ HttpClient::Receive (Ptr<Packet> packet,
           NS_ASSERT_MSG (packet->GetSize () >= httpEntity.GetSerializedSize (),
                          "Received an invalid packet");
           rxSize = packet->GetSize () - httpEntity.GetSerializedSize ();
+
+          // see if the packet also contains an HttpSeqTsTag
+          HttpSeqTsTag tag;
+          bool isTagged = false;
+          ByteTagIterator it = packet->GetByteTagIterator ();
+          while (!isTagged && it.HasNext ())
+            {
+              ByteTagIterator::Item item = it.Next ();
+              if (item.GetTypeId () == HttpSeqTsTag::GetTypeId ())
+                {
+                  NS_LOG_DEBUG (this << " contains a SeqTs tag:"
+                                     << " start=" << item.GetStart ()
+                                     << " end=" << item.GetEnd ());
+                  item.GetTag (tag);
+                  m_objectArrivalTime = tag.GetTs ();
+                  isTagged = true;
+                }
+            }
+
+          if (!isTagged)
+            {
+              NS_LOG_WARN (this << " expected an SeqTs tag, but not found");
+            }
 
         }
       else if (httpEntity.GetContentType () == HttpEntityHeader::NOT_SET)
