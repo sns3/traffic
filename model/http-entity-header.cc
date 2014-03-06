@@ -21,6 +21,7 @@
 
 #include "http-entity-header.h"
 #include <ns3/log.h>
+#include <ns3/simulator.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("HttpEntityHeader");
@@ -33,7 +34,8 @@ NS_OBJECT_ENSURE_REGISTERED (HttpEntityHeader);
 
 HttpEntityHeader::HttpEntityHeader ()
   : m_contentType (NOT_SET),
-    m_contentLength (0)
+    m_contentLength (0),
+    m_arrivalTime (Simulator::Now ().GetTimeStep ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -110,10 +112,17 @@ HttpEntityHeader::GetContentLength () const
 }
 
 
+Time
+HttpEntityHeader::GetArrivalTime () const
+{
+  return TimeStep (m_arrivalTime);
+}
+
+
 uint32_t
 HttpEntityHeader::GetStaticSerializedSize ()
 {
-  return 6;
+  return 14;
 }
 
 
@@ -128,7 +137,8 @@ void
 HttpEntityHeader::Print (std::ostream &os) const
 {
   os << "(Content-Type: " << m_contentType
-     << " Content-Length: " << m_contentLength << ")";
+     << " Content-Length: " << m_contentLength
+     << " arrivalTime: " << m_arrivalTime << ")";
 }
 
 
@@ -139,6 +149,7 @@ HttpEntityHeader::Serialize (Buffer::Iterator start) const
   Buffer::Iterator i = start;
   i.WriteHtonU16 (m_contentType);
   i.WriteHtonU32 (m_contentLength);
+  i.WriteHtonU64 (m_arrivalTime);
 }
 
 
@@ -149,6 +160,7 @@ HttpEntityHeader::Deserialize (Buffer::Iterator start)
   Buffer::Iterator i = start;
   m_contentType = i.ReadNtohU16 ();
   m_contentLength = i.ReadNtohU32 ();
+  m_arrivalTime = i.ReadNtohU64 ();
   return GetSerializedSize ();
 }
 

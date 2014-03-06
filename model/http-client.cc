@@ -46,6 +46,7 @@ HttpClient::HttpClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
     m_objectBytesToBeReceived (0),
+    m_objectArrivalTime (MilliSeconds (0)),
     m_embeddedObjectsToBeRequested (0),
     m_httpVariables (CreateObject<HttpVariables> ())
 {
@@ -116,6 +117,9 @@ HttpClient::GetTypeId ()
     .AddTraceSource ("Rx",
                      "General trace for receiving a packet of any kind",
                      MakeTraceSourceAccessor (&HttpClient::m_rxTrace))
+    .AddTraceSource ("RxDelay",
+                     "General trace of delay for receiving a complete object",
+                     MakeTraceSourceAccessor (&HttpClient::m_rxDelayTrace))
   ;
   return tid;
 }
@@ -371,10 +375,10 @@ HttpClient::ReceivedDataCallback (Ptr<Socket> socket)
       switch (m_state)
         {
         case EXPECTING_MAIN_OBJECT:
-          ReceiveMainObject (packet);
+          ReceiveMainObject (packet, from);
           break;
         case EXPECTING_EMBEDDED_OBJECT:
-          ReceiveEmbeddedObject (packet);
+          ReceiveEmbeddedObject (packet, from);
           break;
         default:
           NS_LOG_WARN (this << " invalid state " << GetStateString ()
@@ -629,13 +633,14 @@ HttpClient::RequestEmbeddedObject ()
 
 
 void
-HttpClient::ReceiveMainObject (Ptr<Packet> packet)
+HttpClient::ReceiveMainObject (Ptr<Packet> packet, const Address &from)
 {
   NS_LOG_FUNCTION (this << packet);
 
   if (m_state == EXPECTING_MAIN_OBJECT)
     {
-      // m_objectBytesToBeReceived will be updated below
+      // m_objectBytesToBeReceived will be updated below.
+      // m_objectArrivalTime may be updated below.
       Receive (packet, HttpEntityHeader::MAIN_OBJECT);
       m_rxMainObjectPacketTrace (packet);
 
@@ -656,6 +661,7 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
            */
           NS_LOG_INFO (this << " finished receiving a main object");
           m_rxMainObjectTrace ();
+          m_rxDelayTrace (Simulator::Now () - m_objectArrivalTime, from);
 
           if (m_isBurstMode)
             {
@@ -676,13 +682,14 @@ HttpClient::ReceiveMainObject (Ptr<Packet> packet)
 
 
 void
-HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
+HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from)
 {
   NS_LOG_FUNCTION (this << packet);
 
   if (m_state == EXPECTING_EMBEDDED_OBJECT)
     {
-      // m_objectBytesToBeReceived will be updated below
+      // m_objectBytesToBeReceived will be updated below.
+      // m_objectArrivalTime may be updated below.
       Receive (packet, HttpEntityHeader::EMBEDDED_OBJECT);
       m_rxEmbeddedObjectPacketTrace (packet);
 
@@ -703,6 +710,7 @@ HttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet)
            */
           NS_LOG_INFO (this << " finished receiving an embedded object");
           m_rxEmbeddedObjectTrace ();
+          m_rxDelayTrace (Simulator::Now () - m_objectArrivalTime, from);
 
           if (m_isBurstMode)
             {
@@ -786,6 +794,7 @@ HttpClient::Receive (Ptr<Packet> packet,
             }
 
           m_objectBytesToBeReceived += httpEntity.GetContentLength ();
+          m_objectArrivalTime = httpEntity.GetArrivalTime ();
           NS_ASSERT_MSG (packet->GetSize () >= httpEntity.GetSerializedSize (),
                          "Received an invalid packet");
           rxSize = packet->GetSize () - httpEntity.GetSerializedSize ();

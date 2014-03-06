@@ -184,8 +184,8 @@ private:
 
   void RequestMainObject ();
   void RequestEmbeddedObject ();
-  void ReceiveMainObject (Ptr<Packet> packet);
-  void ReceiveEmbeddedObject (Ptr<Packet> packet);
+  void ReceiveMainObject (Ptr<Packet> packet, const Address &from);
+  void ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from);
   uint32_t Receive (Ptr<Packet> packet,
                     HttpEntityHeader::ContentType_t expectedContentType);
   void EnterParsingTime ();
@@ -199,6 +199,7 @@ private:
   bool         m_isBurstMode;
   Ptr<Socket>  m_socket;
   uint32_t     m_objectBytesToBeReceived;
+  Time         m_objectArrivalTime;
   uint32_t     m_embeddedObjectsToBeRequested;
 
   // ATTRIBUTES
@@ -225,6 +226,14 @@ private:
    *                      const Address & from);
    */
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
+
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxDelayCallback (std::string context, Time delay,
+   *                           const Address & from);
+   */
+  TracedCallback<Time, const Address &> m_rxDelayTrace;
 
   // EVENTS
 

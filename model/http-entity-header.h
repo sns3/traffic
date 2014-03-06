@@ -23,6 +23,7 @@
 #define HTTP_ENTITY_HEADER_H
 
 #include <ns3/header.h>
+#include <ns3/nstime.h>
 
 
 namespace ns3 {
@@ -33,8 +34,13 @@ namespace ns3 {
  * \brief Simplified HTTP entity header, used by HTTP client and server
  *        applications.
  *
- * The header is 6 bytes in length. The first 2 bytes are for the Content-Type
- * field, while the remaining 4 bytes are for the Content-Length field.
+ * The header is 14 bytes in length. There are 3 fields in the header:
+ * - Content-Type (2 bytes);
+ * - Content-Length (4 bytes); and
+ * - arrival time (8 bytes).
+ *
+ * The last field, arrival time, is not a member of the standard HTTP Entity.
+ * It is used here for computing packet delay.
  *
  * The following is the usage example in the case of sending a packet. First,
  * create a plain header:
@@ -46,16 +52,17 @@ namespace ns3 {
  *     httpEntity.SetContentType (HttpEntityHeader::MAIN_OBJECT);
  *     httpEntity.SetContentLength (350); // in bytes
  *
+ * The arrival time field is automatically filled with the current time.
  * Finally, we can append the header to a packet, e.g.:
  *
- *     Ptr<Packet> packet = Create<Packet> (530);
+ *     Ptr<Packet> packet = Create<Packet> (522);
  *     packet->AddHeader (httpEntityHeader);
  *
- * The header is 6 bytes long, so the resulting packet in the above example
+ * The header is 14 bytes long, so the resulting packet in the above example
  * will become 536 bytes long.
  *
  * Another use case is upon receiving a packet and reading the header content.
- * First of all, make sure the received packet is at least 6 bytes long (we
+ * First of all, make sure the received packet is at least 14 bytes long (we
  * may use GetStaticSerializedSize() to avoid hard-coding a bare figure).
  * Then strip the header from the packet to read its content, for example:
  *
@@ -69,13 +76,14 @@ namespace ns3 {
  *         packet->RemoveHeader (httpEntity);
  *         HttpEntityHeader::ContentType_t contentType = httpEntity.GetContentType ();
  *         uint32_t contentLength = httpEntity.GetContentLength ();
+ *         Time arrivalTime = httpEntity.GetArrivalTime ();
  *       }
  *
  * Instead of Packet::RemoveHeader(), we may use Packet::PeekHeader() if we
  * want to keep the header in the packet.
  *
  * \warning You will get an error if you invoke Packet::RemoveHeader() or
- *          Packet::PeekHeader() on a packet smaller than 6 bytes,
+ *          Packet::PeekHeader() on a packet smaller than 14 bytes,
  *
  */
 class HttpEntityHeader : public Header
@@ -118,6 +126,12 @@ public:
   uint32_t GetContentLength () const;
 
   /**
+   * \return the time the packet arrives on the sender side (can be used to
+   *         calculate packet delay)
+   */
+  Time GetArrivalTime () const;
+
+  /**
    * \return the constant length of any instances of this header (6 bytes)
    */
   static uint32_t GetStaticSerializedSize ();
@@ -134,6 +148,7 @@ public:
 private:
   uint16_t m_contentType;    ///< Content-Type field.
   uint32_t m_contentLength;  ///< Content-Length field.
+  uint64_t m_arrivalTime;    ///< Arrival time field in "time step" format.
 
 }; // end of `class HttpEntityHeader`
 
