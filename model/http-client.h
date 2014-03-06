@@ -64,7 +64,9 @@ class HttpVariables;
  * Each request by default has a constant size of 350 bytes, plus the additional
  * 6 bytes of HttpEntityHeader in the beginning. The Content-Type field of the
  * header is set with the type of object requested, which is either main or
- * embedded object. The Content-Length field is set to zero.
+ * embedded object. The Content-Length field is set to zero. In addition to this
+ * header, the packet also contains an HttpSeqTsTag byte tag, which will may be
+ * used by the recipient to compute the delay of the packet.
  *
  * The application expects to receive packets in the following format. The first
  * packet of each object (either main or embedded) must contain the

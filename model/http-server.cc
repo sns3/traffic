@@ -105,6 +105,9 @@ HttpServer::GetTypeId ()
     .AddTraceSource ("Rx",
                      "A packet has been received",
                      MakeTraceSourceAccessor (&HttpServer::m_rxTrace))
+    .AddTraceSource ("RxDelay",
+                     "A packet has been received with delay information",
+                     MakeTraceSourceAccessor (&HttpServer::m_rxDelayTrace))
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition",
                      MakeTraceSourceAccessor (&HttpServer::m_stateTransitionTrace))
@@ -420,6 +423,29 @@ HttpServer::ReceivedDataCallback (Ptr<Socket> socket)
         }
 
       m_rxTrace (packet, from);
+
+      // see if the packet also contains an HttpSeqTsTag
+      HttpSeqTsTag tag;
+      bool isTagged = false;
+      ByteTagIterator it = packet->GetByteTagIterator ();
+      while (!isTagged && it.HasNext ())
+        {
+          ByteTagIterator::Item item = it.Next ();
+          if (item.GetTypeId () == HttpSeqTsTag::GetTypeId ())
+            {
+              NS_LOG_DEBUG (this << " contains a SeqTs tag:"
+                                 << " start=" << item.GetStart ()
+                                 << " end=" << item.GetEnd ());
+              item.GetTag (tag);
+              m_rxDelayTrace (Simulator::Now () - tag.GetTs (), from);
+              isTagged = true;
+            }
+        }
+
+      if (!isTagged)
+        {
+          NS_LOG_WARN (this << " SeqTs tag is not found");
+        }
 
       HttpEntityHeader httpEntity;
       packet->RemoveHeader (httpEntity);

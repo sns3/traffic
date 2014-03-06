@@ -51,6 +51,9 @@ class HttpServerTxBuffer;
  * object that the client is requesting. The possible type is either a main
  * object or an embedded object. The Content-Length field is ignored.
  *
+ * The application will also look for the HttpSeqTsTag byte tag in the request
+ * packet. If it exists, it will be used to compute the delay of the packet.
+ *
  * After a tiny delay (zero second, by default), the application responds by
  * sending back the right type of object. The size of each object to be sent is
  * randomly determined. Main objects and embedded objects use separate random
@@ -177,6 +180,7 @@ private:
 
   TracedCallback<Ptr<const Packet> >                   m_txTrace;
   TracedCallback<Ptr<const Packet>, const Address &>   m_rxTrace;
+  TracedCallback<Time, const Address &>                m_rxDelayTrace;
   TracedCallback<std::string, std::string>             m_stateTransitionTrace;
 
 }; // end of `class HttpServer`

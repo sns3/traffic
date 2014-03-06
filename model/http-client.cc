@@ -551,6 +551,7 @@ HttpClient::RequestMainObject ()
       const uint32_t requestSize = m_httpVariables->GetRequestSize ();
       Ptr<Packet> packet = Create<Packet> (requestSize);
       packet->AddHeader (httpEntity);
+      packet->AddByteTag (HttpSeqTsTag ());
       const uint32_t packetSize = packet->GetSize ();
       NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
                      "Packet size shall not be larger than MTU size");
@@ -597,6 +598,7 @@ HttpClient::RequestEmbeddedObject ()
           const uint32_t requestSize = m_httpVariables->GetRequestSize ();
           Ptr<Packet> packet = Create<Packet> (requestSize);
           packet->AddHeader (httpEntity);
+          packet->AddByteTag (HttpSeqTsTag ());
           const uint32_t packetSize = packet->GetSize ();
           NS_ASSERT_MSG (packetSize <= 536, // hard-coded MTU size
                          "Packet size shall not be larger than MTU size");
