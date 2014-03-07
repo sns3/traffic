@@ -34,7 +34,9 @@ NS_OBJECT_ENSURE_REGISTERED (TrafficBoundedLogNormalVariable);
 
 
 TrafficBoundedLogNormalVariable::TrafficBoundedLogNormalVariable ()
-  : LogNormalRandomVariable ()
+  : LogNormalRandomVariable (),
+    m_mean (0),
+    m_stdDev (0)
 {
   NS_LOG_FUNCTION (this);
 }
