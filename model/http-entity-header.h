@@ -77,6 +77,7 @@ namespace ns3 {
  * \warning You will get an error if you invoke Packet::RemoveHeader() or
  *          Packet::PeekHeader() on a packet smaller than 6 bytes,
  *
+ * \todo Convert this header into a byte tag.
  */
 class HttpEntityHeader : public Header
 {

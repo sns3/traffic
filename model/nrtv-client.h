@@ -149,7 +149,7 @@ private:
   void OpenConnection ();
   void RetryConnection ();
   void CloseConnection ();
-  uint32_t ReceiveVideoSlice ();
+  uint32_t ReceiveVideoSlice (const Address & from);
   void CancelAllPendingEvents ();
   void SwitchToState (State_t state);
 
@@ -174,6 +174,13 @@ private:
    *                      const Address & from);
    */
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
+  /*
+   * Example signature of callback function (with context):
+   *
+   *     void RxDelayCallback (std::string context, Time delay,
+   *                           const Address & from);
+   */
+  TracedCallback<Time, const Address &> m_rxDelayTrace;
   /*
    * Example signature of callback function (with context):
    *

@@ -93,6 +93,9 @@ NrtvClient::GetTypeId ()
                      "One packet of has been received (not necessarily a "
                      "single video slice)",
                      MakeTraceSourceAccessor (&NrtvClient::m_rxTrace))
+    .AddTraceSource ("RxDelay",
+                     "Received a whole slice with delay information",
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxDelayTrace))
     .AddTraceSource ("RxSlice",
                      "Received a whole slice",
                      MakeTraceSourceAccessor (&NrtvClient::m_rxSliceTrace))
@@ -331,7 +334,7 @@ NrtvClient::ReceivedDataCallback (Ptr<Socket> socket)
 
           while (m_rxBuffer->HasVideoSlice ())
             {
-              ReceiveVideoSlice ();
+              ReceiveVideoSlice (from);
             }
 
         } // end of `while ((packet = socket->RecvFrom (from)))`
@@ -469,9 +472,9 @@ NrtvClient::CloseConnection ()
 
 
 uint32_t
-NrtvClient::ReceiveVideoSlice ()
+NrtvClient::ReceiveVideoSlice (const Address & from)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << from);
 
   Ptr<Packet> slice = m_rxBuffer->PopVideoSlice ();
   NS_ASSERT_MSG (slice->GetSize () >= NrtvHeader::GetStaticSerializedSize (),
@@ -486,16 +489,14 @@ NrtvClient::ReceiveVideoSlice ()
   const uint32_t sliceSize = nrtvHeader.GetSliceSize ();
   NS_ASSERT (sliceSize + NrtvHeader::GetStaticSerializedSize () == slice->GetSize ());
 
-#ifdef NS3_LOG_ENABLE
-  // we don't want to compute the subtraction operation below if not necessary
   const Time delay = Simulator::Now () - nrtvHeader.GetArrivalTime ();
   NS_LOG_INFO (this << " received a " << sliceSize << "-byte video slice"
                     << " for frame " << frameNumber
                     << " and slice " << sliceNumber
                     << " (delay= " << delay.GetSeconds () << ")");
-#endif /* NS3_LOG_ENABLE */
 
   m_rxSliceTrace (slice);
+  m_rxDelayTrace (delay, from);
 
   if (sliceNumber == numOfSlices)
     {
