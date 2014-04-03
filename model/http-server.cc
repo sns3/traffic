@@ -361,7 +361,7 @@ HttpServer::NormalCloseCallback (Ptr<Socket> socket)
           NS_FATAL_ERROR ("Initial listener socket shall not be closed when server is still running");
         }
     }
-  else
+  else if (m_txBuffer->IsSocketAvailable (socket))
     {
       // socket is already closed, so only remove it from the Tx buffer
       m_txBuffer->RemoveSocket (socket);
@@ -381,7 +381,7 @@ HttpServer::ErrorCloseCallback (Ptr<Socket> socket)
           NS_FATAL_ERROR ("Initial listener socket shall not be closed when server is still running");
         }
     }
-  else
+  else if (m_txBuffer->IsSocketAvailable (socket))
     {
       // socket is already closed, so only remove it from the Tx buffer
       m_txBuffer->RemoveSocket (socket);
