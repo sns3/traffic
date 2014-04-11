@@ -25,7 +25,7 @@
 #include <ns3/string.h>
 #include <ns3/application-stats-helper.h>
 #include <ns3/application-stats-delay-helper.h>
-//#include <ns3/application-stats-throughput-helper.h>
+#include <ns3/application-stats-throughput-helper.h>
 #include <sstream>
 
 NS_LOG_COMPONENT_DEFINE ("ApplicationStatsHelperContainer");
@@ -130,8 +130,8 @@ ApplicationStatsHelperContainer::GetTypeId ()
                    MakeStringChecker ())
 
     // Throughput statistics.
-//    ADD_APPLICATION_STATS_ATTRIBUTES_BASIC_SET (Throughput,
-//                                                "throughput statistics")
+    ADD_APPLICATION_STATS_ATTRIBUTES_BASIC_SET (Throughput,
+                                                "throughput statistics")
 
     // Delay statistics.
     ADD_APPLICATION_STATS_ATTRIBUTES_DISTRIBUTION_SET (Delay,
@@ -256,7 +256,7 @@ ApplicationStatsHelperContainer::AddPerSender ## id (                         \
 
 
 // Throughput statistics.
-//APPLICATION_STATS_METHOD_DEFINITION (Throughput, "throughput")
+APPLICATION_STATS_METHOD_DEFINITION (Throughput, "throughput")
 
 
 // Delay statistics.

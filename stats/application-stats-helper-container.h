@@ -97,7 +97,7 @@ public:
   std::string GetTraceSourceName () const;
 
   // Throughput statistics.
-  //APPLICATION_STATS_METHOD_DECLARATION (Throughput)
+  APPLICATION_STATS_METHOD_DECLARATION (Throughput)
 
   // Throughput statistics.
   APPLICATION_STATS_METHOD_DECLARATION (Delay)

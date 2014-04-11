@@ -25,6 +25,7 @@ def build(bld):
         'model/traffic-bounded-pareto-variable.cc',
         'stats/application-stats-helper.cc',
         'stats/application-stats-delay-helper.cc',
+        'stats/application-stats-throughput-helper.cc',
         'stats/application-stats-helper-container.cc',
         ]
 
@@ -56,6 +57,7 @@ def build(bld):
         'model/traffic-bounded-pareto-variable.h',
         'stats/application-stats-helper.h',
         'stats/application-stats-delay-helper.h',
+        'stats/application-stats-throughput-helper.h',
         'stats/application-stats-helper-container.h',
         ]
 
