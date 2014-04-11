@@ -23,6 +23,9 @@ def build(bld):
         'model/nrtv-variables.cc',
         'model/traffic-bounded-log-normal-variable.cc',
         'model/traffic-bounded-pareto-variable.cc',
+        'stats/application-stats-helper.cc',
+        'stats/application-stats-delay-helper.cc',
+        'stats/application-stats-helper-container.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('traffic')
@@ -51,6 +54,9 @@ def build(bld):
         'model/nrtv-variables.h',
         'model/traffic-bounded-log-normal-variable.h',
         'model/traffic-bounded-pareto-variable.h',
+        'stats/application-stats-helper.h',
+        'stats/application-stats-delay-helper.h',
+        'stats/application-stats-helper-container.h',
         ]
 
     if (bld.env['ENABLE_EXAMPLES']):
