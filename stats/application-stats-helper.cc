@@ -36,7 +36,7 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (ApplicationStatsHelper);
 
 std::string // static
-ApplicationStatsHelper::GetIdentiferTypeName (ApplicationStatsHelper::IdentifierType_t identifierType)
+ApplicationStatsHelper::GetIdentifierTypeName (ApplicationStatsHelper::IdentifierType_t identifierType)
 {
   switch (identifierType)
     {
@@ -231,12 +231,12 @@ ApplicationStatsHelper::GetTraceSourceName () const
 void
 ApplicationStatsHelper::SetIdentifierType (ApplicationStatsHelper::IdentifierType_t identifierType)
 {
-  NS_LOG_FUNCTION (this << GetIdentiferTypeName (identifierType));
+  NS_LOG_FUNCTION (this << GetIdentifierTypeName (identifierType));
 
   if (m_isInstalled && (m_identifierType != identifierType))
     {
       NS_LOG_WARN (this << " cannot modify the current identifier type"
-                        << " (" << GetIdentiferTypeName (m_identifierType) << ")"
+                        << " (" << GetIdentifierTypeName (m_identifierType) << ")"
                         << " because this instance have already been installed");
     }
   else
@@ -261,7 +261,7 @@ ApplicationStatsHelper::SetOutputType (ApplicationStatsHelper::OutputType_t outp
   if (m_isInstalled && (m_outputType != outputType))
     {
       NS_LOG_WARN (this << " cannot modify the current output type"
-                        << " (" << GetIdentiferTypeName (m_identifierType) << ")"
+                        << " (" << GetIdentifierTypeName (m_identifierType) << ")"
                         << " because this instance have already been installed");
     }
   else
@@ -354,7 +354,7 @@ ApplicationStatsHelper::CreateCollectorPerIdentifier (CollectorMap &collectorMap
 
   NS_LOG_INFO (this << " created " << n << " instance(s)"
                     << " of " << collectorMap.GetType ().GetName ()
-                    << " for " << GetIdentiferTypeName (GetIdentifierType ()));
+                    << " for " << GetIdentifierTypeName (GetIdentifierType ()));
 
   return n;
 
