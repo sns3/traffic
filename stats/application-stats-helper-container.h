@@ -62,7 +62,7 @@ namespace ns3 {
  * The output files will be named in a certain pattern using the name set in
  * the `Name` attribute or SetName() method. The default name is "stat", e.g.,
  * which will produce output files with the names such as
- * `stat-per-receiver-throughput-scalar-0.txt`,
+ * `stat-per-receiver-throughput-scalar.txt`,
  * `stat-per-receiver-delay-cdf-receiver-1.txt`, etc.
  */
 class ApplicationStatsHelperContainer : public Object
