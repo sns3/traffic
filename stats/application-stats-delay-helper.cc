@@ -157,7 +157,8 @@ ApplicationStatsDelayHelper::DoInstall ()
         m_aggregator = CreateAggregator ("ns3::MultiFileAggregator",
                                          "OutputFileName", StringValue (GetName ()),
                                          "MultiFileMode", BooleanValue (false),
-                                         "EnableContextPrinting", BooleanValue (true));
+                                         "EnableContextPrinting", BooleanValue (true),
+                                         "GeneralHeading", StringValue ("% identifier delay_sec"));
 
         // Setup collectors.
         m_terminalCollectors.SetType ("ns3::ScalarCollector");
