@@ -312,6 +312,10 @@ ApplicationStatsDelayHelper::DoInstall ()
     case ApplicationStatsHelper::IDENTIFIER_GLOBAL:
     case ApplicationStatsHelper::IDENTIFIER_RECEIVER:
       {
+        /*
+         * Install a probe on each receiver and connect them to the
+         * first-level collectors.
+         */
         uint32_t n = 0;
         switch (GetOutputType ())
           {
@@ -356,6 +360,7 @@ ApplicationStatsDelayHelper::DoInstall ()
 
     case ApplicationStatsHelper::IDENTIFIER_SENDER:
       {
+        // Create a look-up table of sender addresses and collector identifiers.
         uint32_t identifier = 0;
         std::map<std::string, ApplicationContainer>::const_iterator it1;
         for (it1 = m_senderInfo.begin (); it1 != m_senderInfo.end (); ++it1)
@@ -369,6 +374,7 @@ ApplicationStatsDelayHelper::DoInstall ()
             identifier++;
           }
 
+        // Connect with trace sources in receiver applications.
         const uint32_t n = SetupListenersAtReceiver (
           MakeCallback (&ApplicationStatsDelayHelper::RxDelayCallback, this));
         NS_LOG_INFO (this << " connected to " << n << " trace sources");
@@ -414,14 +420,15 @@ ApplicationStatsDelayHelper::RxDelayCallback (Time delay, const Address &from)
                         << " because it comes from sender " << from
                         << " without valid InetSocketAddress");
     }
-}
+
+} // end of `void RxDelayCallback (Time, const Address &)`
 
 
 void
 ApplicationStatsDelayHelper::SaveAddressAndIdentifier (Ptr<Application> application,
                                                        uint32_t identifier)
 {
-  NS_LOG_FUNCTION (this << application);
+  NS_LOG_FUNCTION (this << application << identifier);
 
   Ptr<Node> node = application->GetNode ();
   NS_ASSERT_MSG (node != 0, "Application is not attached to any Node");
@@ -455,7 +462,8 @@ ApplicationStatsDelayHelper::SaveAddressAndIdentifier (Ptr<Application> applicat
             }
         }
     }
-}
+
+} // end of `void SaveAddressAndIdentifier (Ptr<Application>, uint32_t)`
 
 
 void

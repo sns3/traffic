@@ -55,6 +55,20 @@ namespace ns3 {
  *
  * The container is initially empty upon creation. ApplicationStatsHelper
  * instances can be added into the container using attributes or class methods.
+ * The following example creates a new container and adds two different
+ * statistics instances:
+ * \code
+ *     ApplicationContainer txApps;
+ *     ApplicationContainer rxApps;
+ *     // ... (snip) ...
+ *     Ptr<ApplicationStatsHelperContainer> stat
+ *         = CreateObject<ApplicationStatsHelperContainer> ();
+ *     stat->SetTraceSourceName ("Rx");
+ *     stat->AddSenderApplication (app);
+ *     stat->AddReceiverApplications (sinkApps);
+ *     stat->AddPerSenderThroughput (ApplicationStatsHelper::OUTPUT_SCATTER_FILE);
+ *     stat->AddPerReceiverThroughput (ApplicationStatsHelper::OUTPUT_SCATTER_FILE);
+ * \endcode
  *
  * The value of the attributes and the arguments of the class methods are the
  * desired output type (e.g., scalar, scatter, histogram, files, plots, etc.).
@@ -87,12 +101,27 @@ public:
   std::string GetName () const;
 
   /**
-   * \param traceSourceName
+   * \param traceSourceName the name of the application's trace source
+   *                        which produces the required data.
+   *
+   * There is no standard trace source name between different applications, so
+   * the name that must be provided to this method depends on the application
+   * type. Please refer to the intended statistics class (i.e., child class of
+   * ApplicationStatsHelper) for the expected trace source signature and
+   * semantic, and then seek (or implement) the trace source in the
+   * application class.
+   *
+   * For example, throughput statistics (see ApplicationStatsThroughputHelper)
+   * require a trace source which exports a pointer to received packet and a
+   * reference to the address of the packet sender. When used together with
+   * PacketSink application, the right trace source to be used is `Rx`, because
+   * it matches the expected signature and semantic.
    */
   void SetTraceSourceName (std::string traceSourceName);
 
   /**
-   * \return
+   * \return the name of the application's trace source from whom this helper
+   *         instance will receive data.
    */
   std::string GetTraceSourceName () const;
 
@@ -112,38 +141,42 @@ public:
   // SENDER APPLICATIONS //////////////////////////////////////////////////////
 
   /**
-   * \brief
-   * \param container
-   * \param identifier
+   * \brief Register the provided application as a sender.
+   * \param application pointer to the application.
+   * \param identifier name associated with this application (if the argument
+   *                   is omitted, a unique name will be computed).
+   *
+   * The computed identifier name is a combination of the node ID and the
+   * index of the application inside the node.
    */
   void AddSenderApplication (Ptr<Application> application,
                              std::string identifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the provided applications as senders.
+   * \param container group of applications.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddSenderApplications (ApplicationContainer container,
                               bool isGroup = false,
                               std::string groupIdentifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the applications in the provided node as senders.
+   * \param node pointer to the node.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddSenderNode (Ptr<Node> node,
                       bool isGroup = false,
                       std::string groupIdentifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the applications in the provided nodes as senders.
+   * \param container group of nodes.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddSenderNodes (NodeContainer container,
                        bool isGroup = false,
@@ -152,38 +185,42 @@ public:
   // RECEIVER APPLICATIONS ////////////////////////////////////////////////////
 
   /**
-   * \brief
-   * \param container
-   * \param identifier
+   * \brief Register the provided application as a receiver.
+   * \param application pointer to the application.
+   * \param identifier name associated with this application (if the argument
+   *                   is omitted, a unique name will be computed).
+   *
+   * The computed identifier name is a combination of the node ID and the
+   * index of the application inside the node.
    */
   void AddReceiverApplication (Ptr<Application> application,
                                std::string identifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the provided applications as receivers.
+   * \param container group of applications.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddReceiverApplications (ApplicationContainer container,
                                 bool isGroup = false,
                                 std::string groupIdentifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the applications in the provided node as receivers.
+   * \param node pointer to the node.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddReceiverNode (Ptr<Node> node,
                         bool isGroup = false,
                         std::string groupIdentifier = "");
 
   /**
-   * \brief
-   * \param container
-   * \param isGroup
-   * \param groupIdentifier
+   * \brief Register the applications in the provided nodes as receivers.
+   * \param container group of nodes.
+   * \param isGroup not supported yet, please use `false`.
+   * \param groupIdentifier not supported yet, please leave as blank.
    */
   void AddReceiverNodes (NodeContainer container,
                          bool isGroup = false,
@@ -203,10 +240,10 @@ private:
   /// Maintains the active ApplicationStatsHelper instances which have created.
   std::list<Ptr<const ApplicationStatsHelper> > m_stats;
 
-  ///
+  /// Internal map of sender applications, indexed by their names.
   std::map<std::string, ApplicationContainer> m_senderInfo;
 
-  ///
+  /// Internal map of receiver applications, indexed by their names.
   std::map<std::string, ApplicationContainer> m_receiverInfo;
 
 }; // end of class ApplicationStatsHelperContainer

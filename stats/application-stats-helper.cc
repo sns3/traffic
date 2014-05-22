@@ -116,19 +116,20 @@ ApplicationStatsHelper::GetTypeId ()
   static TypeId tid = TypeId ("ns3::ApplicationStatsHelper")
     .SetParent<Object> ()
     .AddAttribute ("Name",
-                   "String to be prepended on every output file name",
+                   "String to be prepended on every output file name.",
                    StringValue ("stat"),
                    MakeStringAccessor (&ApplicationStatsHelper::SetName,
                                        &ApplicationStatsHelper::GetName),
                    MakeStringChecker ())
     .AddAttribute ("TraceSourceName",
-                   "The name of the application's trace source which produce the required information",
+                   "The name of the application's trace source "
+                   "which produce the required data.",
                    StringValue (""),
                    MakeStringAccessor (&ApplicationStatsHelper::SetTraceSourceName,
                                        &ApplicationStatsHelper::GetTraceSourceName),
                    MakeStringChecker ())
     .AddAttribute ("IdentifierType",
-                   "",
+                   "Determines how the statistics are categorized.",
                    EnumValue (ApplicationStatsHelper::IDENTIFIER_GLOBAL),
                    MakeEnumAccessor (&ApplicationStatsHelper::SetIdentifierType,
                                      &ApplicationStatsHelper::GetIdentifierType),
@@ -136,7 +137,7 @@ ApplicationStatsHelper::GetTypeId ()
                                     ApplicationStatsHelper::IDENTIFIER_SENDER,   "SENDER",
                                     ApplicationStatsHelper::IDENTIFIER_RECEIVER, "RECEIVER"))
     .AddAttribute ("OutputType",
-                   "",
+                   "Determines the type and format of the output.",
                    EnumValue (ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
                    MakeEnumAccessor (&ApplicationStatsHelper::SetOutputType,
                                      &ApplicationStatsHelper::GetOutputType),
@@ -176,7 +177,11 @@ ApplicationStatsHelper::Install ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_outputType == ApplicationStatsHelper::OUTPUT_NONE)
+  if (m_traceSourceName.empty ())
+    {
+      NS_FATAL_ERROR ("Trace source name must not be blank.");
+    }
+  else if (m_outputType == ApplicationStatsHelper::OUTPUT_NONE)
     {
       NS_LOG_WARN (this << " Skipping statistics installation"
                         << " because OUTPUT_NONE output type is selected.");

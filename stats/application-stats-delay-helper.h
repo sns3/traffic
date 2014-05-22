@@ -91,15 +91,19 @@ public:
    * \param delay packet delay.
    * \param from the address of the sender of the packet.
    *
-   * Used in return link statistics. DoInstallProbes() is expected to connect
-   * the right trace sources to this method.
+   * Utilized to replace the role of probes when `SENDER` identifier is active.
+   * The second argument contains the address of the packet sender, which is
+   * then matched with the internal lookup table (pre-filled during Install())
+   * to get an identifier value. The packet size is then forwarded to the
+   * collector which has the same identifier.
    */
   void RxDelayCallback (Time delay, const Address &from);
 
-private:
+protected:
   // inherited from ApplicationStatsHelper base class
-  void DoInstall ();
+  virtual void DoInstall ();
 
+private:
   /**
    * \brief Associate the given application's IPv4 address with the given
    *        identifier.
@@ -107,10 +111,8 @@ private:
    * \param identifier the number to be associated with.
    *
    * Any IPv4 address(es) which belong to the Node of the given application
-   * will be saved in the #m_identifierMap member variable.
-   *
-   * Used in return link statistics. DoInstallProbes() is expected to pass the
-   * the application of interest into this method.
+   * will be saved in the #m_identifierMap member variable. Used only with
+   * `SENDER` identifier.
    */
   void SaveAddressAndIdentifier (Ptr<Application> application,
                                  uint32_t identifier);
@@ -118,8 +120,8 @@ private:
   /**
    * \brief Find a collector with the right identifier and pass a sample data
    *        to it.
-   * \param delay
-   * \param identifier
+   * \param delay packet delay.
+   * \param identifier collector identifier.
    */
   void PassSampleToCollector (Time delay, uint32_t identifier);
 
@@ -136,7 +138,7 @@ private:
   /// The aggregator created by this helper.
   Ptr<DataCollectionObject> m_aggregator;
 
-  /// Map of address and the identifier associated with it (for return link).
+  /// Map of address and the `SENDER` identifier associated with it.
   std::map<const Address, uint32_t> m_identifierMap;
 
 }; // end of class ApplicationStatsDelayHelper

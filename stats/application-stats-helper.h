@@ -53,7 +53,43 @@ class Address;
 
 /**
  * \ingroup applicationstats
- * \brief Abstract class.
+ * \brief Parent abstract class of all application statistics helpers.
+ *
+ * A helper is responsible to locate source objects, create probes, collectors,
+ * and aggregators, and connect them together in a proper way to produce the
+ * required statistics.
+ *
+ * As shown in the example code below, the helper requires several inputs.
+ * After all the necessary inputs have been set, the statistics can be started
+ * into action by invoking Install().
+ * \code
+ *     ApplicationContainer txApps;
+ *     ApplicationContainer rxApps;
+ *     // ... (snip) ...
+ *     std::map<std::string, ApplicationContainer> txInfo;
+ *     txInfo["sender-1"] = txApps;
+ *     std::map<std::string, ApplicationContainer> rxInfo;
+ *     rxInfo["receiver-1"] = rxApps;
+ *     Ptr<ApplicationStatsThroughputHelper> stat
+ *         = CreateObject<ApplicationStatsThroughputHelper> ();
+ *     stat->SetName ("name");
+ *     stat->SetTraceSourceName ("Rx");
+ *     stat->SetSenderInformation (txApps);
+ *     stat->SetReceiverInformation (rxApps);
+ *     stat->SetIdentifierType (ApplicationStatsHelper::IDENTIFIER_SENDER);
+ *     stat->SetOutputType (ApplicationStatsHelper::OUTPUT_SCALAR_FILE);
+ *     stat->Install ();
+ *     m_stats.push_back (stat);
+ * \endcode
+ *
+ * However, it's recommended to use the ApplicationStatsHelperContainer class
+ * to automatically handle the above.
+ *
+ * This parent abstract class hosts several protected methods which are
+ * intended to simplify the development of child classes by sharing common
+ * functions.
+ *
+ * \see ApplicationStatsHelperContainer
  */
 class ApplicationStatsHelper : public Object
 {
@@ -63,7 +99,7 @@ public:
 
   /**
    * \enum IdentifierType_t
-   * \brief
+   * \brief Possible categorization of statistics output.
    */
   typedef enum
   {
@@ -73,14 +109,14 @@ public:
   } IdentifierType_t;
 
   /**
-   * \param identifierType
-   * \return
+   * \param identifierType an arbitrary identifier type.
+   * \return representation of the identifier type in string.
    */
   static std::string GetIdentifierTypeName (IdentifierType_t identifierType);
 
   /**
    * \enum OutputType_t
-   * \brief
+   * \brief Possible types and formats of statistics output.
    */
   typedef enum
   {
@@ -98,17 +134,14 @@ public:
   } OutputType_t;
 
   /**
-   * \param outputType
-   * \return
+   * \param outputType an arbitrary output type.
+   * \return representation of the output type in string.
    */
   static std::string GetOutputTypeName (OutputType_t outputType);
 
   // CONSTRUCTOR AND DESTRUCTOR ///////////////////////////////////////////////
 
-  /**
-   * \brief
-   * \param identifierList
-   */
+  /// Creates a new helper instance.
   ApplicationStatsHelper ();
 
   /// Destructor.
@@ -117,18 +150,31 @@ public:
   // inherited from ObjectBase base class
   static TypeId GetTypeId ();
 
-
   // PUBLIC METHODS ///////////////////////////////////////////////////////////
 
   /**
-   * \brief
-   * \param info
+   * \brief Provide the helper pointers to applications who will act as the
+   *        senders.
+   * \param info pairs of a name and a group of applications.
+   *
+   * Subsequent calls will replace any existing sender information that have
+   * been provided before.
+   *
+   * Pointers to the same application instance may be added as both sender and
+   * receiver.
    */
   void SetSenderInformation (std::map<std::string, ApplicationContainer> info);
 
   /**
-   * \brief
-   * \param info
+   * \brief Provide the helper pointers to applications who will act as the
+   *        receivers.
+   * \param info pairs of a name and a group of applications.
+   *
+   * Subsequent calls will replace any existing receiver information that have
+   * been provided before.
+   *
+   * Pointers to the same application instance may be added as both sender and
+   * receiver.
    */
   void SetReceiverInformation (std::map<std::string, ApplicationContainer> info);
 
@@ -142,55 +188,61 @@ public:
   // SETTER AND GETTER METHODS ////////////////////////////////////////////////
 
   /**
-   * \param name
+   * \param name string to be prepended on every output file name.
    */
   void SetName (std::string name);
 
   /**
-   * \return
+   * \return the name of this helper instance.
    */
   std::string GetName () const;
 
   /**
-   * \param traceSourceName
+   * \param traceSourceName the name of the application's trace source
+   *                        which produces the required data.
    */
   void SetTraceSourceName (std::string traceSourceName);
 
   /**
-   * \return
+   * \return the name of the application's trace source from whom this helper
+   *         instance will receive data.
    */
   std::string GetTraceSourceName () const;
 
   /**
-   * \param identifierType
+   * \param identifierType categorization of statistics output.
    * \warning Does not have any effect if invoked after Install().
    */
   void SetIdentifierType (IdentifierType_t identifierType);
 
   /**
-   * \return
+   * \return the currently active categorization of statistics output.
    */
   IdentifierType_t GetIdentifierType () const;
 
   /**
-   * \param outputType
+   * \param outputType types and formats of statistics output.
    * \warning Does not have any effect if invoked after Install().
    */
   void SetOutputType (OutputType_t outputType);
 
   /**
-   * \return
+   * \return the currently active types and formats of statistics output.
    */
   OutputType_t GetOutputType () const;
 
   /**
-   * \return
+   * \return true if Install() has been invoked, otherwise false.
    */
   bool IsInstalled () const;
 
 protected:
   /**
-   * \brief
+   * \brief Install the probes, collectors, and aggregators necessary to
+   *        produce the statistics output.
+   *
+   * An abstract method of ApplicationStatsHelper which must be implemented by
+   * child classes. It will be invoked by Install().
    */
   virtual void DoInstall () = 0;
 
@@ -225,19 +277,55 @@ protected:
                                               const AttributeValue &v5 = EmptyAttributeValue ());
 
   /**
-   * \brief
-   * \param collectorMap
-   * \return number of collectors created.
+   * \brief Create one collector instance for each identifier in the simulation.
+   * \param collectorMap the CollectorMap where the collectors will be created.
+   * \return number of collector instances created.
+   *
+   * The identifier is determined by the currently active identifier type, as
+   * previously selected by SetIdentifierType() method or `IdentifierType`
+   * attribute. Then the method searches the sender and receiver information
+   * provided by the SetSenderInformation() and SetReceiverInformation()
+   * methods for such identifier. For each of the found identifiers, the method
+   * creates a collector instance for it and put the collector instance into
+   * the CollectorMap.
+   *
+   * The collector instances in the map are simply labelled using running
+   * integers starting from 0.
    */
   uint32_t CreateCollectorPerIdentifier (CollectorMap &collectorMap) const;
 
   /**
-   * \brief
-   * \param probeOutputName
-   * \param collectorMap
-   * \param collectorTraceSink
-   * \param probeList
+   * \brief Create a probe attached to every receiver application and connected
+   *        to a collector.
+   * \param probeOutputName the name of the trace source of the probe to be
+   *                        connected with the collector.
+   * \param collectorMap a map containing the collectors.
+   * \param collectorTraceSink a pointer to a function of the collectors in the
+   *                           target map which acts as a trace sink.
+   * \param probeList an output argument of this function, which is a list of
+   *                  probes where the newly created probes will be pushed.
    * \return number of probes created.
+   *
+   * The type of probe to be created (must be a child class of Probe) is
+   * specified as a template argument to the method call. For example, below we
+   * create an ApplicationPacketProbe for each receiver:
+   * \code
+   *     uint32_t n = SetupProbesAtReceiver<ApplicationPacketProbe> (
+   *                      "OutputBytes",
+   *                      collectorMap,
+   *                      &ScalarCollector::TraceSinkUinteger32,
+   *                      m_probes);
+   * \endcode
+   *
+   * The probe will listen to each Application previously specified by
+   * SetReceiverInformation(). The trace source which the probe listens to is
+   * specified using SetTraceSourceName().
+   *
+   * \warning This method is only applicable for `GLOBAL` and `RECEIVER`
+   *          identifiers. In addition, the number of collectors in the
+   *          `collectorMap` argument must match the number of identifiers,
+   *          i.e., the CreateCollectorPerIdentifier() method should be
+   *          called beforehand.
    */
   template<typename P, typename Q, typename R, typename C>
   uint32_t SetupProbesAtReceiver (std::string probeOutputName,
@@ -246,17 +334,27 @@ protected:
                                   std::list<Ptr<Probe> > & probeList);
 
   /**
-   * \brief
-   * \param cb
+   * \brief Connect the trace source of every receiver application to a given
+   *        callback function.
+   * \param cb a callback function whose second argument is the sender address.
    * \return number of trace sources connected with the callback.
+   *
+   * The callback will listen to each Application previously specified by
+   * SetReceiverInformation(). The trace source which the callback listens to
+   * is specified using SetTraceSourceName().
+   *
+   * The second argument of the callback is the address of the sender, which
+   * is usually utilized by the callback to determine the sender of the packet,
+   * so that it can pass data samples to the right collector according to the
+   * sender, i.e., when `IDENTIFIER_SENDER` is selected as the identifier type.
    */
   template<typename Q>
   uint32_t SetupListenersAtReceiver (Callback<void, Q, const Address &> cb);
 
-  ///
+  /// Internal map of sender applications, indexed by their names.
   std::map<std::string, ApplicationContainer> m_senderInfo;
 
-  ///
+  /// Internal map of receiver applications, indexed by their names.
   std::map<std::string, ApplicationContainer> m_receiverInfo;
 
 private:
@@ -283,10 +381,18 @@ ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
       NS_FATAL_ERROR ("Invalid probe type");
     }
 
+  /*
+   * If we use GLOBAL as identifier, then there's only 1 collector in the map.
+   * If we use RECEIVER as identifier, then there are the same number of
+   * collectors as the number of receiver applications.
+   */
+  NS_ASSERT (   ((m_identifierType == ApplicationStatsHelper::IDENTIFIER_GLOBAL)
+                 && (collectorMap.GetN () == 1))
+             || ((m_identifierType == ApplicationStatsHelper::IDENTIFIER_RECEIVER)
+                 && (collectorMap.GetN () == m_receiverInfo.size ())));
+
   uint32_t n = 0;
   uint32_t identifier = 0;
-  NS_ASSERT (m_identifierType == ApplicationStatsHelper::IDENTIFIER_GLOBAL
-             || m_identifierType == ApplicationStatsHelper::IDENTIFIER_RECEIVER);
 
   std::map<std::string, ApplicationContainer>::const_iterator it1;
   for (it1 = m_receiverInfo.begin (); it1 != m_receiverInfo.end (); ++it1)
@@ -316,7 +422,7 @@ ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
 
       if (m_identifierType == ApplicationStatsHelper::IDENTIFIER_RECEIVER)
         {
-          identifier++;
+          identifier++;  // Move to the next collector.
         }
 
     } // end of `for (it1 = m_receiverInfo)`
