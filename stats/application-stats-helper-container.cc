@@ -57,6 +57,8 @@ ApplicationStatsHelperContainer::DoDispose ()
  *
  * - [Global,PerReceiver,PerSender] Throughput
  * - [Global,PerReceiver,PerSender] Delay
+ * - Average [PerReceiver,PerSender] Throughput
+ * - Average [PerReceiver,PerSender] Delay
  *
  * Also check the Doxygen documentation of this class for more information.
  */
@@ -78,6 +80,15 @@ ApplicationStatsHelperContainer::DoDispose ()
                    ST_HE_CL::OUTPUT_PDF_FILE,       "PDF_FILE",               \
                    ST_HE_CL::OUTPUT_CDF_FILE,       "CDF_FILE",               \
                    ST_HE_CL::OUTPUT_SCATTER_PLOT,   "SCATTER_PLOT",           \
+                   ST_HE_CL::OUTPUT_HISTOGRAM_PLOT, "HISTOGRAM_PLOT",         \
+                   ST_HE_CL::OUTPUT_PDF_PLOT,       "PDF_PLOT",               \
+                   ST_HE_CL::OUTPUT_CDF_PLOT,       "CDF_PLOT"))
+
+#define ADD_APPLICATION_STATS_AVERAGED_DISTRIBUTION_OUTPUT_CHECKER            \
+  MakeEnumChecker (ST_HE_CL::OUTPUT_NONE,           "NONE",                   \
+                   ST_HE_CL::OUTPUT_HISTOGRAM_FILE, "HISTOGRAM_FILE",         \
+                   ST_HE_CL::OUTPUT_PDF_FILE,       "PDF_FILE",               \
+                   ST_HE_CL::OUTPUT_CDF_FILE,       "CDF_FILE",               \
                    ST_HE_CL::OUTPUT_HISTOGRAM_PLOT, "HISTOGRAM_PLOT",         \
                    ST_HE_CL::OUTPUT_PDF_PLOT,       "PDF_PLOT",               \
                    ST_HE_CL::OUTPUT_CDF_PLOT,       "CDF_PLOT"))
@@ -110,6 +121,14 @@ ApplicationStatsHelperContainer::DoDispose ()
                                         std::string ("per receiver ") + desc) \
   ADD_APPLICATION_STATS_DISTRIBUTION_OUTPUT_CHECKER
 
+#define ADD_SAT_STATS_ATTRIBUTES_AVERAGED_DISTRIBUTION_SET(id, desc)          \
+  ADD_APPLICATION_STATS_ATTRIBUTE_HEAD (AverageSender ## id,                  \
+                                        std::string ("average sender ") + desc) \
+  ADD_APPLICATION_STATS_AVERAGED_DISTRIBUTION_OUTPUT_CHECKER                  \
+  ADD_APPLICATION_STATS_ATTRIBUTE_HEAD (AverageReceiver ## id,                \
+                                        std::string ("average receiver ") + desc) \
+  ADD_APPLICATION_STATS_AVERAGED_DISTRIBUTION_OUTPUT_CHECKER
+
 
 TypeId // static
 ApplicationStatsHelperContainer::GetTypeId ()
@@ -132,10 +151,14 @@ ApplicationStatsHelperContainer::GetTypeId ()
     // Throughput statistics.
     ADD_APPLICATION_STATS_ATTRIBUTES_BASIC_SET (Throughput,
                                                 "throughput statistics")
+    ADD_SAT_STATS_ATTRIBUTES_AVERAGED_DISTRIBUTION_SET (Throughput,
+                                                        "throughput statistics")
 
     // Delay statistics.
     ADD_APPLICATION_STATS_ATTRIBUTES_DISTRIBUTION_SET (Delay,
                                                        "packet delay statistics")
+//    ADD_SAT_STATS_ATTRIBUTES_AVERAGED_DISTRIBUTION_SET (Delay,
+//                                                        "packet delay statistics")
 
   ;
   return tid;
@@ -187,7 +210,9 @@ ApplicationStatsHelperContainer::GetTraceSourceName () const
  * created using this C++ pre-processing approach.
  *
  * - Add [Global,PerReceiver,PerSender] Throughput
+ * - AddAverage [Receiver,Sender] Throughput
  * - Add [Global,PerReceiver,PerSender] Delay
+ * - AddAverage [Receiver,Sender] Delay
  *
  * Also check the Doxygen documentation of this class for more information.
  */
@@ -254,13 +279,59 @@ ApplicationStatsHelperContainer::AddPerSender ## id (                         \
     }                                                                         \
 }
 
+#define APPLICATION_STATS_AVERAGE_METHOD_DEFINITION(id, name)                 \
+void                                                                          \
+ApplicationStatsHelperContainer::AddAverageReceiver ## id (                   \
+  ApplicationStatsHelper::OutputType_t type)                                  \
+{                                                                             \
+  NS_LOG_FUNCTION (this << ApplicationStatsHelper::GetOutputTypeName (type)); \
+  if (type != ApplicationStatsHelper::OUTPUT_NONE)                            \
+    {                                                                         \
+      Ptr<ApplicationStats ## id ## Helper> stat                              \
+        = CreateObject<ApplicationStats ## id ## Helper> ();                  \
+      stat->SetName (m_name + "-average-receiver-" + name                     \
+                            + GetOutputTypeSuffix (type));                    \
+      stat->SetTraceSourceName (m_traceSourceName);                           \
+      stat->SetIdentifierType (ApplicationStatsHelper::IDENTIFIER_RECEIVER);  \
+      stat->SetOutputType (type);                                             \
+      stat->SetAveragingMode (true);                                          \
+      stat->SetSenderInformation (m_senderInfo);                              \
+      stat->SetReceiverInformation (m_receiverInfo);                          \
+      stat->Install ();                                                       \
+      m_stats.push_back (stat);                                               \
+    }                                                                         \
+}                                                                             \
+void                                                                          \
+ApplicationStatsHelperContainer::AddAverageSender ## id (                     \
+  ApplicationStatsHelper::OutputType_t type)                                  \
+{                                                                             \
+  NS_LOG_FUNCTION (this << ApplicationStatsHelper::GetOutputTypeName (type)); \
+  if (type != ApplicationStatsHelper::OUTPUT_NONE)                            \
+    {                                                                         \
+      Ptr<ApplicationStats ## id ## Helper> stat                              \
+        = CreateObject<ApplicationStats ## id ## Helper> ();                  \
+      stat->SetName (m_name + "-average-sender-" + name                       \
+                            + GetOutputTypeSuffix (type));                    \
+      stat->SetTraceSourceName (m_traceSourceName);                           \
+      stat->SetIdentifierType (ApplicationStatsHelper::IDENTIFIER_SENDER);    \
+      stat->SetOutputType (type);                                             \
+      stat->SetAveragingMode (true);                                          \
+      stat->SetSenderInformation (m_senderInfo);                              \
+      stat->SetReceiverInformation (m_receiverInfo);                          \
+      stat->Install ();                                                       \
+      m_stats.push_back (stat);                                               \
+    }                                                                         \
+}
+
 
 // Throughput statistics.
 APPLICATION_STATS_METHOD_DEFINITION (Throughput, "throughput")
+APPLICATION_STATS_AVERAGE_METHOD_DEFINITION (Throughput, "throughput")
 
 
 // Delay statistics.
 APPLICATION_STATS_METHOD_DEFINITION (Delay, "delay")
+//APPLICATION_STATS_AVERAGE_METHOD_DEFINITION (Delay, "delay")
 
 
 std::string // static

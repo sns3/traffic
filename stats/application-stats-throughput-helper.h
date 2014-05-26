@@ -38,6 +38,7 @@ namespace ns3 {
 class Application;
 class Time;
 class DataCollectionObject;
+class DistributionCollector;
 
 /**
  * \ingroup applicationstats
@@ -54,6 +55,46 @@ public:
 
   // inherited from ObjectBase base class
   static TypeId GetTypeId ();
+
+  /**
+   * \param minValue the MinValue attribute of the histogram, PDF, CDF output.
+   */
+  void SetMinValue (double minValue);
+
+  /**
+   * \return the MinValue attribute of the histogram, PDF, CDF output.
+   */
+  double GetMinValue () const;
+
+  /**
+   * \param maxValue the MaxValue attribute of the histogram, PDF, CDF output.
+   */
+  void SetMaxValue (double maxValue);
+
+  /**
+   * \return the MaxValue attribute of the histogram, PDF, CDF output.
+   */
+  double GetMaxValue () const;
+
+  /**
+   * \param binLength the BinLength attribute of the histogram, PDF, CDF output.
+   */
+  void SetBinLength (double binLength);
+
+  /**
+   * \return the BinLength attribute of the histogram, PDF, CDF output.
+   */
+  double GetBinLength () const;
+
+  /**
+   * \param averagingMode average all samples before passing them to aggregator.
+   */
+  void SetAveragingMode (bool averagingMode);
+
+  /**
+   * \return the currently active averaging mode.
+   */
+  bool GetAveragingMode () const;
 
   /**
    * \brief Receive inputs from trace sources and determine the right collector
@@ -96,11 +137,19 @@ private:
   /// Maintains a list of second-level collectors created by this helper.
   CollectorMap m_terminalCollectors;
 
+  /// The final collector utilized in averaged output (histogram, PDF, and CDF).
+  Ptr<DistributionCollector> m_averagingCollector;
+
   /// The aggregator created by this helper.
   Ptr<DataCollectionObject> m_aggregator;
 
   /// Map of address and the `SENDER` identifier associated with it.
   std::map<const Address, uint32_t> m_identifierMap;
+
+  double m_minValue;     ///< `MinValue` attribute.
+  double m_maxValue;     ///< `MaxValue` attribute.
+  double m_binLength;    ///< `BinLength` attribute.
+  bool m_averagingMode;  ///< `AveragingMode` attribute.
 
 }; // end of class ApplicationStatsThroughputHelper
 

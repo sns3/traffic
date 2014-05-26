@@ -127,9 +127,13 @@ public:
 
   // Throughput statistics.
   APPLICATION_STATS_METHOD_DECLARATION (Throughput)
+  void AddAverageSenderThroughput (ApplicationStatsHelper::OutputType_t outputType);
+  void AddAverageReceiverThroughput (ApplicationStatsHelper::OutputType_t outputType);
 
-  // Throughput statistics.
+  // Delay statistics.
   APPLICATION_STATS_METHOD_DECLARATION (Delay)
+//  void AddAverageSenderDelay (ApplicationStatsHelper::OutputType_t outputType);
+//  void AddAverageReceiverDelay (ApplicationStatsHelper::OutputType_t outputType);
 
   /**
    * \param outputType an arbitrary output type.

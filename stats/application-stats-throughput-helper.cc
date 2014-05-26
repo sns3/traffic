@@ -36,6 +36,7 @@
 #include <ns3/application-packet-probe.h>
 #include <ns3/unit-conversion-collector.h>
 #include <ns3/interval-rate-collector.h>
+#include <ns3/distribution-collector.h>
 #include <ns3/scalar-collector.h>
 #include <ns3/multi-file-aggregator.h>
 #include <ns3/gnuplot-aggregator.h>
@@ -51,6 +52,11 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (ApplicationStatsThroughputHelper);
 
 ApplicationStatsThroughputHelper::ApplicationStatsThroughputHelper ()
+  : m_minValue (0.0),
+    m_maxValue (0.0),
+    m_binLength (0.0),
+    m_averagingMode (false)
+
 {
   NS_LOG_FUNCTION (this);
 }
@@ -67,8 +73,96 @@ ApplicationStatsThroughputHelper::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::ApplicationStatsThroughputHelper")
     .SetParent<ApplicationStatsHelper> ()
+    .AddAttribute ("MinValue",
+                   "Configure the MinValue attribute of the histogram, PDF, CDF output "
+                   "(in kbps).",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetMinValue,
+                                       &ApplicationStatsThroughputHelper::GetMinValue),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("MaxValue",
+                   "Configure the MaxValue attribute of the histogram, PDF, CDF output "
+                   "(in kbps).",
+                   DoubleValue (5000.0),
+                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetMaxValue,
+                                       &ApplicationStatsThroughputHelper::GetMaxValue),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("BinLength",
+                   "Configure the BinLength attribute of the histogram, PDF, CDF output "
+                   "(in kbps).",
+                   DoubleValue (100.0),
+                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetBinLength,
+                                       &ApplicationStatsThroughputHelper::GetBinLength),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("AveragingMode",
+                   "If true, all samples will be averaged before passed to aggregator. "
+                   "Only affects histogram, PDF, and CDF output types.",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&ApplicationStatsThroughputHelper::SetAveragingMode,
+                                        &ApplicationStatsThroughputHelper::GetAveragingMode),
+                   MakeBooleanChecker ())
   ;
   return tid;
+}
+
+
+void
+ApplicationStatsThroughputHelper::SetMinValue (double minValue)
+{
+  NS_LOG_FUNCTION (this << minValue);
+  m_minValue = minValue;
+}
+
+
+double
+ApplicationStatsThroughputHelper::GetMinValue () const
+{
+  return m_minValue;
+}
+
+
+void
+ApplicationStatsThroughputHelper::SetMaxValue (double maxValue)
+{
+  NS_LOG_FUNCTION (this << maxValue);
+  m_maxValue = maxValue;
+}
+
+
+double
+ApplicationStatsThroughputHelper::GetMaxValue () const
+{
+  return m_maxValue;
+}
+
+
+void
+ApplicationStatsThroughputHelper::SetBinLength (double binLength)
+{
+  NS_LOG_FUNCTION (this << binLength);
+  m_binLength = binLength;
+}
+
+
+double
+ApplicationStatsThroughputHelper::GetBinLength () const
+{
+  return m_binLength;
+}
+
+
+void
+ApplicationStatsThroughputHelper::SetAveragingMode (bool averagingMode)
+{
+  NS_LOG_FUNCTION (this << averagingMode);
+  m_averagingMode = averagingMode;
+}
+
+
+bool
+ApplicationStatsThroughputHelper::GetAveragingMode () const
+{
+  return m_averagingMode;
 }
 
 
@@ -149,8 +243,71 @@ ApplicationStatsThroughputHelper::DoInstall ()
     case ApplicationStatsHelper::OUTPUT_HISTOGRAM_FILE:
     case ApplicationStatsHelper::OUTPUT_PDF_FILE:
     case ApplicationStatsHelper::OUTPUT_CDF_FILE:
-      NS_FATAL_ERROR (GetOutputTypeName (GetOutputType ()) << " is not a valid output type for this statistics.");
-      break;
+      {
+         if (!m_averagingMode)
+           {
+             NS_FATAL_ERROR ("This statistics require AveragingMode to be enabled");
+           }
+
+         // Setup aggregator.
+         m_aggregator = CreateAggregator ("ns3::MultiFileAggregator",
+                                          "OutputFileName", StringValue (GetName ()),
+                                          "MultiFileMode", BooleanValue (false),
+                                          "EnableContextPrinting", BooleanValue (false),
+                                          "GeneralHeading", StringValue ("% throughput_kbps freq"));
+         Ptr<MultiFileAggregator> fileAggregator = m_aggregator->GetObject<MultiFileAggregator> ();
+         NS_ASSERT (fileAggregator != 0);
+
+         // Setup the final-level collector.
+         m_averagingCollector = CreateObject<DistributionCollector> ();
+         DistributionCollector::OutputType_t outputType
+           = DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+         if (GetOutputType () == ApplicationStatsHelper::OUTPUT_PDF_FILE)
+           {
+             outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+           }
+         else if (GetOutputType () == ApplicationStatsHelper::OUTPUT_CDF_FILE)
+           {
+             outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+           }
+         m_averagingCollector->SetOutputType (outputType);
+         m_averagingCollector->SetMinValue (m_minValue);
+         m_averagingCollector->SetMaxValue (m_maxValue);
+         m_averagingCollector->SetBinLength (m_binLength);
+         m_averagingCollector->SetName ("0");
+         m_averagingCollector->TraceConnect ("Output", "0",
+                                             MakeCallback (&MultiFileAggregator::Write2d,
+                                                           fileAggregator));
+         m_averagingCollector->TraceConnect ("OutputString", "0",
+                                             MakeCallback (&MultiFileAggregator::AddContextHeading,
+                                                           fileAggregator));
+
+         // Setup second-level collectors.
+         m_terminalCollectors.SetType ("ns3::ScalarCollector");
+         m_terminalCollectors.SetAttribute ("InputDataType",
+                                            EnumValue (ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+         m_terminalCollectors.SetAttribute ("OutputType",
+                                            EnumValue (ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+         CreateCollectorPerIdentifier (m_terminalCollectors);
+         Callback<void, double> callback
+           = MakeCallback (&DistributionCollector::TraceSinkDouble1,
+                           m_averagingCollector);
+         for (CollectorMap::Iterator it = m_terminalCollectors.Begin ();
+              it != m_terminalCollectors.End (); ++it)
+           {
+             it->second->TraceConnectWithoutContext ("Output", callback);
+           }
+
+         // Setup first-level collectors.
+         m_conversionCollectors.SetType ("ns3::UnitConversionCollector");
+         m_conversionCollectors.SetAttribute ("ConversionType",
+                                              EnumValue (UnitConversionCollector::FROM_BYTES_TO_KBIT));
+         CreateCollectorPerIdentifier (m_conversionCollectors);
+         m_conversionCollectors.ConnectToCollector ("Output",
+                                                    m_terminalCollectors,
+                                                    &ScalarCollector::TraceSinkDouble);
+         break;
+       }
 
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
       /// \todo Add support for boxes in Gnuplot.
@@ -196,8 +353,69 @@ ApplicationStatsThroughputHelper::DoInstall ()
     case ApplicationStatsHelper::OUTPUT_HISTOGRAM_PLOT:
     case ApplicationStatsHelper::OUTPUT_PDF_PLOT:
     case ApplicationStatsHelper::OUTPUT_CDF_PLOT:
-      NS_FATAL_ERROR (GetOutputTypeName (GetOutputType ()) << " is not a valid output type for this statistics.");
-      break;
+      {
+        if (!m_averagingMode)
+          {
+            NS_FATAL_ERROR ("This statistics require AveragingMode to be enabled");
+          }
+
+        // Setup aggregator.
+        Ptr<GnuplotAggregator> plotAggregator = CreateObject<GnuplotAggregator> (GetName ());
+        //plot->SetTitle ("");
+        plotAggregator->SetLegend ("Received throughput (in kilobits per second)",
+                                   "Frequency");
+        plotAggregator->Set2dDatasetDefaultStyle (Gnuplot2dDataset::LINES);
+        plotAggregator->Add2dDataset (GetName (), GetName ());
+        m_aggregator = plotAggregator;
+
+        // Setup the final-level collector.
+        m_averagingCollector = CreateObject<DistributionCollector> ();
+        DistributionCollector::OutputType_t outputType
+          = DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        if (GetOutputType () == ApplicationStatsHelper::OUTPUT_PDF_PLOT)
+          {
+            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+          }
+        else if (GetOutputType () == ApplicationStatsHelper::OUTPUT_CDF_PLOT)
+          {
+            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+          }
+        m_averagingCollector->SetOutputType (outputType);
+        m_averagingCollector->SetMinValue (m_minValue);
+        m_averagingCollector->SetMaxValue (m_maxValue);
+        m_averagingCollector->SetBinLength (m_binLength);
+        m_averagingCollector->SetName ("0");
+        m_averagingCollector->TraceConnect ("Output",
+                                            GetName (),
+                                            MakeCallback (&GnuplotAggregator::Write2d,
+                                                          plotAggregator));
+
+        // Setup second-level collectors.
+        m_terminalCollectors.SetType ("ns3::ScalarCollector");
+        m_terminalCollectors.SetAttribute ("InputDataType",
+                                           EnumValue (ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+        m_terminalCollectors.SetAttribute ("OutputType",
+                                           EnumValue (ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+        CreateCollectorPerIdentifier (m_terminalCollectors);
+        Callback<void, double> callback
+          = MakeCallback (&DistributionCollector::TraceSinkDouble1,
+                          m_averagingCollector);
+        for (CollectorMap::Iterator it = m_terminalCollectors.Begin ();
+             it != m_terminalCollectors.End (); ++it)
+          {
+            it->second->TraceConnectWithoutContext ("Output", callback);
+          }
+
+        // Setup first-level collectors.
+        m_conversionCollectors.SetType ("ns3::UnitConversionCollector");
+        m_conversionCollectors.SetAttribute ("ConversionType",
+                                             EnumValue (UnitConversionCollector::FROM_BYTES_TO_KBIT));
+        CreateCollectorPerIdentifier (m_conversionCollectors);
+        m_conversionCollectors.ConnectToCollector ("Output",
+                                                   m_terminalCollectors,
+                                                   &ScalarCollector::TraceSinkDouble);
+        break;
+      }
 
     default:
       NS_FATAL_ERROR ("ApplicationStatsThroughputHelper - Invalid output type");
