@@ -209,6 +209,9 @@ ApplicationStatsThroughputHelper::DoInstall ()
          m_averagingCollector->TraceConnect ("OutputString", "0",
                                              MakeCallback (&MultiFileAggregator::AddContextHeading,
                                                            fileAggregator));
+         m_averagingCollector->TraceConnect ("Warning", "0",
+                                             MakeCallback (&MultiFileAggregator::EnableContextWarning,
+                                                           fileAggregator));
 
          // Setup second-level collectors.
          m_terminalCollectors.SetType ("ns3::ScalarCollector");
