@@ -52,10 +52,7 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (ApplicationStatsThroughputHelper);
 
 ApplicationStatsThroughputHelper::ApplicationStatsThroughputHelper ()
-  : m_minValue (0.0),
-    m_maxValue (0.0),
-    m_binLength (0.0),
-    m_averagingMode (false)
+  : m_averagingMode (false)
 
 {
   NS_LOG_FUNCTION (this);
@@ -73,27 +70,6 @@ ApplicationStatsThroughputHelper::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::ApplicationStatsThroughputHelper")
     .SetParent<ApplicationStatsHelper> ()
-    .AddAttribute ("MinValue",
-                   "Configure the MinValue attribute of the histogram, PDF, CDF output "
-                   "(in kbps).",
-                   DoubleValue (0.0),
-                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetMinValue,
-                                       &ApplicationStatsThroughputHelper::GetMinValue),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("MaxValue",
-                   "Configure the MaxValue attribute of the histogram, PDF, CDF output "
-                   "(in kbps).",
-                   DoubleValue (5000.0),
-                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetMaxValue,
-                                       &ApplicationStatsThroughputHelper::GetMaxValue),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("BinLength",
-                   "Configure the BinLength attribute of the histogram, PDF, CDF output "
-                   "(in kbps).",
-                   DoubleValue (100.0),
-                   MakeDoubleAccessor (&ApplicationStatsThroughputHelper::SetBinLength,
-                                       &ApplicationStatsThroughputHelper::GetBinLength),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("AveragingMode",
                    "If true, all samples will be averaged before passed to aggregator. "
                    "Only affects histogram, PDF, and CDF output types.",
@@ -103,51 +79,6 @@ ApplicationStatsThroughputHelper::GetTypeId ()
                    MakeBooleanChecker ())
   ;
   return tid;
-}
-
-
-void
-ApplicationStatsThroughputHelper::SetMinValue (double minValue)
-{
-  NS_LOG_FUNCTION (this << minValue);
-  m_minValue = minValue;
-}
-
-
-double
-ApplicationStatsThroughputHelper::GetMinValue () const
-{
-  return m_minValue;
-}
-
-
-void
-ApplicationStatsThroughputHelper::SetMaxValue (double maxValue)
-{
-  NS_LOG_FUNCTION (this << maxValue);
-  m_maxValue = maxValue;
-}
-
-
-double
-ApplicationStatsThroughputHelper::GetMaxValue () const
-{
-  return m_maxValue;
-}
-
-
-void
-ApplicationStatsThroughputHelper::SetBinLength (double binLength)
-{
-  NS_LOG_FUNCTION (this << binLength);
-  m_binLength = binLength;
-}
-
-
-double
-ApplicationStatsThroughputHelper::GetBinLength () const
-{
-  return m_binLength;
 }
 
 
@@ -271,9 +202,6 @@ ApplicationStatsThroughputHelper::DoInstall ()
              outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
            }
          m_averagingCollector->SetOutputType (outputType);
-         m_averagingCollector->SetMinValue (m_minValue);
-         m_averagingCollector->SetMaxValue (m_maxValue);
-         m_averagingCollector->SetBinLength (m_binLength);
          m_averagingCollector->SetName ("0");
          m_averagingCollector->TraceConnect ("Output", "0",
                                              MakeCallback (&MultiFileAggregator::Write2d,
@@ -381,9 +309,6 @@ ApplicationStatsThroughputHelper::DoInstall ()
             outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
           }
         m_averagingCollector->SetOutputType (outputType);
-        m_averagingCollector->SetMinValue (m_minValue);
-        m_averagingCollector->SetMaxValue (m_maxValue);
-        m_averagingCollector->SetBinLength (m_binLength);
         m_averagingCollector->SetName ("0");
         m_averagingCollector->TraceConnect ("Output",
                                             GetName (),

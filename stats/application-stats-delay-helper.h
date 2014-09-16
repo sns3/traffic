@@ -56,36 +56,6 @@ public:
   static TypeId GetTypeId ();
 
   /**
-   * \param minValue the MinValue attribute of the histogram, PDF, CDF output.
-   */
-  void SetMinValue (double minValue);
-
-  /**
-   * \return the MinValue attribute of the histogram, PDF, CDF output.
-   */
-  double GetMinValue () const;
-
-  /**
-   * \param maxValue the MaxValue attribute of the histogram, PDF, CDF output.
-   */
-  void SetMaxValue (double maxValue);
-
-  /**
-   * \return the MaxValue attribute of the histogram, PDF, CDF output.
-   */
-  double GetMaxValue () const;
-
-  /**
-   * \param binLength the BinLength attribute of the histogram, PDF, CDF output.
-   */
-  void SetBinLength (double binLength);
-
-  /**
-   * \return the BinLength attribute of the histogram, PDF, CDF output.
-   */
-  double GetBinLength () const;
-
-  /**
    * \brief Receive inputs from trace sources and determine the right collector
    *        to forward the inputs to.
    * \param delay packet delay.
@@ -124,10 +94,6 @@ private:
    * \param identifier collector identifier.
    */
   void PassSampleToCollector (Time delay, uint32_t identifier);
-
-  double m_minValue;   ///< `MinValue` attribute.
-  double m_maxValue;   ///< `MaxValue` attribute.
-  double m_binLength;  ///< `BinLength` attribute.
 
   /// Maintains a list of probes created by this helper.
   std::list<Ptr<Probe> > m_probes;

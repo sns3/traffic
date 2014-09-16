@@ -51,9 +51,6 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (ApplicationStatsDelayHelper);
 
 ApplicationStatsDelayHelper::ApplicationStatsDelayHelper ()
-  : m_minValue (0.0),
-    m_maxValue (0.0),
-    m_binLength (0.0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -70,71 +67,8 @@ ApplicationStatsDelayHelper::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::ApplicationStatsDelayHelper")
     .SetParent<ApplicationStatsHelper> ()
-    .AddAttribute ("MinValue",
-                   "Configure the MinValue attribute of the histogram, PDF, CDF output.",
-                   DoubleValue (0.0),
-                   MakeDoubleAccessor (&ApplicationStatsDelayHelper::SetMinValue,
-                                       &ApplicationStatsDelayHelper::GetMinValue),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("MaxValue",
-                   "Configure the MaxValue attribute of the histogram, PDF, CDF output.",
-                   DoubleValue (1.0),
-                   MakeDoubleAccessor (&ApplicationStatsDelayHelper::SetMaxValue,
-                                       &ApplicationStatsDelayHelper::GetMaxValue),
-                   MakeDoubleChecker<double> ())
-    .AddAttribute ("BinLength",
-                   "Configure the BinLength attribute of the histogram, PDF, CDF output.",
-                   DoubleValue (0.02),
-                   MakeDoubleAccessor (&ApplicationStatsDelayHelper::SetBinLength,
-                                       &ApplicationStatsDelayHelper::GetBinLength),
-                   MakeDoubleChecker<double> ())
   ;
   return tid;
-}
-
-
-void
-ApplicationStatsDelayHelper::SetMinValue (double minValue)
-{
-  NS_LOG_FUNCTION (this << minValue);
-  m_minValue = minValue;
-}
-
-
-double
-ApplicationStatsDelayHelper::GetMinValue () const
-{
-  return m_minValue;
-}
-
-
-void
-ApplicationStatsDelayHelper::SetMaxValue (double maxValue)
-{
-  NS_LOG_FUNCTION (this << maxValue);
-  m_maxValue = maxValue;
-}
-
-
-double
-ApplicationStatsDelayHelper::GetMaxValue () const
-{
-  return m_maxValue;
-}
-
-
-void
-ApplicationStatsDelayHelper::SetBinLength (double binLength)
-{
-  NS_LOG_FUNCTION (this << binLength);
-  m_binLength = binLength;
-}
-
-
-double
-ApplicationStatsDelayHelper::GetBinLength () const
-{
-  return m_binLength;
 }
 
 
@@ -213,9 +147,6 @@ ApplicationStatsDelayHelper::DoInstall ()
             outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
           }
         m_terminalCollectors.SetAttribute ("OutputType", EnumValue (outputType));
-        m_terminalCollectors.SetAttribute ("MinValue", DoubleValue (m_minValue));
-        m_terminalCollectors.SetAttribute ("MaxValue", DoubleValue (m_maxValue));
-        m_terminalCollectors.SetAttribute ("BinLength", DoubleValue (m_binLength));
         CreateCollectorPerIdentifier (m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator ("Output",
                                                   m_aggregator,
@@ -283,9 +214,6 @@ ApplicationStatsDelayHelper::DoInstall ()
             outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
           }
         m_terminalCollectors.SetAttribute ("OutputType", EnumValue (outputType));
-        m_terminalCollectors.SetAttribute ("MinValue", DoubleValue (m_minValue));
-        m_terminalCollectors.SetAttribute ("MaxValue", DoubleValue (m_maxValue));
-        m_terminalCollectors.SetAttribute ("BinLength", DoubleValue (m_binLength));
         CreateCollectorPerIdentifier (m_terminalCollectors);
         for (CollectorMap::Iterator it = m_terminalCollectors.Begin ();
              it != m_terminalCollectors.End (); ++it)
