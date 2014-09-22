@@ -6,12 +6,14 @@ def build(bld):
                                                'flow-monitor',
                                                'point-to-point'])
     module.source = [
+        'helper/cbr-helper.cc',
         'helper/http-client-trace-plot.cc',
         'helper/http-helper.cc',
         'helper/http-kpi-helper.cc',
         'helper/nrtv-client-trace-plot.cc',
         'helper/nrtv-helper.cc',
         'helper/nrtv-kpi-helper.cc',
+        'model/cbr-application.cc',
         'model/http-client.cc',
         'model/http-entity-header.cc',
         'model/http-seq-ts-tag.cc',
@@ -23,6 +25,7 @@ def build(bld):
         'model/nrtv-variables.cc',
         'model/traffic-bounded-log-normal-variable.cc',
         'model/traffic-bounded-pareto-variable.cc',
+        'model/traffic-time-tag.cc',
         'stats/application-stats-helper.cc',
         'stats/application-stats-delay-helper.cc',
         'stats/application-stats-throughput-helper.cc',
@@ -31,12 +34,14 @@ def build(bld):
 
     module_test = bld.create_ns3_module_test_library('traffic')
     module_test.source = [
+        'test/cbr-test.cc',    
         'test/nrtv-test.cc',
         ]
 
     headers = bld(features='ns3header')
     headers.module = 'traffic'
     headers.source = [
+        'helper/cbr-helper.h',
         'helper/histogram-plot-helper.h',
         'helper/http-client-trace-plot.h',
         'helper/http-helper.h',
@@ -44,6 +49,7 @@ def build(bld):
         'helper/nrtv-client-trace-plot.h',
         'helper/nrtv-helper.h',
         'helper/nrtv-kpi-helper.h',
+        'model/cbr-application.h',
         'model/http-client.h',
         'model/http-entity-header.h',
         'model/http-seq-ts-tag.h',
@@ -55,6 +61,7 @@ def build(bld):
         'model/nrtv-variables.h',
         'model/traffic-bounded-log-normal-variable.h',
         'model/traffic-bounded-pareto-variable.h',
+        'model/traffic-time-tag.h',
         'stats/application-stats-helper.h',
         'stats/application-stats-delay-helper.h',
         'stats/application-stats-throughput-helper.h',
