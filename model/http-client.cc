@@ -33,6 +33,8 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/unused.h>
+#include <ns3/application-delay-probe.h>
+#include <ns3/traffic.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("HttpClient");
@@ -96,31 +98,40 @@ HttpClient::GetTypeId ()
                    MakeTypeIdChecker ())
     .AddTraceSource ("TxMainObjectRequest",
                      "Sent a request for a main object",
-                     MakeTraceSourceAccessor (&HttpClient::m_txMainObjectRequestTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_txMainObjectRequestTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("TxEmbeddedObjectRequest",
                      "Sent a request for an embedded object",
-                     MakeTraceSourceAccessor (&HttpClient::m_txEmbeddedObjectRequestTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_txEmbeddedObjectRequestTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxMainObjectPacket",
                      "A packet of main object has been received",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxMainObjectPacketTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxMainObjectPacketTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxMainObject",
                      "Received a whole main object",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxMainObjectTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxMainObjectTrace),
+                     "ns3::HttpClient::RxHttpObjectCallback")
     .AddTraceSource ("RxEmbeddedObjectPacket",
                      "A packet of embedded object has been received",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxEmbeddedObjectPacketTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxEmbeddedObjectPacketTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxEmbeddedObject",
                      "Received a whole embedded object",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxEmbeddedObjectTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxEmbeddedObjectTrace),
+                     "ns3::HttpClient::RxHttpObjectCallback")
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition",
-                     MakeTraceSourceAccessor (&HttpClient::m_stateTransitionTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_stateTransitionTrace),
+                     "ns3::StateTransitionCallback")
     .AddTraceSource ("Rx",
                      "General trace for receiving a packet of any kind",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxTrace),
+                     "ns3::Packet::PacketAddressTracedCallback")
     .AddTraceSource ("RxDelay",
                      "General trace of delay for receiving a complete object",
-                     MakeTraceSourceAccessor (&HttpClient::m_rxDelayTrace))
+                     MakeTraceSourceAccessor (&HttpClient::m_rxDelayTrace),
+                     "ns3::ApplicationDelayProbe::PacketDelayAddressCallback")
   ;
   return tid;
 }

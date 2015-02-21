@@ -69,7 +69,8 @@ CbrApplication::GetTypeId (void)
                    MakeBooleanAccessor (&CbrApplication::m_isStatisticsTagsEnabled),
                    MakeBooleanChecker ())
     .AddTraceSource ("Tx", "A new packet is created and is sent",
-                     MakeTraceSourceAccessor (&CbrApplication::m_txTrace))
+                     MakeTraceSourceAccessor (&CbrApplication::m_txTrace),
+                     "ns3::Packet::TracedCallback")
   ;
   return tid;
 }

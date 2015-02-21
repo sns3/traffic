@@ -35,6 +35,7 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/unused.h>
+#include <ns3/traffic.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("NrtvServer");
@@ -87,10 +88,12 @@ NrtvServer::GetTypeId ()
                    MakeTypeIdChecker ())
     .AddTraceSource ("Tx",
                      "A packet has been sent",
-                     MakeTraceSourceAccessor (&NrtvServer::m_txTrace))
+                     MakeTraceSourceAccessor (&NrtvServer::m_txTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition",
-                     MakeTraceSourceAccessor (&NrtvServer::m_stateTransitionTrace))
+                     MakeTraceSourceAccessor (&NrtvServer::m_stateTransitionTrace),
+                     "ns3::StateTransitionCallback")
   ;
   return tid;
 }

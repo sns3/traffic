@@ -4,6 +4,7 @@ def build(bld):
     module = bld.create_ns3_module('traffic', ['core',
                                                'applications',
                                                'flow-monitor',
+                                               'magister-stats',
                                                'point-to-point'])
     module.source = [
         'helper/cbr-helper.cc',
@@ -49,6 +50,7 @@ def build(bld):
         'helper/nrtv-client-trace-plot.h',
         'helper/nrtv-helper.h',
         'helper/nrtv-kpi-helper.h',
+        'model/traffic.h',
         'model/cbr-application.h',
         'model/http-client.h',
         'model/http-entity-header.h',

@@ -33,6 +33,8 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/unused.h>
+#include <ns3/application-delay-probe.h>
+#include <ns3/traffic.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("HttpServer");
@@ -101,16 +103,20 @@ HttpServer::GetTypeId ()
                    MakeUintegerChecker<uint32_t> ())
     .AddTraceSource ("Tx",
                      "A packet has been sent",
-                     MakeTraceSourceAccessor (&HttpServer::m_txTrace))
+                     MakeTraceSourceAccessor (&HttpServer::m_txTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("Rx",
                      "A packet has been received",
-                     MakeTraceSourceAccessor (&HttpServer::m_rxTrace))
+                     MakeTraceSourceAccessor (&HttpServer::m_rxTrace),
+                     "ns3::Packet::PacketAddressTracedCallback")
     .AddTraceSource ("RxDelay",
                      "A packet has been received with delay information",
-                     MakeTraceSourceAccessor (&HttpServer::m_rxDelayTrace))
+                     MakeTraceSourceAccessor (&HttpServer::m_rxDelayTrace),
+                     "ns3::ApplicationDelayProbe::PacketDelayAddressCallback")
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition",
-                     MakeTraceSourceAccessor (&HttpServer::m_stateTransitionTrace))
+                     MakeTraceSourceAccessor (&HttpServer::m_stateTransitionTrace),
+                     "ns3::StateTransitionCallback")
   ;
   return tid;
 }

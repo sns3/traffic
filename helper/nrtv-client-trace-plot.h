@@ -32,6 +32,7 @@ namespace ns3 {
 
 class NrtvClient;
 class Packet;
+class Address;
 
 
 /**
@@ -121,7 +122,7 @@ private:
 
   // TRACE CALLBACK FUNCTIONS
 
-  void RxCallback (Ptr<const Packet> packet);
+  void RxCallback (Ptr<const Packet> packet, const Address & from);
 
 
   Ptr<NrtvClient> m_nrtvClient;  ///< The currently active client application.

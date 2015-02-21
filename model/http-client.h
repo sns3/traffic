@@ -165,6 +165,12 @@ public:
    */
   static std::string GetStateString (State_t state);
 
+  /**
+   * \brief Callback signature for the `RxMainObject` and `RxEmbeddedObject`
+   *        trace sources.
+   */
+  typedef void (* RxHttpObjectCallback) ();
+
 protected:
   // Inherited from Object base class
   virtual void DoDispose ();

@@ -24,6 +24,7 @@
 #include <ns3/simulator.h>
 #include <ns3/nrtv-client.h>
 #include <ns3/packet.h>
+#include <ns3/address.h>
 #include <fstream>
 
 
@@ -138,9 +139,10 @@ NrtvClientTracePlot::Plot ()
 
 
 void
-NrtvClientTracePlot::RxCallback (Ptr<const Packet> packet)
+NrtvClientTracePlot::RxCallback (Ptr<const Packet> packet,
+                                 const Address & from)
 {
-  NS_LOG_FUNCTION (this << packet);
+  NS_LOG_FUNCTION (this << packet << from);
   m_packet.Add (Simulator::Now ().GetSeconds (),
                 static_cast<double> (packet->GetSize ()));
 }

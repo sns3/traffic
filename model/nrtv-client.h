@@ -130,6 +130,14 @@ public:
    */
   static std::string GetStateString (State_t state);
 
+  /**
+   * \brief Callback signature for the `RxFrame` trace source.
+   * \param frameNumber index of the current frame
+   * \param numOfFrames total number of frames in the current video session
+   */
+  typedef void (* RxFrameCallback)
+    (uint32_t frameNumber, uint32_t numOfFrames);
+
 protected:
   // Inherited from Object base class
   virtual void DoDispose ();

@@ -34,6 +34,8 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/unused.h>
+#include <ns3/application-delay-probe.h>
+#include <ns3/traffic.h>
 
 
 NS_LOG_COMPONENT_DEFINE ("NrtvClient");
@@ -92,19 +94,24 @@ NrtvClient::GetTypeId ()
     .AddTraceSource ("Rx",
                      "One packet of has been received (not necessarily a "
                      "single video slice)",
-                     MakeTraceSourceAccessor (&NrtvClient::m_rxTrace))
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxTrace),
+                     "ns3::Packet::PacketAddressTracedCallback")
     .AddTraceSource ("RxDelay",
                      "Received a whole slice with delay information",
-                     MakeTraceSourceAccessor (&NrtvClient::m_rxDelayTrace))
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxDelayTrace),
+                     "ns3::ApplicationDelayProbe::PacketDelayAddressCallback")
     .AddTraceSource ("RxSlice",
                      "Received a whole slice",
-                     MakeTraceSourceAccessor (&NrtvClient::m_rxSliceTrace))
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxSliceTrace),
+                     "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxFrame",
                      "Received a whole frame",
-                     MakeTraceSourceAccessor (&NrtvClient::m_rxFrameTrace))
+                     MakeTraceSourceAccessor (&NrtvClient::m_rxFrameTrace),
+                     "ns3::NrtvClient::RxFrameCallback")
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every NRTV client state transition",
-                     MakeTraceSourceAccessor (&NrtvClient::m_stateTransitionTrace))
+                     MakeTraceSourceAccessor (&NrtvClient::m_stateTransitionTrace),
+                     "ns3::StateTransitionCallback")
   ;
   return tid;
 }
