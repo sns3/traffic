@@ -37,7 +37,7 @@ CbrHelper::CbrHelper (std::string protocol, Address address)
   m_factory.Set ("Remote", AddressValue (address));
 }
 
-void 
+void
 CbrHelper::SetAttribute (std::string name, const AttributeValue &value)
 {
   m_factory.Set (name, value);

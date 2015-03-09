@@ -68,7 +68,7 @@ HttpSeqTsTag::GetInstanceTypeId () const
 uint32_t
 HttpSeqTsTag::GetSerializedSize () const
 {
-  return 4+8;
+  return 4 + 8;
 }
 
 

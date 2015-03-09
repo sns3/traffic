@@ -94,7 +94,6 @@ class Address;
 class ApplicationStatsHelper : public Object
 {
 public:
-
   // COMMON ENUM DATA TYPES ///////////////////////////////////////////////////
 
   /**
@@ -330,8 +329,8 @@ protected:
   template<typename P, typename Q, typename R, typename C>
   uint32_t SetupProbesAtReceiver (std::string probeOutputName,
                                   CollectorMap & collectorMap,
-                                  R (C::*collectorTraceSink) (Q, Q),
-                                  std::list<Ptr<Probe> > & probeList);
+                                  R (C::*collectorTraceSink)(Q, Q),
+                                  std::list<Ptr<Probe> > &probeList);
 
   /**
    * \brief Connect the trace source of every receiver application to a given
@@ -373,7 +372,7 @@ template<typename P, typename Q, typename R, typename C>
 uint32_t
 ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
                                                CollectorMap & collectorMap,
-                                               R (C::*collectorTraceSink) (Q, Q),
+                                               R (C::*collectorTraceSink)(Q, Q),
                                                std::list<Ptr<Probe> > & probeList)
 {
   if (P::GetTypeId ().GetParent () != TypeId::LookupByName ("ns3::Probe"))
@@ -388,8 +387,8 @@ ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
    */
   NS_ASSERT (   ((m_identifierType == ApplicationStatsHelper::IDENTIFIER_GLOBAL)
                  && (collectorMap.GetN () == 1))
-             || ((m_identifierType == ApplicationStatsHelper::IDENTIFIER_RECEIVER)
-                 && (collectorMap.GetN () == m_receiverInfo.size ())));
+                || ((m_identifierType == ApplicationStatsHelper::IDENTIFIER_RECEIVER)
+                    && (collectorMap.GetN () == m_receiverInfo.size ())));
 
   uint32_t n = 0;
   uint32_t identifier = 0;

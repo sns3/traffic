@@ -57,7 +57,7 @@ public:
   CbrApplication ();
 
   /// Destructor for Cbr application.
-  virtual ~CbrApplication();
+  virtual ~CbrApplication ();
 
   /// Get the pointer to associated socket.
   Ptr<Socket> GetSocket (void) const;

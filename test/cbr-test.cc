@@ -107,8 +107,8 @@ CbrTestCase1::DoRun (void)
   Ptr<PacketSink> sink = DynamicCast<PacketSink> (serverApps.Get (0));
   Ptr<CbrApplication> sender = DynamicCast<CbrApplication> (clientApps.Get (0));
 
-  NS_TEST_ASSERT_MSG_NE (sender->GetSent(), (uint32_t)0, "Nothing sent !");
-  NS_TEST_ASSERT_MSG_EQ (sink->GetTotalRx(), sender->GetSent(), "Packets were lost !");
+  NS_TEST_ASSERT_MSG_NE (sender->GetSent (), (uint32_t)0, "Nothing sent !");
+  NS_TEST_ASSERT_MSG_EQ (sink->GetTotalRx (), sender->GetSent (), "Packets were lost !");
 }
 
 // The CbrTestSuite class names the TestSuite as cbr-test, identifies what type of TestSuite (UNIT),

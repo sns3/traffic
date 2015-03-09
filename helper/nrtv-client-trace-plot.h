@@ -63,7 +63,6 @@ class Address;
 class NrtvClientTracePlot : public Object
 {
 public:
-
   /**
    * \brief Creates a new object instance which generates a plot file named
    *        "nrtv-client-trace.plt".
@@ -109,7 +108,6 @@ public:
   std::string GetOutputName () const;
 
 private:
-
   /**
    * \internal
    * \brief Connecting the object to trace sources in the client application and

@@ -175,70 +175,70 @@ ApplicationStatsThroughputHelper::DoInstall ()
     case ApplicationStatsHelper::OUTPUT_PDF_FILE:
     case ApplicationStatsHelper::OUTPUT_CDF_FILE:
       {
-         if (!m_averagingMode)
-           {
-             NS_FATAL_ERROR ("This statistics require AveragingMode to be enabled");
-           }
+        if (!m_averagingMode)
+          {
+            NS_FATAL_ERROR ("This statistics require AveragingMode to be enabled");
+          }
 
-         // Setup aggregator.
-         m_aggregator = CreateAggregator ("ns3::MultiFileAggregator",
-                                          "OutputFileName", StringValue (GetName ()),
-                                          "MultiFileMode", BooleanValue (false),
-                                          "EnableContextPrinting", BooleanValue (false),
-                                          "GeneralHeading", StringValue ("% throughput_kbps freq"));
-         Ptr<MultiFileAggregator> fileAggregator = m_aggregator->GetObject<MultiFileAggregator> ();
-         NS_ASSERT (fileAggregator != 0);
+        // Setup aggregator.
+        m_aggregator = CreateAggregator ("ns3::MultiFileAggregator",
+                                         "OutputFileName", StringValue (GetName ()),
+                                         "MultiFileMode", BooleanValue (false),
+                                         "EnableContextPrinting", BooleanValue (false),
+                                         "GeneralHeading", StringValue ("% throughput_kbps freq"));
+        Ptr<MultiFileAggregator> fileAggregator = m_aggregator->GetObject<MultiFileAggregator> ();
+        NS_ASSERT (fileAggregator != 0);
 
-         // Setup the final-level collector.
-         m_averagingCollector = CreateObject<DistributionCollector> ();
-         DistributionCollector::OutputType_t outputType
-           = DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
-         if (GetOutputType () == ApplicationStatsHelper::OUTPUT_PDF_FILE)
-           {
-             outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
-           }
-         else if (GetOutputType () == ApplicationStatsHelper::OUTPUT_CDF_FILE)
-           {
-             outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
-           }
-         m_averagingCollector->SetOutputType (outputType);
-         m_averagingCollector->SetName ("0");
-         m_averagingCollector->TraceConnect ("Output", "0",
-                                             MakeCallback (&MultiFileAggregator::Write2d,
-                                                           fileAggregator));
-         m_averagingCollector->TraceConnect ("OutputString", "0",
-                                             MakeCallback (&MultiFileAggregator::AddContextHeading,
-                                                           fileAggregator));
-         m_averagingCollector->TraceConnect ("Warning", "0",
-                                             MakeCallback (&MultiFileAggregator::EnableContextWarning,
-                                                           fileAggregator));
+        // Setup the final-level collector.
+        m_averagingCollector = CreateObject<DistributionCollector> ();
+        DistributionCollector::OutputType_t outputType
+          = DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        if (GetOutputType () == ApplicationStatsHelper::OUTPUT_PDF_FILE)
+          {
+            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+          }
+        else if (GetOutputType () == ApplicationStatsHelper::OUTPUT_CDF_FILE)
+          {
+            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+          }
+        m_averagingCollector->SetOutputType (outputType);
+        m_averagingCollector->SetName ("0");
+        m_averagingCollector->TraceConnect ("Output", "0",
+                                            MakeCallback (&MultiFileAggregator::Write2d,
+                                                          fileAggregator));
+        m_averagingCollector->TraceConnect ("OutputString", "0",
+                                            MakeCallback (&MultiFileAggregator::AddContextHeading,
+                                                          fileAggregator));
+        m_averagingCollector->TraceConnect ("Warning", "0",
+                                            MakeCallback (&MultiFileAggregator::EnableContextWarning,
+                                                          fileAggregator));
 
-         // Setup second-level collectors.
-         m_terminalCollectors.SetType ("ns3::ScalarCollector");
-         m_terminalCollectors.SetAttribute ("InputDataType",
-                                            EnumValue (ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
-         m_terminalCollectors.SetAttribute ("OutputType",
-                                            EnumValue (ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
-         CreateCollectorPerIdentifier (m_terminalCollectors);
-         Callback<void, double> callback
-           = MakeCallback (&DistributionCollector::TraceSinkDouble1,
-                           m_averagingCollector);
-         for (CollectorMap::Iterator it = m_terminalCollectors.Begin ();
-              it != m_terminalCollectors.End (); ++it)
-           {
-             it->second->TraceConnectWithoutContext ("Output", callback);
-           }
+        // Setup second-level collectors.
+        m_terminalCollectors.SetType ("ns3::ScalarCollector");
+        m_terminalCollectors.SetAttribute ("InputDataType",
+                                           EnumValue (ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+        m_terminalCollectors.SetAttribute ("OutputType",
+                                           EnumValue (ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+        CreateCollectorPerIdentifier (m_terminalCollectors);
+        Callback<void, double> callback
+          = MakeCallback (&DistributionCollector::TraceSinkDouble1,
+                          m_averagingCollector);
+        for (CollectorMap::Iterator it = m_terminalCollectors.Begin ();
+             it != m_terminalCollectors.End (); ++it)
+          {
+            it->second->TraceConnectWithoutContext ("Output", callback);
+          }
 
-         // Setup first-level collectors.
-         m_conversionCollectors.SetType ("ns3::UnitConversionCollector");
-         m_conversionCollectors.SetAttribute ("ConversionType",
-                                              EnumValue (UnitConversionCollector::FROM_BYTES_TO_KBIT));
-         CreateCollectorPerIdentifier (m_conversionCollectors);
-         m_conversionCollectors.ConnectToCollector ("Output",
-                                                    m_terminalCollectors,
-                                                    &ScalarCollector::TraceSinkDouble);
-         break;
-       }
+        // Setup first-level collectors.
+        m_conversionCollectors.SetType ("ns3::UnitConversionCollector");
+        m_conversionCollectors.SetAttribute ("ConversionType",
+                                             EnumValue (UnitConversionCollector::FROM_BYTES_TO_KBIT));
+        CreateCollectorPerIdentifier (m_conversionCollectors);
+        m_conversionCollectors.ConnectToCollector ("Output",
+                                                   m_terminalCollectors,
+                                                   &ScalarCollector::TraceSinkDouble);
+        break;
+      }
 
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
       /// \todo Add support for boxes in Gnuplot.
@@ -354,7 +354,7 @@ ApplicationStatsThroughputHelper::DoInstall ()
   // Setup probes and connect them to the collectors.
 
   switch (GetIdentifierType ())
-  {
+    {
     case ApplicationStatsHelper::IDENTIFIER_GLOBAL:
     case ApplicationStatsHelper::IDENTIFIER_RECEIVER:
       {
@@ -363,10 +363,10 @@ ApplicationStatsThroughputHelper::DoInstall ()
          * first-level collectors.
          */
         const uint32_t n = SetupProbesAtReceiver<ApplicationPacketProbe> (
-                             "OutputBytes",
-                             m_conversionCollectors,
-                             &UnitConversionCollector::TraceSinkUinteger32,
-                             m_probes);
+            "OutputBytes",
+            m_conversionCollectors,
+            &UnitConversionCollector::TraceSinkUinteger32,
+            m_probes);
         NS_LOG_INFO (this << " created " << n << " instance(s)"
                           << " of ApplicationPacketProbe");
         NS_UNUSED (n);
@@ -391,8 +391,8 @@ ApplicationStatsThroughputHelper::DoInstall ()
 
         // Connect with trace sources in receiver applications.
         const uint32_t n = SetupListenersAtReceiver (
-                             MakeCallback (&ApplicationStatsThroughputHelper::RxCallback,
-                                           this));
+            MakeCallback (&ApplicationStatsThroughputHelper::RxCallback,
+                          this));
         NS_LOG_INFO (this << " connected to " << n << " trace sources");
         NS_UNUSED (n);
         break;
@@ -402,7 +402,7 @@ ApplicationStatsThroughputHelper::DoInstall ()
       NS_FATAL_ERROR ("ApplicationStatsThroughputHelper - Invalid identifier type");
       break;
 
-  } // end of `switch (GetIdentifierType ())`
+    } // end of `switch (GetIdentifierType ())`
 
 } // end of `void DoInstall ();`
 

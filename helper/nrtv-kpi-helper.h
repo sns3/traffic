@@ -70,7 +70,6 @@ class NrtvServer;
 class NrtvKpiHelper
 {
 public:
-
   /**
    * \brief Creates an empty instance of helper.
    *
@@ -141,7 +140,6 @@ public:
   void SetServer (ApplicationContainer apps);
 
 private:
-
   // TRACE CALLBACK FUNCTIONS
 
   void RxCallback (std::string context, Ptr<const Packet> packet,

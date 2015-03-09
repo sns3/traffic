@@ -82,7 +82,6 @@ class HttpVariables;
 class HttpClient : public Application
 {
 public:
-
   /**
    * \brief Creates a new instance of HTTP client application.
    *
@@ -169,7 +168,7 @@ public:
    * \brief Callback signature for the `RxMainObject` and `RxEmbeddedObject`
    *        trace sources.
    */
-  typedef void (* RxHttpObjectCallback) ();
+  typedef void (*RxHttpObjectCallback)();
 
 protected:
   // Inherited from Object base class

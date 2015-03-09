@@ -86,7 +86,7 @@ CbrApplication::CbrApplication ()
   NS_LOG_FUNCTION (this);
 }
 
-CbrApplication::~CbrApplication()
+CbrApplication::~CbrApplication ()
 {
   NS_LOG_FUNCTION (this);
 }
@@ -127,10 +127,10 @@ void CbrApplication::StartApplication () // Called at time specified by Start
       m_socket->Bind ();
 
       m_socket->SetConnectCallback (
-          MakeCallback (&CbrApplication::ConnectionSucceeded, this),
-          MakeCallback (&CbrApplication::ConnectionFailed, this));
+        MakeCallback (&CbrApplication::ConnectionSucceeded, this),
+        MakeCallback (&CbrApplication::ConnectionFailed, this));
 
-      m_socket->Connect ((const Address&)m_peer);
+      m_socket->Connect ((const Address &)m_peer);
       m_socket->SetAllowBroadcast (true);
       m_socket->ShutdownRecv ();
     }
@@ -142,7 +142,7 @@ void CbrApplication::StopApplication () // Called at time specified by Stop
 
   Simulator::Cancel (m_sendEvent);
 
-  if(m_socket != 0)
+  if (m_socket != 0)
     {
       m_socket->Close ();
     }
@@ -184,20 +184,20 @@ void CbrApplication::SendPacket ()
   if (InetSocketAddress::IsMatchingType (m_peer))
     {
       NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-                   << "s cbr application sent "
-                   <<  packet->GetSize () << " bytes to "
-                   << InetSocketAddress::ConvertFrom(m_peer).GetIpv4 ()
-                   << " port " << InetSocketAddress::ConvertFrom (m_peer).GetPort ()
-                   << " total Tx " << m_totTxBytes << " bytes");
+                              << "s cbr application sent "
+                              <<  packet->GetSize () << " bytes to "
+                              << InetSocketAddress::ConvertFrom (m_peer).GetIpv4 ()
+                              << " port " << InetSocketAddress::ConvertFrom (m_peer).GetPort ()
+                              << " total Tx " << m_totTxBytes << " bytes");
     }
   else if (Inet6SocketAddress::IsMatchingType (m_peer))
     {
       NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-                   << "s cbr application sent "
-                   <<  packet->GetSize () << " bytes to "
-                   << Inet6SocketAddress::ConvertFrom(m_peer).GetIpv6 ()
-                   << " port " << Inet6SocketAddress::ConvertFrom (m_peer).GetPort ()
-                   << " total Tx " << m_totTxBytes << " bytes");
+                              << "s cbr application sent "
+                              <<  packet->GetSize () << " bytes to "
+                              << Inet6SocketAddress::ConvertFrom (m_peer).GetIpv6 ()
+                              << " port " << Inet6SocketAddress::ConvertFrom (m_peer).GetPort ()
+                              << " total Tx " << m_totTxBytes << " bytes");
     }
   m_lastStartTime = Simulator::Now ();
 

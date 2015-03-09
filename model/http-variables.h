@@ -267,7 +267,6 @@ public:
   Time GetParsingTimeMean () const;
 
 private:
-
   // RANDOM NUMBER VARIABLES
 
   Ptr<UniformRandomVariable>            m_httpVersionRng;

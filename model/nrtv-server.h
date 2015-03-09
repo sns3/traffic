@@ -59,7 +59,6 @@ class NrtvServerVideoWorker;
 class NrtvServer : public Application
 {
 public:
-
   /**
    * \brief Creates a new instance of NRTV server application.
    *
@@ -163,7 +162,6 @@ private:
 class NrtvServerVideoWorker : public SimpleRefCount<NrtvServerVideoWorker>
 {
 public:
-
   /**
    * \brief Creates a new instance of worker and starts the transmission.
    *

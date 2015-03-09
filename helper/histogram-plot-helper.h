@@ -129,7 +129,8 @@ public:
    * which is provided as an argument, is also printed on the histogram for
    * comparison purpose.
    */
-  template<typename T> static void
+  template<typename T>
+  static void
   Plot (Callback<T> valueStream, std::string name,
         std::string plotTitle, std::string axisLabel,
         uint32_t numOfSamples, T binWidth,
@@ -142,7 +143,8 @@ public:
  * function like this is not visible to the linker if put in .cc file.
  */
 
-template<typename T> void
+template<typename T>
+void
 HistogramPlotHelper::Plot (Callback<T> valueStream, std::string name,
                            std::string plotTitle, std::string axisLabel,
                            uint32_t numOfSamples, T binWidth,

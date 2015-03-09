@@ -225,7 +225,6 @@ public:
   Time GetIdleTimeMean () const;
 
 private:
-
   // RANDOM NUMBER VARIABLES
 
   Ptr<TrafficBoundedLogNormalVariable>  m_numOfFramesRng;

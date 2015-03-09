@@ -46,7 +46,7 @@ namespace ns3 {
 
 #define APPLICATION_STATS_METHOD_DECLARATION(id)                              \
   void AddGlobal ## id (ApplicationStatsHelper::OutputType_t outputType);     \
-  void AddPerReceiver ## id (ApplicationStatsHelper::OutputType_t outputType);\
+  void AddPerReceiver ## id (ApplicationStatsHelper::OutputType_t outputType); \
   void AddPerSender ## id (ApplicationStatsHelper::OutputType_t outputType);
 
 /**

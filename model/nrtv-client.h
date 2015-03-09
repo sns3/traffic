@@ -57,7 +57,6 @@ class NrtvClientRxBuffer;
 class NrtvClient : public Application
 {
 public:
-
   /**
    * \brief Creates a new instance of NRTV client application.
    *
@@ -135,7 +134,7 @@ public:
    * \param frameNumber index of the current frame
    * \param numOfFrames total number of frames in the current video session
    */
-  typedef void (* RxFrameCallback)
+  typedef void (*RxFrameCallback)
     (uint32_t frameNumber, uint32_t numOfFrames);
 
 protected:
@@ -251,7 +250,6 @@ public:
   Ptr<Packet> PopVideoSlice ();
 
 private:
-
   /**
    * \param packet the packet to be read
    * \return the slice size field of the NRTV header embedded in the packet

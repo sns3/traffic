@@ -661,7 +661,7 @@ NrtvClientRxBuffer::PopVideoSlice ()
 
       if (packetSize <= bytesToFetch)
         {
-         // absorb the whole packet
+          // absorb the whole packet
           slice->AddAtEnd (m_rxBuffer.front ());
           bytesToFetch -= packetSize;
           m_rxBuffer.pop_front ();

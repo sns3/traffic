@@ -82,7 +82,6 @@ class HttpServerTxBuffer;
 class HttpServer : public Application
 {
 public:
-
   /**
    * \brief Creates a new instance of HTTP server application.
    *

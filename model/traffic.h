@@ -29,7 +29,7 @@ namespace ns3 {
  * \param oldState Name of the old state.
  * \param newState Name of the new state.
  */
-typedef void (* StateTransitionCallback) (std::string, std::string);
+typedef void (*StateTransitionCallback)(std::string, std::string);
 
 } // end of `namespace ns3`
 

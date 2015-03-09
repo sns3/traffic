@@ -239,7 +239,7 @@ ApplicationStatsDelayHelper::DoInstall ()
   // Setup probes and connect them to the collectors.
 
   switch (GetIdentifierType ())
-  {
+    {
     case ApplicationStatsHelper::IDENTIFIER_GLOBAL:
     case ApplicationStatsHelper::IDENTIFIER_RECEIVER:
       {
@@ -307,7 +307,7 @@ ApplicationStatsDelayHelper::DoInstall ()
 
         // Connect with trace sources in receiver applications.
         const uint32_t n = SetupListenersAtReceiver (
-          MakeCallback (&ApplicationStatsDelayHelper::RxDelayCallback, this));
+            MakeCallback (&ApplicationStatsDelayHelper::RxDelayCallback, this));
         NS_LOG_INFO (this << " connected to " << n << " trace sources");
         NS_UNUSED (n);
         break;
@@ -317,7 +317,7 @@ ApplicationStatsDelayHelper::DoInstall ()
       NS_FATAL_ERROR ("ApplicationStatsDelayHelper - Invalid identifier type");
       break;
 
-  } // end of `switch (GetIdentifierType ())`
+    } // end of `switch (GetIdentifierType ())`
 
 } // end of `void DoInstall ();`
 
