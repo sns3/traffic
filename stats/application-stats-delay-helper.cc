@@ -367,7 +367,7 @@ ApplicationStatsDelayHelper::SaveAddressAndIdentifier (Ptr<Application> applicat
 
   if (ipv4 == 0)
     {
-      NS_LOG_LOGIC (this << " Node " << node->GetId ()
+      NS_LOG_INFO (this << " Node " << node->GetId ()
                          << " does not support IPv4 protocol");
     }
   else

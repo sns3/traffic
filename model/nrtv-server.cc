@@ -514,7 +514,7 @@ NrtvServerVideoWorker::ScheduleNewSlice ()
   else
     {
       // not enough time for another slice
-      NS_LOG_LOGIC (this << " " << (m_numOfSlices - m_numOfSlicesServed)
+      NS_LOG_INFO (this << " " << (m_numOfSlices - m_numOfSlicesServed)
                          << " slices are skipped");
     }
 

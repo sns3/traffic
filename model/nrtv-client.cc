@@ -604,7 +604,7 @@ NrtvClientRxBuffer::PushPacket (Ptr<const Packet> packet)
           NS_ASSERT (m_rxBuffer.size () == 1);
           const uint32_t priorRemain = m_rxBuffer.back ()->GetSize ();
           NS_ASSERT (priorRemain < NrtvHeader::GetStaticSerializedSize ());
-          NS_LOG_LOGIC (this << " combining a " << priorRemain << "-byte"
+          NS_LOG_INFO (this << " combining a " << priorRemain << "-byte"
                              << " left over from previous slice with "
                              << packetSize << " bytes of packet");
           m_rxBuffer.back ()->AddAtEnd (packet);
@@ -674,7 +674,7 @@ NrtvClientRxBuffer::PopVideoSlice ()
 
           // leave the second part in the buffer
           const uint32_t residueBytes = packetSize - bytesToFetch;
-          NS_LOG_LOGIC (this << " setting aside " << residueBytes << " bytes"
+          NS_LOG_INFO (this << " setting aside " << residueBytes << " bytes"
                              << " for the next video slice");
           m_rxBuffer.front ()->RemoveAtStart (bytesToFetch);
           NS_ASSERT (m_rxBuffer.front ()->GetSize () == residueBytes);
