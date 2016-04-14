@@ -248,37 +248,28 @@ NrtvTestSuite::NrtvTestSuite ()
   //LogComponentEnable ("NrtvTest", LOG_INFO);
   //LogComponentEnable ("NrtvTest", LOG_PREFIX_ALL);
 
-  const std::string tcpSocketType[4] = {
-    "ns3::TcpNewReno",
-    "ns3::TcpReno",
-    "ns3::TcpTahoe",
-    "ns3::TcpRfc793"
-  };
+  const std::string tcpSocketType = "ns3::TcpNewReno";
   const uint64_t delayMs[3] = {3, 30, 300};
   const int64_t rngRun[4] = {1, 22, 333};
 
-  for (uint8_t i = 0; i < 4; i++)
-    {
-      for (uint8_t j = 0; j < 3; j++)
-        {
-          for (uint8_t k = 0; k < 3; k++)
-            {
-              std::ostringstream oss;
-              oss << tcpSocketType[i] << ", "
-                  << "delay=" << delayMs[j] << "ms, "
-                  << "run=" << rngRun[k];
-              AddTestCase (
-                new NrtvClientRxBufferTestCase (oss.str (),
-                                                rngRun[k],
-                                                "ns3::TcpSocketFactory",
-                                                tcpSocketType[i],
-                                                MilliSeconds (delayMs[j]),
-                                                Seconds (5)),
-                TestCase::QUICK);
-            }
-        }
-    }
-
+  for (uint8_t j = 0; j < 3; j++)
+  {
+	  for (uint8_t k = 0; k < 3; k++)
+	  {
+		  std::ostringstream oss;
+		  oss << tcpSocketType << ", "
+				  << "delay=" << delayMs[j] << "ms, "
+				  << "run=" << rngRun[k];
+		  AddTestCase (
+				  new NrtvClientRxBufferTestCase (oss.str (),
+						  rngRun[k],
+						  "ns3::TcpSocketFactory",
+						  tcpSocketType,
+						  MilliSeconds (delayMs[j]),
+						  Seconds (5)),
+						  TestCase::QUICK);
+	  }
+  }
 } // end of `NrtvTestSuite ()`
 
 
