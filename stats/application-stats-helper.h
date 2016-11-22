@@ -412,7 +412,7 @@ ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
                                                     identifier,
                                                     collectorTraceSink))
                 {
-                  probeList.push_back (probe->GetObject<Probe> ());
+                  probeList.push_back (probe->template GetObject<Probe> ());
                   n++;
                 }
             }
