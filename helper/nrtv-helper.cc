@@ -29,17 +29,33 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/ipv4.h>
 #include <ns3/names.h>
+#include <map>
+#include <vector>
+#include <tuple>
 
 namespace ns3 {
 
 
 // NRTV CLIENT HELPER /////////////////////////////////////////////////////////
 
-NrtvClientHelper::NrtvClientHelper (std::string protocol, Address address)
+NrtvClientHelper::NrtvClientHelper (TypeId protocolTid, Address address)
 {
-  m_factory.SetTypeId ("ns3::NrtvClient");
-  m_factory.Set ("Protocol", StringValue (protocol));
-  m_factory.Set ("RemoteServerAddress", AddressValue (address));
+  NS_ASSERT_MSG (protocolTid == TypeId::LookupByName ("ns3::TcpSocketFactory")
+      || protocolTid == TypeId::LookupByName ("ns3::UdpSocketFactory"),
+      "The protocol should be set either to TypeId of TcpSocketFactory "
+      "or TypeId of UdpSocketFactory!");
+
+  if (protocolTid == TypeId::LookupByName ("ns3::TcpSocketFactory"))
+    {
+      m_factory.SetTypeId ("ns3::NrtvTcpClient");
+      m_factory.Set ("RemoteServerAddress", AddressValue (address));
+    }
+  else
+    {
+      m_factory.SetTypeId ("ns3::PacketSink");
+      m_factory.Set ("Protocol", TypeIdValue (protocolTid));
+      m_factory.Set ("Local", AddressValue (address));
+    }
 }
 
 void
@@ -85,11 +101,17 @@ NrtvClientHelper::InstallPriv (Ptr<Node> node) const
 
 // NRTV SERVER HELPER /////////////////////////////////////////////////////////
 
-NrtvServerHelper::NrtvServerHelper (std::string protocol, Address address)
+NrtvServerHelper::NrtvServerHelper (TypeId protocolTid, Address address)
 {
-  m_factory.SetTypeId ("ns3::NrtvServer");
-  m_factory.Set ("Protocol", StringValue (protocol));
-  m_factory.Set ("LocalAddress", AddressValue (address));
+  if (protocolTid == TypeId::LookupByName("ns3::TcpSocketFactory"))
+    {
+      m_factory.SetTypeId ("ns3::NrtvTcpServer");
+      m_factory.Set ("LocalAddress", AddressValue (address));
+    }
+  else if (protocolTid == TypeId::LookupByName("ns3::UdpSocketFactory"))
+    {
+      m_factory.SetTypeId ("ns3::NrtvUdpServer");
+    }
 }
 
 void
@@ -135,11 +157,18 @@ NrtvServerHelper::InstallPriv (Ptr<Node> node) const
 
 // NRTV HELPER ////////////////////////////////////////////////////////////////
 
-NrtvHelper::NrtvHelper (std::string protocol)
+NrtvHelper::NrtvHelper (TypeId protocolTid)
+: m_protocolTid (protocolTid)
 {
+  NS_ASSERT_MSG (m_protocolTid == TypeId::LookupByName ("ns3::TcpSocketFactory")
+      || m_protocolTid == TypeId::LookupByName ("ns3::UdpSocketFactory"),
+      "The protocol should be set either to TypeId of TcpSocketFactory "
+      "or TypeId of UdpSocketFactory!");
+
   Address invalidAddr;
-  m_clientHelper = new NrtvClientHelper (protocol, invalidAddr);
-  m_serverHelper = new NrtvServerHelper (protocol, invalidAddr);
+  m_clientHelper = new NrtvClientHelper (m_protocolTid, invalidAddr);
+  m_serverHelper = new NrtvServerHelper (m_protocolTid, invalidAddr);
+  m_nrtvVariables = CreateObject<NrtvVariables> ();
 }
 
 NrtvHelper::~NrtvHelper ()
@@ -160,10 +189,17 @@ NrtvHelper::SetServerAttribute (std::string name, const AttributeValue &value)
   m_serverHelper->SetAttribute (name, value);
 }
 
+void
+NrtvHelper::SetVariablesAttribute (std::string name, const AttributeValue &value)
+{
+  m_nrtvVariables->SetAttribute (name, value);
+}
+
 ApplicationContainer
 NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 {
   ApplicationContainer ret; // the return value of the function
+  bool tcpInUse = m_protocolTid == TypeId::LookupByName ("ns3::TcpSocketFactory");
 
   Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
   if (ipv4 == 0)
@@ -172,18 +208,41 @@ NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
     }
   else
     {
-      /// \todo Still unclear if the hard-coded indices below will work in any possible cases.
+      /// Still unclear if the hard-coded indices below will work in any possible cases.
       const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
       const Ipv4Address serverAddress = interfaceAddress.GetLocal ();
 
-      m_serverHelper->SetAttribute ("LocalAddress",
-                                    AddressValue (serverAddress));
+      if (tcpInUse)
+        m_serverHelper->SetAttribute ("LocalAddress", AddressValue (serverAddress));
+
       m_lastInstalledServer = m_serverHelper->Install (serverNode);
       ret.Add (m_lastInstalledServer);
 
-      m_clientHelper->SetAttribute ("RemoteServerAddress",
-                                    AddressValue (serverAddress));
-      m_lastInstalledClients = m_clientHelper->Install (clientNodes);
+      if (tcpInUse)
+        {
+          // If TCP server is used, installation is straightforward.
+          m_clientHelper->SetAttribute ("RemoteServerAddress",
+                                        AddressValue (serverAddress));
+          m_lastInstalledClients = m_clientHelper->Install (clientNodes);
+        }
+      else
+        {
+          // If UDP is used, we need to configure PacketSink "Local" attribute
+          // for each client node after installation.
+          m_lastInstalledClients = ApplicationContainer ();
+          Ptr<NrtvUdpServer> serverApp = m_lastInstalledServer.Get (0)->GetObject<NrtvUdpServer> ();
+          for (auto it = clientNodes.Begin (); it != clientNodes.End (); it++)
+            {
+              Ptr<Ipv4> clientIpv4 = (*it)->GetObject<Ipv4> ();
+              const Ipv4InterfaceAddress clientInterfaceAddress = clientIpv4->GetAddress (1, 0);
+              const Ipv4Address clientAddress = clientInterfaceAddress.GetLocal ();
+              ApplicationContainer apps = m_clientHelper->Install ((*it));
+              for (auto it2 = apps.Begin (); it2 != apps.End (); it2++)
+                (*it2)->SetAttribute ("Local", AddressValue (InetSocketAddress (clientAddress, serverApp->GetRemotePort ())));
+              m_lastInstalledClients.Add (apps);
+              serverApp->AddClient (clientAddress, m_nrtvVariables->GetNumOfVideos ());
+            }
+        }
       ret.Add (m_lastInstalledClients);
     }
 
@@ -193,31 +252,7 @@ NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
 ApplicationContainer
 NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
 {
-  ApplicationContainer ret; // the return value of the function
-
-  Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
-  if (ipv4 == 0)
-    {
-      NS_FATAL_ERROR ("No IPv4 object is found within the server node " << serverNode);
-    }
-  else
-    {
-      /// \todo Still unclear if the hard-coded indices below will work in any possible cases.
-      const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
-      const Ipv4Address serverAddress = interfaceAddress.GetLocal ();
-
-      m_serverHelper->SetAttribute ("LocalAddress",
-                                    AddressValue (serverAddress));
-      m_lastInstalledServer = m_serverHelper->Install (serverNode);
-      ret.Add (m_lastInstalledServer);
-
-      m_clientHelper->SetAttribute ("RemoteServerAddress",
-                                    AddressValue (serverAddress));
-      m_lastInstalledClients = m_clientHelper->Install (clientNode);
-      ret.Add (m_lastInstalledClients);
-    }
-
-  return ret;
+  return InstallUsingIpv4 (serverNode, NodeContainer (clientNode));
 }
 
 ApplicationContainer

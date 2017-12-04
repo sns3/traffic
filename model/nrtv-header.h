@@ -30,7 +30,7 @@ namespace ns3 {
 
 
 /**
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Simple packet header for use in NRTV traffic models.
  *
  * The header is 24 bytes in length. There are 6 fields in the header:
@@ -39,7 +39,7 @@ namespace ns3 {
  * - slice number (2 bytes, an index starting from 0);
  * - number of slices in the current frame (2 bytes);
  * - slice size in bytes, not including the header (4 bytes); and
- * - arrival time (8 bytes).
+ * - arrival time (8 bytes) in nanoseconds.
  *
  * The following is the usage example in the case of sending a packet. First,
  * create a plain header:
@@ -90,7 +90,6 @@ namespace ns3 {
  * \warning You will get an error if you invoke Packet::RemoveHeader() or
  *          Packet::PeekHeader() on a packet smaller than 24 bytes,
  *
- * \todo Convert this header into a byte tag.
  */
 class NrtvHeader : public Header
 {
@@ -167,11 +166,6 @@ public:
    */
   Time GetArrivalTime () const;
 
-  /**
-   * \return the constant length of any instances of this header (6 bytes)
-   */
-  static uint32_t GetStaticSerializedSize ();
-
   // Inherited from Header base class
   virtual uint32_t GetSerializedSize () const;
   virtual void Serialize (Buffer::Iterator start) const;
@@ -187,7 +181,7 @@ private:
   uint16_t m_sliceNumber;  ///< Slice number field (an index starting from 0).
   uint16_t m_numOfSlices;  ///< Number of slices field.
   uint16_t m_sliceSize;    ///< Slice size field.
-  uint64_t m_arrivalTime;  ///< Arrival time field in "time step" format.
+  Time     m_arrivalTime;  ///< Arrival time field in Time format.
 
 }; // end of `class NrtvHeader`
 

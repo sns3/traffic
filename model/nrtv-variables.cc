@@ -22,12 +22,12 @@
 #include "nrtv-variables.h"
 #include <ns3/log.h>
 #include <ns3/integer.h>
+#include <ns3/string.h>
+#include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 #include <ns3/double.h>
 #include <ns3/rng-stream.h>
-#include <ns3/traffic-bounded-log-normal-variable.h>
-#include <ns3/traffic-bounded-pareto-variable.h>
-
+#include <cmath>
 
 NS_LOG_COMPONENT_DEFINE ("NrtvVariables");
 
@@ -38,13 +38,19 @@ NS_OBJECT_ENSURE_REGISTERED (NrtvVariables);
 
 
 NrtvVariables::NrtvVariables ()
-  : m_numOfFramesRng               (CreateObject<TrafficBoundedLogNormalVariable> ()),
+  : m_numOfFramesRng               (CreateObject<LogNormalRandomVariable> ()),
     m_frameIntervalRng             (CreateObject<ConstantRandomVariable> ()),
     m_numOfSlicesRng               (CreateObject<ConstantRandomVariable> ()),
-    m_sliceSizeRng                 (CreateObject<TrafficBoundedParetoVariable> ()),
-    m_sliceEncodingDelayRng        (CreateObject<TrafficBoundedParetoVariable> ()),
+    m_sliceSizeRng                 (CreateObject<ParetoRandomVariable> ()),
+    m_sliceEncodingDelayRng        (CreateObject<ParetoRandomVariable> ()),
     m_dejitterBufferWindowSizeRng  (CreateObject<ConstantRandomVariable> ()),
-    m_idleTimeRng                  (CreateObject<ExponentialRandomVariable> ())
+    m_idleTimeRng                  (CreateObject<ExponentialRandomVariable> ()),
+		m_numberOfVideosRng            (CreateObject<ConstantRandomVariable> ()),
+	  m_connectionOpenDelayRng       (CreateObject<UniformRandomVariable> ()),
+	  m_numOfFramesMean (3000),
+	  m_numOfFramesStdDev (2400),
+	  m_numOfFramesMin (200),
+	  m_numOfFramesMax (36000)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -154,6 +160,19 @@ NrtvVariables::GetTypeId ()
                    MakeTimeAccessor (&NrtvVariables::SetIdleTimeMean,
                                      &NrtvVariables::GetIdleTimeMean),
                    MakeTimeChecker ())
+		.AddAttribute ("ConnectionOpeningDelay",
+									 "The distribution for the delay between opening starting an application "
+									 "and opening a connection (in seconds).",
+									 StringValue ("ns3::UniformRandomVariable[Min=0.001|Max=0.01]"),
+									 MakePointerAccessor (&NrtvVariables::m_connectionOpenDelayRng),
+									 MakePointerChecker<RandomVariableStream> ())
+
+    // (UDP) NUMBER OF VIDEOS STREAMED
+    .AddAttribute ("NumberOfVideos",
+                   "The distribution for the amount of videos streamed to UDP clients.",
+                   StringValue ("ns3::ConstantRandomVariable[Constant=1]"),
+                   MakePointerAccessor (&NrtvVariables::m_numberOfVideosRng),
+                   MakePointerChecker<RandomVariableStream> ())
   ;
   return tid;
 
@@ -163,7 +182,7 @@ NrtvVariables::GetTypeId ()
 uint32_t
 NrtvVariables::GetNumOfFrames ()
 {
-  return m_numOfFramesRng->GetBoundedInteger ();
+  return GetBoundedInteger (m_numOfFramesRng, m_numOfFramesMin, m_numOfFramesMax);
 }
 
 
@@ -184,23 +203,22 @@ NrtvVariables::GetNumOfSlices ()
 uint32_t
 NrtvVariables::GetSliceSize ()
 {
-  return m_sliceSizeRng->GetBoundedInteger ();
+  return m_sliceSizeRng->GetInteger ();
 }
 
 
 Time
 NrtvVariables::GetSliceEncodingDelay ()
 {
-  return MilliSeconds (m_sliceEncodingDelayRng->GetBoundedInteger ());
+  return MilliSeconds (m_sliceEncodingDelayRng->GetInteger ());
 }
 
 
 uint64_t
 NrtvVariables::GetSliceEncodingDelayMilliSeconds ()
 {
-  return m_sliceEncodingDelayRng->GetBoundedInteger ();
+  return m_sliceEncodingDelayRng->GetInteger ();
 }
-
 
 Time
 NrtvVariables::GetDejitterBufferWindowSize ()
@@ -213,6 +231,13 @@ Time
 NrtvVariables::GetIdleTime ()
 {
   return Seconds (m_idleTimeRng->GetValue ());
+}
+
+
+Time
+NrtvVariables::GetConnectionOpenDelay ()
+{
+	return Seconds (m_connectionOpenDelayRng->GetValue ());
 }
 
 
@@ -245,7 +270,8 @@ void
 NrtvVariables::SetNumOfFramesMean (uint32_t mean)
 {
   NS_LOG_FUNCTION (this << mean);
-  m_numOfFramesRng->SetMean (mean);
+  m_numOfFramesMean = mean;
+  RefreshLogNormalParameters (m_numOfFramesRng, m_numOfFramesMean, m_numOfFramesStdDev);
 }
 
 
@@ -253,7 +279,8 @@ void
 NrtvVariables::SetNumOfFramesStdDev (uint32_t stdDev)
 {
   NS_LOG_FUNCTION (this << stdDev);
-  m_numOfFramesRng->SetStdDev (stdDev);
+  m_numOfFramesStdDev = stdDev;
+  RefreshLogNormalParameters (m_numOfFramesRng, m_numOfFramesMean, m_numOfFramesStdDev);
 }
 
 
@@ -261,7 +288,7 @@ void
 NrtvVariables::SetNumOfFramesMin (uint32_t min)
 {
   NS_LOG_FUNCTION (this << min);
-  m_numOfFramesRng->SetMin (min);
+  m_numOfFramesMin = min;
 }
 
 
@@ -269,14 +296,14 @@ void
 NrtvVariables::SetNumOfFramesMax (uint32_t max)
 {
   NS_LOG_FUNCTION (this << max);
-  m_numOfFramesRng->SetMax (max);
+  m_numOfFramesMax = max;
 }
 
 
 uint32_t
 NrtvVariables::GetNumOfFramesMean () const
 {
-  return m_numOfFramesRng->GetMean ();
+  return m_numOfFramesMean;
 }
 
 
@@ -328,7 +355,7 @@ void
 NrtvVariables::SetSliceSizeScale (double scale)
 {
   NS_LOG_FUNCTION (this << scale);
-  m_sliceSizeRng->SetScale (scale);
+  SetParetoScale (m_sliceSizeRng, scale);
 }
 
 
@@ -336,7 +363,16 @@ double
 NrtvVariables::GetSliceSizeMean () const
 {
   // extract value from parent class
-  return m_sliceSizeRng->GetMean ();
+  double mean = std::numeric_limits<double>::infinity();
+
+  double shape = m_sliceSizeRng->GetShape ();
+  double scale = m_sliceSizeRng->GetScale ();
+  if (shape > 1)
+    {
+      mean = shape * scale / (shape -1);
+    }
+
+  return mean;
 }
 
 
@@ -364,7 +400,15 @@ void
 NrtvVariables::SetSliceEncodingDelayShape (double shape)
 {
   NS_LOG_FUNCTION (this << shape);
+
+  if (std::abs (shape - 1.0) < 0.000001)
+    {
+      NS_FATAL_ERROR ("Shape parameter of a Pareto distribution must not equal to 1.0"
+                      << " (the current value is " << shape << ")");
+    }
+
   m_sliceEncodingDelayRng->SetAttribute ("Shape", DoubleValue (shape));
+
 }
 
 
@@ -372,7 +416,7 @@ void
 NrtvVariables::SetSliceEncodingDelayScale (double scale)
 {
   NS_LOG_FUNCTION (this << scale);
-  m_sliceEncodingDelayRng->SetScale (scale);
+  SetParetoScale (m_sliceEncodingDelayRng, scale);
 }
 
 
@@ -380,7 +424,16 @@ Time
 NrtvVariables::GetSliceEncodingDelayMean () const
 {
   // extract value from parent class
-  return MilliSeconds (m_sliceEncodingDelayRng->GetMean ());
+  double mean = std::numeric_limits<double>::infinity();
+
+  double shape = m_sliceEncodingDelayRng->GetShape ();
+  double scale = m_sliceEncodingDelayRng->GetScale ();
+  if (shape > 1)
+    {
+      mean = shape * scale / (shape -1);
+    }
+
+  return MilliSeconds (mean);
 }
 
 
@@ -419,6 +472,57 @@ Time
 NrtvVariables::GetIdleTimeMean () const
 {
   return Seconds (m_idleTimeRng->GetMean ());
+}
+
+// GETTING NUMBER OF VIDEOS
+uint32_t
+NrtvVariables::GetNumOfVideos () const
+{
+  uint32_t nmbr = m_numberOfVideosRng->GetInteger ();
+  NS_ASSERT_MSG (nmbr > 0, "Number of videos must be positive!");
+  return nmbr;
+}
+
+// OTHER HELPER METHODS ///////////////////////////////////////////////////////
+
+uint64_t
+NrtvVariables::GetBoundedInteger (Ptr<RandomVariableStream> random, double min, double max)
+{
+  uint64_t value;
+  do
+    {
+      value = random->GetInteger ();
+    }
+  while (value < min || value > max);
+  return value;
+}
+
+void
+NrtvVariables::SetParetoScale (Ptr<ParetoRandomVariable> random, double scale)
+{
+  NS_ASSERT_MSG (scale > 0.0, "Scale parameter must be greater than zero");
+
+  random->SetAttribute ("Scale", DoubleValue (scale));
+}
+
+void
+NrtvVariables::RefreshLogNormalParameters (Ptr<LogNormalRandomVariable> random,
+                                           double mean,
+                                           double stddev)
+{
+  NS_LOG_FUNCTION (this);
+
+  const double a1 = pow (stddev, 2);
+  const double a2 = pow (mean, 2);
+  const double a = log (1 + (a1 / a2));
+
+  const double mu = log (mean) - (0.5 * a);
+  const double sigma = sqrt (a);
+  NS_LOG_INFO (this << " Mu= " << mu << " Sigma= " << sigma);
+
+  // updating attributes of the log normal
+  random->SetAttribute ("Mu", DoubleValue (mu));
+  random->SetAttribute ("Sigma", DoubleValue (sigma));
 }
 
 

@@ -21,6 +21,7 @@
  *
  * Converted to NRTV traffic models by:
  * - Budiarto Herman <budiarto.herman@magister.fi>
+ * - Lauri Sormunen <lauri.sormunen@magister.fi>
  *
  */
 
@@ -31,13 +32,17 @@
 #include <ns3/ipv4-address.h>
 #include <ns3/node-container.h>
 #include <ns3/application-container.h>
+#include <ns3/nrtv-udp-server.h>
+#include <ns3/nrtv-variables.h>
+#include <map>
+#include <vector>
+#include <tuple>
 
 
 namespace ns3 {
 
-
 /**
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Helper to make it easier to instantiate an NrtvClient on a set of
  *        nodes.
  */
@@ -48,15 +53,12 @@ public:
    * \brief Create a NrtvClientHelper to make it easier to work with
    *        NrtvClient applications.
    *
-   * \param protocol the name of the protocol to be used to send and receive
-   *                 traffic
-   * \param address the address of the remote server node to send traffic to
-   *
-   * The protocol argument is a string identifying the socket factory type used
-   * to create sockets for the applications. A typical value would be
-   * "ns3::TcpSocketFactory".
+   * \param protocolTid The TypeId of the protocol used (either TcpSocketFactory
+   *                    or UdpSocketFactory)
+   * \param address In case of TCP: the address of the remote server
+   *                node to send traffic to. In case of UDP: the local address.
    */
-  NrtvClientHelper (std::string protocol, Address address);
+  NrtvClientHelper (TypeId protocolTid, Address address);
 
   /**
    * \brief Helper function used to set the underlying application attributes,
@@ -114,7 +116,7 @@ private:
 
 
 /**
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Helper to make it easier to instantiate an NrtvServer on a set of
  *        nodes.
  */
@@ -125,15 +127,10 @@ public:
    * \brief Create a NrtvServerHelper to make it easier to work with
    *        NrtvServer applications.
    *
-   * \param protocol the name of the protocol to be used to send and receive
-   *                 traffic
-   * \param address the address of the server
-   *
-   * The protocol argument is a string identifying the socket factory type used
-   * to create sockets for the applications. A typical value would be
-   * "ns3::TcpSocketFactory".
+   * \param protocolTid The TypeId of the protocol used (either TcpSocketFactory or UdpSocketFactory)
+   * \param address In case of TCP the address of the server, in case of UDP the remote address.
    */
-  NrtvServerHelper (std::string protocol, Address address);
+  NrtvServerHelper (TypeId protocolTid, Address address);
 
   /**
    * \brief Helper function used to set the underlying application attributes,
@@ -190,55 +187,61 @@ private:
 
 
 /**
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Helper to make it easier to instantiate an NRTV server and a group of
  *        connected NRTV clients.
  */
 class NrtvHelper
 {
 public:
+
   /**
-   * \brief Create a NrtvServerHelper to make it easier to work with
-   *        NrtvClient and NrtvServer applications.
+   * \brief Create a NrtvHelper to make it easier to work with
+   *        NrtvTcpClient and NrtvTcpServer or alternatively PacketSink
+   *        and NrtvUdpServer applications.
    *
-   * \param protocol the name of the protocol to be used in the simulated
-   *                 traffic
-   *
-   * The protocol argument is a string identifying the socket factory type used
-   * to create sockets for the applications. A typical value would be
-   * "ns3::TcpSocketFactory".
+   * \param protocolTid The TypeId of the protocol to be used by the server
+   *                    and client. Either TypeId of TcpSocketFactory or UdpSocketFactory.
    */
-  NrtvHelper (std::string protocol);
+  NrtvHelper (TypeId protocolTid = TypeId::LookupByName ("ns3::TcpSocketFactory"));
 
   /// Instance destructor.
   virtual ~NrtvHelper ();
 
   /**
-   * \brief Helper function used to set the underlying NrtvClient application
-   *        attributes, but *not* the socket attributes.
+   * \brief Helper function used to set the underlying NrtvTcpClient or PacketSink
+   *        application attributes, but *not* the socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
-   *
-   * \warning This method does not modify the attribute RemoteServerAddress.
    */
   void SetClientAttribute (std::string name, const AttributeValue &value);
 
   /**
-   * \brief Helper function used to set the underlying NrtvClient application
-   *        attributes, but *not* the socket attributes.
+   * \brief Helper function used to set the underlying NrtvTcpServer
+   *        or NrtvUdpServer application attributes, but *not* the
+   *        socket attributes.
    *
    * \param name the name of the application attribute to set
    * \param value the value of the application attribute to set
-   *
-   * \warning This method does not modify the attribute LocalAddress.
    */
   void SetServerAttribute (std::string name, const AttributeValue &value);
 
   /**
-   * \brief Install an NrtvServer application and several NrtvClient
+   * \brief Helper function used to set the NrtvVariables attributes
+   *        used by this helper instance. Currently, only number of videos
+   *        specified in the Variables class is used.
+   *
+   * \param name the name of the application attribute to set
+   * \param value the value of the application attribute to set
+   */
+  void SetVariablesAttribute (std::string name, const AttributeValue &value);
+
+
+  /**
+   * \brief Install an Nrtv Server application and several Nrtv client
    *        applications, in which each client is connected using IPv4 to the
-   *        server.
+   *        server. The server will be either an NrtvTcpServer or a NrtvUdpServer.
    *
    * \param serverNode the node on which an NrtvServer will be installed
    * \param clientNodes the set of nodes on which NrtvClient applications will
@@ -257,8 +260,9 @@ public:
                                          NodeContainer clientNodes);
 
   /**
-   * \brief Install a pair of interconnected NrtvServer application and
-   *        NrtvClient application using IPv4.
+   * \brief Install an Nrtv Server application and an Nrtv client
+   *        applications, in which each client is connected using IPv4 to the
+   *        server. The server will be either an NrtvTcpServer or a NrtvUdpServer.
    *
    * \param serverNode the node on which an NrtvServer will be installed
    * \param clientNode the node on which an NrtvClient will be installed
@@ -296,8 +300,14 @@ public:
 private:
   NrtvServerHelper* m_serverHelper;
   NrtvClientHelper* m_clientHelper;
+  Ptr<NrtvVariables> m_nrtvVariables;
   ApplicationContainer m_lastInstalledClients;
   ApplicationContainer m_lastInstalledServer;
+
+  /**
+   * TypeId of the protocol to be used
+   */
+  TypeId m_protocolTid;
 
 }; // end of `class NrtvHelper`
 

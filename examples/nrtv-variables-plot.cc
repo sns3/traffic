@@ -22,7 +22,7 @@
 /**
  * \file
  *
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Example script for plotting histograms from some of the random
  *        variable distributions used in NRTV traffic model.
  *
@@ -50,8 +50,9 @@
  */
 
 #include <ns3/core-module.h>
+#include <ns3/applications-module.h>
+#include <ns3/stats-module.h>
 #include <ns3/traffic-module.h>
-
 
 using namespace ns3;
 

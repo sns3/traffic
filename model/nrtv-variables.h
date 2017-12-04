@@ -29,13 +29,8 @@
 
 namespace ns3 {
 
-
-class TrafficBoundedLogNormalVariable;
-class TrafficBoundedParetoVariable;
-
-
 /**
- * \ingroup traffic
+ * \ingroup nrtv
  * \brief Container of various random variables for assisting the generation of
  *        streaming traffic pattern by the Near Real-Time Video (NRTV) traffic
  *        model.
@@ -69,6 +64,14 @@ class TrafficBoundedParetoVariable;
 class NrtvVariables : public Object
 {
 public:
+
+  /**
+   * \brief Common signature used by callback to collector's trace source.
+   * \param oldState Name of the old state.
+   * \param newState Name of the new state.
+   */
+  typedef void (*StateTransitionCallback)(std::string, std::string);
+
   /// Create a new instance with default configuration of random distributions.
   NrtvVariables ();
 
@@ -165,6 +168,13 @@ public:
    */
   Time GetIdleTime ();
 
+  /**
+   * \brief Get a random length of time which is spent between opening the
+   * 				application and connecting to the server/client.
+   * \return time interval between starting application and opening connection.
+   */
+  Time GetConnectionOpenDelay ();
+
   /// Equivalent with GetIdleTime(), but only for plotting purpose.
   double GetIdleTimeSeconds ();
 
@@ -224,16 +234,39 @@ public:
   void SetIdleTimeMean (Time mean);
   Time GetIdleTimeMean () const;
 
+  // (UDP) NUMBER OF VIDEOS STREAMED TO CLIENT
+
+  uint32_t GetNumOfVideos () const;
+
 private:
+  // HELPER METHODS
+
+  // Get a bounded integer from a random variable stream
+  uint64_t GetBoundedInteger (Ptr<RandomVariableStream> random, double min, double max);
+
+  // Set scale of a ParetoRandomVariable
+  void SetParetoScale (Ptr<ParetoRandomVariable> random, double scale);
+
+  // Refresh Log-normal distribution mu (location) and sigma (scale) according to mean and standard deviation
+  void RefreshLogNormalParameters (Ptr<LogNormalRandomVariable> random, double mean, double stddev);
+
   // RANDOM NUMBER VARIABLES
 
-  Ptr<TrafficBoundedLogNormalVariable>  m_numOfFramesRng;
+  Ptr<LogNormalRandomVariable>          m_numOfFramesRng;
   Ptr<ConstantRandomVariable>           m_frameIntervalRng;
   Ptr<ConstantRandomVariable>           m_numOfSlicesRng;
-  Ptr<TrafficBoundedParetoVariable>     m_sliceSizeRng;
-  Ptr<TrafficBoundedParetoVariable>     m_sliceEncodingDelayRng;
+  Ptr<ParetoRandomVariable>             m_sliceSizeRng;
+  Ptr<ParetoRandomVariable>             m_sliceEncodingDelayRng;
   Ptr<ConstantRandomVariable>           m_dejitterBufferWindowSizeRng;
   Ptr<ExponentialRandomVariable>        m_idleTimeRng;
+  Ptr<RandomVariableStream>             m_numberOfVideosRng;
+  Ptr<RandomVariableStream> 						m_connectionOpenDelayRng;
+
+  // HELPER VARIABLES
+  double m_numOfFramesMean;
+  double m_numOfFramesStdDev;
+  double m_numOfFramesMin;
+  double m_numOfFramesMax;
 
 }; // end of `class NrtvVariables`
 

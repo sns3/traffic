@@ -38,7 +38,7 @@ NrtvHeader::NrtvHeader ()
     m_sliceNumber (0),
     m_numOfSlices (0),
     m_sliceSize (0),
-    m_arrivalTime (Simulator::Now ().GetTimeStep ())
+    m_arrivalTime (Simulator::Now ())
 {
   NS_LOG_FUNCTION (this);
 }
@@ -131,21 +131,14 @@ NrtvHeader::GetSliceSize () const
 Time
 NrtvHeader::GetArrivalTime () const
 {
-  return TimeStep (m_arrivalTime);
-}
-
-
-uint32_t
-NrtvHeader::GetStaticSerializedSize ()
-{
-  return 24;
+  return m_arrivalTime;
 }
 
 
 uint32_t
 NrtvHeader::GetSerializedSize () const
 {
-  return GetStaticSerializedSize ();
+  return 24;
 }
 
 
@@ -171,7 +164,7 @@ NrtvHeader::Serialize (Buffer::Iterator start) const
   i.WriteHtonU16 (m_sliceNumber);
   i.WriteHtonU16 (m_numOfSlices);
   i.WriteHtonU32 (m_sliceSize);
-  i.WriteHtonU64 (m_arrivalTime);
+  i.WriteHtonU64 (m_arrivalTime.GetNanoSeconds ());
 }
 
 
@@ -185,7 +178,7 @@ NrtvHeader::Deserialize (Buffer::Iterator start)
   m_sliceNumber = i.ReadNtohU16 ();
   m_numOfSlices = i.ReadNtohU16 ();
   m_sliceSize = i.ReadNtohU32 ();
-  m_arrivalTime = i.ReadNtohU64 ();
+  m_arrivalTime = NanoSeconds (i.ReadNtohU64 ());
   return GetSerializedSize ();
 }
 
