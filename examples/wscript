@@ -10,5 +10,3 @@ def build(bld):
     obj = bld.create_ns3_program('nrtv-variables-plot', ['traffic','applications','point-to-point','internet','network'])
     obj.source = 'nrtv-variables-plot.cc'
 
-    obj = bld.create_ns3_program('three-gpp-http-example', ['traffic','applications','point-to-point','internet','network'])
-    obj.source = 'three-gpp-http-example.cc'
