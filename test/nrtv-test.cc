@@ -17,6 +17,8 @@
  *
  * Author: Budiarto Herman <budiarto.herman@magister.fi>
  *
+ * Modified by: Patrice Raveneau <Patrice.raveneau@cnes.fr>
+ *
  */
 
 /**
@@ -25,14 +27,17 @@
  * \brief Test cases for NRTV traffic models, grouped in `nrtv` test suite.
  */
 
-#include <ns3/log.h>
 #include <ns3/test.h>
+#include <ns3/log.h>
+#include <ns3/config.h>
+
+#include <ns3/nstime.h>
+#include <ns3/integer.h>
+#include <ns3/uinteger.h>
+
 #include <ns3/simulator.h>
 #include <ns3/type-id.h>
-#include <ns3/config.h>
-#include <ns3/nstime.h>
 #include <ns3/string.h>
-#include <ns3/integer.h>
 #include <ns3/data-rate.h>
 #include <ns3/application.h>
 #include <ns3/nrtv-header.h>
@@ -52,7 +57,7 @@
 
 NS_LOG_COMPONENT_DEFINE ("NrtvTest");
 
-namespace ns3 {
+using namespace ns3 ;//{
 
 /**
  * \ingroup applications
@@ -76,7 +81,7 @@ public:
    *                     point-to-point channel
    * \param duration length of simulation
    */
-  NrtvClientRxBufferTestCase (std::string name, int64_t rngRun,
+  NrtvClientRxBufferTestCase (std::string name, uint32_t rngRun,
                               TypeId protocolTypeId,
                               Time channelDelay, Time duration);
 
@@ -92,7 +97,7 @@ private:
 
   /// Size of packets currently in transit in the channel.
   std::list<uint32_t> m_packetsInTransit;
-  int64_t m_rngRun;
+  uint32_t m_rngRun;
   TypeId m_protocolTypeId;
   Time m_channelDelay;
   Time m_duration;
@@ -101,7 +106,7 @@ private:
 
 
 NrtvClientRxBufferTestCase::NrtvClientRxBufferTestCase (std::string name,
-                                                        int64_t rngRun,
+                                                        uint32_t rngRun,
                                                         TypeId protocolTypeId,
                                                         Time channelDelay,
                                                         Time duration)
@@ -120,7 +125,7 @@ NrtvClientRxBufferTestCase::DoRun ()
 {
   NS_LOG_FUNCTION (this << GetName () << m_rngRun);
 
-  Config::SetGlobal ("RngRun", IntegerValue (m_rngRun));
+  Config::SetGlobal ("RngRun", UintegerValue (m_rngRun));
   Config::SetDefault ("ns3::TcpL4Protocol::SocketType",
                       StringValue ("ns3::TcpNewReno"));
 
@@ -166,7 +171,7 @@ NrtvClientRxBufferTestCase::DoRun ()
   Simulator::Destroy ();
 
   // return default values to their default
-  Config::SetGlobal ("RngRun", IntegerValue (1));
+  Config::SetGlobal ("RngRun", UintegerValue (1));
 
 } // end of `void DoRun ()`
 
@@ -271,7 +276,7 @@ NrtvTestSuite::NrtvTestSuite ()
   TypeId udp = UdpSocketFactory::GetTypeId ();
   const TypeId protocols[2] = {tcp, udp};
   const uint64_t delayMs[3] = {3, 30, 300};
-  const int64_t rngRun[4] = {1, 22, 333};
+  const uint32_t rngRun[4] = {1, 22, 333};
   
   for (uint8_t i = 0; i < 2; i++)
     {
@@ -300,5 +305,5 @@ NrtvTestSuite::NrtvTestSuite ()
 static NrtvTestSuite g_nrtvTestSuiteInstance;
 
 
-} // end of namespace ns3
+//} // end of namespace ns3
 

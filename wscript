@@ -10,7 +10,7 @@ def build(bld):
         'helper/cbr-helper.cc',
         'helper/client-rx-trace-plot.cc',
         'helper/nrtv-helper.cc',
-        'helper/three-gpp-http-helper.cc',
+        'helper/three-gpp-http-satellite-helper.cc',
         'model/cbr-application.cc',
         'model/nrtv-header.cc',
         'model/nrtv-tcp-client.cc',
@@ -18,10 +18,6 @@ def build(bld):
         'model/nrtv-udp-server.cc',
         'model/nrtv-variables.cc',
         'model/nrtv-video-worker.cc',
-        'model/three-gpp-http-client.cc',
-        'model/three-gpp-http-header.cc',
-        'model/three-gpp-http-server.cc',
-        'model/three-gpp-http-variables.cc',
         'model/traffic-time-tag.cc',
         'stats/application-stats-helper.cc',
         'stats/application-stats-delay-helper.cc',
@@ -33,7 +29,6 @@ def build(bld):
     module_test.source = [
         'test/cbr-test.cc',    
         'test/nrtv-test.cc',
-        'test/three-gpp-http-client-server-test.cc',
         ]
 
     headers = bld(features='ns3header')
@@ -43,7 +38,7 @@ def build(bld):
         'helper/client-rx-trace-plot.h',
         'helper/histogram-plot-helper.h',
         'helper/nrtv-helper.h',
-        'helper/three-gpp-http-helper.h',
+        'helper/three-gpp-http-satellite-helper.h',
         'model/traffic.h',
         'model/cbr-application.h',
         'model/nrtv-header.h',
@@ -52,10 +47,6 @@ def build(bld):
         'model/nrtv-udp-server.h',
         'model/nrtv-variables.h',
         'model/nrtv-video-worker.h',
-        'model/three-gpp-http-client.h',
-        'model/three-gpp-http-header.h',
-        'model/three-gpp-http-server.h',
-        'model/three-gpp-http-variables.h',
         'model/traffic-time-tag.h',
         'stats/application-stats-helper.h',
         'stats/application-stats-delay-helper.h',
