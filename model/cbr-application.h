@@ -74,6 +74,16 @@ public:
    */
   const Address GetRemote (void) const;
 
+  void SetInterval (Time interval)
+  {
+    m_interval = interval;
+  }
+
+  void SetPacketSize (uint32_t packetSize)
+  {
+    m_pktSize = packetSize;
+  }
+
 protected:
   /// Do dispose actions.
   virtual void DoDispose (void);
