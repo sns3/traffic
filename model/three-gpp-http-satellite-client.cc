@@ -19,7 +19,7 @@
  *
  */
 
-#include "three-gpp-http-client.h"
+#include "three-gpp-http-satellite-client.h"
 
 #include <ns3/log.h>
 #include <ns3/simulator.h>
@@ -36,15 +36,15 @@
 #include <ns3/unused.h>
 
 
-NS_LOG_COMPONENT_DEFINE ("ThreeGppHttpClient");
+NS_LOG_COMPONENT_DEFINE ("ThreeGppHttpSatelliteClient");
 
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (ThreeGppHttpClient);
+NS_OBJECT_ENSURE_REGISTERED (ThreeGppHttpSatelliteClient);
 
 
-ThreeGppHttpClient::ThreeGppHttpClient ()
+ThreeGppHttpSatelliteClient::ThreeGppHttpSatelliteClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
     m_objectBytesToBeReceived (0),
@@ -59,77 +59,77 @@ ThreeGppHttpClient::ThreeGppHttpClient ()
 
 // static
 TypeId
-ThreeGppHttpClient::GetTypeId ()
+ThreeGppHttpSatelliteClient::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::ThreeGppHttpClient")
+  static TypeId tid = TypeId ("ns3::ThreeGppHttpSatelliteClient")
     .SetParent<Application> ()
-    .AddConstructor<ThreeGppHttpClient> ()
+    .AddConstructor<ThreeGppHttpSatelliteClient> ()
     .AddAttribute ("Variables",
                    "Variable collection, which is used to control e.g. timing and HTTP request size.",
                    PointerValue (),
-                   MakePointerAccessor (&ThreeGppHttpClient::m_httpVariables),
+                   MakePointerAccessor (&ThreeGppHttpSatelliteClient::m_httpVariables),
                    MakePointerChecker<ThreeGppHttpVariables> ())
     .AddAttribute ("RemoteServerAddress",
                    "The address of the destination server.",
                    AddressValue (),
-                   MakeAddressAccessor (&ThreeGppHttpClient::m_remoteServerAddress),
+                   MakeAddressAccessor (&ThreeGppHttpSatelliteClient::m_remoteServerAddress),
                    MakeAddressChecker ())
     .AddAttribute ("RemoteServerPort",
                    "The destination port of the outbound packets.",
                    UintegerValue (80), // the default HTTP port
-                   MakeUintegerAccessor (&ThreeGppHttpClient::m_remoteServerPort),
+                   MakeUintegerAccessor (&ThreeGppHttpSatelliteClient::m_remoteServerPort),
                    MakeUintegerChecker<uint16_t> ())
     .AddTraceSource ("ConnectionEstablished",
                      "Connection to the destination web server has been established.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_connectionEstablishedTrace),
-                     "ns3::ThreeGppHttpClient::TracedCallback")
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_connectionEstablishedTrace),
+                     "ns3::ThreeGppHttpSatelliteClient::TracedCallback")
     .AddTraceSource ("ConnectionClosed",
                      "Connection to the destination web server is closed.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_connectionClosedTrace),
-                     "ns3::ThreeGppHttpClient::TracedCallback")
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_connectionClosedTrace),
+                     "ns3::ThreeGppHttpSatelliteClient::TracedCallback")
     .AddTraceSource ("Tx",
                      "General trace for sending a packet of any kind.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_txTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_txTrace),
                      "ns3::Packet::TracedCallback")
     .AddTraceSource ("TxMainObjectRequest",
                      "Sent a request for a main object.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_txMainObjectRequestTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_txMainObjectRequestTrace),
                      "ns3::Packet::TracedCallback")
     .AddTraceSource ("TxEmbeddedObjectRequest",
                      "Sent a request for an embedded object.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_txEmbeddedObjectRequestTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_txEmbeddedObjectRequestTrace),
                      "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxMainObjectPacket",
                      "A packet of main object has been received.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxMainObjectPacketTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxMainObjectPacketTrace),
                      "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxMainObject",
                      "Received a whole main object. Header is included.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxMainObjectTrace),
-                     "ns3::ThreeGppHttpClient::TracedCallback")
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxMainObjectTrace),
+                     "ns3::ThreeGppHttpSatelliteClient::TracedCallback")
     .AddTraceSource ("RxEmbeddedObjectPacket",
                      "A packet of embedded object has been received.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxEmbeddedObjectPacketTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxEmbeddedObjectPacketTrace),
                      "ns3::Packet::TracedCallback")
     .AddTraceSource ("RxEmbeddedObject",
                      "Received a whole embedded object. Header is included.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxEmbeddedObjectTrace),
-                     "ns3::ThreeGppHttpClient::TracedCallback")
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxEmbeddedObjectTrace),
+                     "ns3::ThreeGppHttpSatelliteClient::TracedCallback")
     .AddTraceSource ("Rx",
                      "General trace for receiving a packet of any kind.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxTrace),
                      "ns3::Packet::PacketAddressTracedCallback")
     .AddTraceSource ("RxDelay",
                      "General trace of delay for receiving a complete object.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxDelayTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxDelayTrace),
                      "ns3::Application::PacketDelayAddressCallback")
     .AddTraceSource ("RxRtt",
                      "General trace of round trip delay time for receiving a complete object.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_rxRttTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxRttTrace),
                      "ns3::Application::PacketDelayAddressCallback")
     .AddTraceSource ("StateTransition",
                      "Trace fired upon every HTTP client state transition.",
-                     MakeTraceSourceAccessor (&ThreeGppHttpClient::m_stateTransitionTrace),
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_stateTransitionTrace),
                      "ns3::Application::StateTransitionCallback")
   ;
   return tid;
@@ -137,28 +137,28 @@ ThreeGppHttpClient::GetTypeId ()
 
 
 Ptr<Socket>
-ThreeGppHttpClient::GetSocket () const
+ThreeGppHttpSatelliteClient::GetSocket () const
 {
   return m_socket;
 }
 
 
-ThreeGppHttpClient::State_t
-ThreeGppHttpClient::GetState () const
+ThreeGppHttpSatelliteClient::State_t
+ThreeGppHttpSatelliteClient::GetState () const
 {
   return m_state;
 }
 
 
 std::string
-ThreeGppHttpClient::GetStateString () const
+ThreeGppHttpSatelliteClient::GetStateString () const
 {
   return GetStateString (m_state);
 }
 
 // static
 std::string
-ThreeGppHttpClient::GetStateString (ThreeGppHttpClient::State_t state)
+ThreeGppHttpSatelliteClient::GetStateString (ThreeGppHttpSatelliteClient::State_t state)
 {
   switch (state)
     {
@@ -192,7 +192,7 @@ ThreeGppHttpClient::GetStateString (ThreeGppHttpClient::State_t state)
 
 
 void
-ThreeGppHttpClient::DoDispose ()
+ThreeGppHttpSatelliteClient::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -206,7 +206,7 @@ ThreeGppHttpClient::DoDispose ()
 
 
 void
-ThreeGppHttpClient::StartApplication ()
+ThreeGppHttpSatelliteClient::StartApplication ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -223,7 +223,7 @@ ThreeGppHttpClient::StartApplication ()
 
 
 void
-ThreeGppHttpClient::StopApplication ()
+ThreeGppHttpSatelliteClient::StopApplication ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -237,7 +237,7 @@ ThreeGppHttpClient::StopApplication ()
 
 
 void
-ThreeGppHttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
+ThreeGppHttpSatelliteClient::ConnectionSucceededCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -245,11 +245,11 @@ ThreeGppHttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
     {
       NS_ASSERT_MSG (m_socket == socket, "Invalid socket.");
       m_connectionEstablishedTrace (this);
-      socket->SetRecvCallback (MakeCallback (&ThreeGppHttpClient::ReceivedDataCallback,
+      socket->SetRecvCallback (MakeCallback (&ThreeGppHttpSatelliteClient::ReceivedDataCallback,
                                              this));
       NS_ASSERT (m_embeddedObjectsToBeRequested == 0);
       m_eventRequestMainObject = Simulator::ScheduleNow (
-          &ThreeGppHttpClient::RequestMainObject, this);
+          &ThreeGppHttpSatelliteClient::RequestMainObject, this);
     }
   else
     {
@@ -260,7 +260,7 @@ ThreeGppHttpClient::ConnectionSucceededCallback (Ptr<Socket> socket)
 
 
 void
-ThreeGppHttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
+ThreeGppHttpSatelliteClient::ConnectionFailedCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -279,7 +279,7 @@ ThreeGppHttpClient::ConnectionFailedCallback (Ptr<Socket> socket)
 
 
 void
-ThreeGppHttpClient::NormalCloseCallback (Ptr<Socket> socket)
+ThreeGppHttpSatelliteClient::NormalCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -299,7 +299,7 @@ ThreeGppHttpClient::NormalCloseCallback (Ptr<Socket> socket)
 
 
 void
-ThreeGppHttpClient::ErrorCloseCallback (Ptr<Socket> socket)
+ThreeGppHttpSatelliteClient::ErrorCloseCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -315,7 +315,7 @@ ThreeGppHttpClient::ErrorCloseCallback (Ptr<Socket> socket)
 
 
 void
-ThreeGppHttpClient::ReceivedDataCallback (Ptr<Socket> socket)
+ThreeGppHttpSatelliteClient::ReceivedDataCallback (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);
 
@@ -369,7 +369,7 @@ ThreeGppHttpClient::ReceivedDataCallback (Ptr<Socket> socket)
 
 
 void
-ThreeGppHttpClient::OpenConnection ()
+ThreeGppHttpSatelliteClient::OpenConnection ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -419,15 +419,15 @@ ThreeGppHttpClient::OpenConnection ()
 
       SwitchToState (CONNECTING);
 
-      m_socket->SetConnectCallback (MakeCallback (&ThreeGppHttpClient::ConnectionSucceededCallback,
+      m_socket->SetConnectCallback (MakeCallback (&ThreeGppHttpSatelliteClient::ConnectionSucceededCallback,
                                                   this),
-                                    MakeCallback (&ThreeGppHttpClient::ConnectionFailedCallback,
+                                    MakeCallback (&ThreeGppHttpSatelliteClient::ConnectionFailedCallback,
                                                   this));
-      m_socket->SetCloseCallbacks (MakeCallback (&ThreeGppHttpClient::NormalCloseCallback,
+      m_socket->SetCloseCallbacks (MakeCallback (&ThreeGppHttpSatelliteClient::NormalCloseCallback,
                                                  this),
-                                   MakeCallback (&ThreeGppHttpClient::ErrorCloseCallback,
+                                   MakeCallback (&ThreeGppHttpSatelliteClient::ErrorCloseCallback,
                                                  this));
-      m_socket->SetRecvCallback (MakeCallback (&ThreeGppHttpClient::ReceivedDataCallback,
+      m_socket->SetRecvCallback (MakeCallback (&ThreeGppHttpSatelliteClient::ReceivedDataCallback,
                                                this));
       m_socket->SetAttribute ("MaxSegLifetime", DoubleValue (0.02)); // 20 ms.
 
@@ -442,7 +442,7 @@ ThreeGppHttpClient::OpenConnection ()
 
 
 void
-ThreeGppHttpClient::RequestMainObject ()
+ThreeGppHttpSatelliteClient::RequestMainObject ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -462,6 +462,8 @@ ThreeGppHttpClient::RequestMainObject ()
 
       m_txMainObjectRequestTrace (packet);
       m_txTrace (packet);
+      std::cout << "Request main" << std::endl;
+      m_requestTime = Simulator::Now ();
       const int actualBytes = m_socket->Send (packet);
       NS_LOG_DEBUG (this << " Send() packet " << packet
                          << " of " << packet->GetSize () << " bytes,"
@@ -487,7 +489,7 @@ ThreeGppHttpClient::RequestMainObject ()
 
 
 void
-ThreeGppHttpClient::RequestEmbeddedObject ()
+ThreeGppHttpSatelliteClient::RequestEmbeddedObject ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -510,6 +512,7 @@ ThreeGppHttpClient::RequestEmbeddedObject ()
 
           m_txEmbeddedObjectRequestTrace (packet);
           m_txTrace (packet);
+          std::cout << "Request embedded" << std::endl;
           const int actualBytes = m_socket->Send (packet);
           NS_LOG_DEBUG (this << " Send() packet " << packet
                              << " of " << packet->GetSize () << " bytes,"
@@ -542,7 +545,7 @@ ThreeGppHttpClient::RequestEmbeddedObject ()
 
 
 void
-ThreeGppHttpClient::ReceiveMainObject (Ptr<Packet> packet, const Address &from)
+ThreeGppHttpSatelliteClient::ReceiveMainObject (Ptr<Packet> packet, const Address &from)
 {
   NS_LOG_FUNCTION (this << packet << from);
 
@@ -604,7 +607,7 @@ ThreeGppHttpClient::ReceiveMainObject (Ptr<Packet> packet, const Address &from)
 
 
 void
-ThreeGppHttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from)
+ThreeGppHttpSatelliteClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &from)
 {
   NS_LOG_FUNCTION (this << packet << from);
 
@@ -656,7 +659,7 @@ ThreeGppHttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &fr
                                 << " more embedded object(s) to be requested.");
               // Immediately request another using the existing connection.
               m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-                  &ThreeGppHttpClient::RequestEmbeddedObject, this);
+                  &ThreeGppHttpSatelliteClient::RequestEmbeddedObject, this);
             }
           else
             {
@@ -681,7 +684,7 @@ ThreeGppHttpClient::ReceiveEmbeddedObject (Ptr<Packet> packet, const Address &fr
 
 
 void
-ThreeGppHttpClient::Receive (Ptr<Packet> packet)
+ThreeGppHttpSatelliteClient::Receive (Ptr<Packet> packet)
 {
   NS_LOG_FUNCTION (this << packet);
 
@@ -737,7 +740,7 @@ ThreeGppHttpClient::Receive (Ptr<Packet> packet)
 
 
 void
-ThreeGppHttpClient::EnterParsingTime ()
+ThreeGppHttpSatelliteClient::EnterParsingTime ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -748,7 +751,7 @@ ThreeGppHttpClient::EnterParsingTime ()
                         << " will complete in "
                         << parsingTime.GetSeconds () << " seconds.");
       m_eventParseMainObject = Simulator::Schedule (
-          parsingTime, &ThreeGppHttpClient::ParseMainObject, this);
+          parsingTime, &ThreeGppHttpSatelliteClient::ParseMainObject, this);
       SwitchToState (PARSING_MAIN_OBJECT);
     }
   else
@@ -760,7 +763,7 @@ ThreeGppHttpClient::EnterParsingTime ()
 
 
 void
-ThreeGppHttpClient::ParseMainObject ()
+ThreeGppHttpSatelliteClient::ParseMainObject ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -778,7 +781,7 @@ ThreeGppHttpClient::ParseMainObject ()
            * existing connection.
            */
           m_eventRequestEmbeddedObject = Simulator::ScheduleNow (
-              &ThreeGppHttpClient::RequestEmbeddedObject, this);
+              &ThreeGppHttpSatelliteClient::RequestEmbeddedObject, this);
         }
       else
         {
@@ -801,7 +804,7 @@ ThreeGppHttpClient::ParseMainObject ()
 
 
 void
-ThreeGppHttpClient::EnterReadingTime ()
+ThreeGppHttpSatelliteClient::EnterReadingTime ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -811,9 +814,11 @@ ThreeGppHttpClient::EnterReadingTime ()
       NS_LOG_INFO (this << " Client will finish reading this web page in "
                         << readingTime.GetSeconds () << " seconds.");
 
+      std::cout << "PLT: " << (Simulator::Now () - m_requestTime).GetSeconds () << std::endl;
+
       // Schedule a request of another main object once the reading time expires.
       m_eventRequestMainObject = Simulator::Schedule (
-          readingTime, &ThreeGppHttpClient::RequestMainObject, this);
+          readingTime, &ThreeGppHttpSatelliteClient::RequestMainObject, this);
       SwitchToState (READING);
     }
   else
@@ -825,7 +830,7 @@ ThreeGppHttpClient::EnterReadingTime ()
 
 
 void
-ThreeGppHttpClient::CancelAllPendingEvents ()
+ThreeGppHttpSatelliteClient::CancelAllPendingEvents ()
 {
   NS_LOG_FUNCTION (this);
 
@@ -856,7 +861,7 @@ ThreeGppHttpClient::CancelAllPendingEvents ()
 
 
 void
-ThreeGppHttpClient::SwitchToState (ThreeGppHttpClient::State_t state)
+ThreeGppHttpSatelliteClient::SwitchToState (ThreeGppHttpSatelliteClient::State_t state)
 {
   const std::string oldState = GetStateString ();
   const std::string newState = GetStateString (state);

@@ -33,6 +33,104 @@
 
 namespace ns3 {
 
+// 3GPP HTTP SATELLITE CLIENT HELPER /////////////////////////////////////////////////////////
+
+ThreeGppHttpSatelliteClientHelper::ThreeGppHttpSatelliteClientHelper (const Address &address)
+{
+  m_factory.SetTypeId ("ns3::ThreeGppHttpSatelliteClient");
+  m_factory.Set ("RemoteServerAddress", AddressValue (address));
+}
+
+void
+ThreeGppHttpSatelliteClientHelper::SetAttribute (const std::string &name,
+                                        const AttributeValue &value)
+{
+  m_factory.Set (name, value);
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteClientHelper::Install (Ptr<Node> node) const
+{
+  return ApplicationContainer (InstallPriv (node));
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteClientHelper::Install (const std::string &nodeName) const
+{
+  Ptr<Node> node = Names::Find<Node> (nodeName);
+  return ApplicationContainer (InstallPriv (node));
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteClientHelper::Install (NodeContainer c) const
+{
+  ApplicationContainer apps;
+  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      apps.Add (InstallPriv (*i));
+    }
+
+  return apps;
+}
+
+Ptr<Application>
+ThreeGppHttpSatelliteClientHelper::InstallPriv (Ptr<Node> node) const
+{
+  Ptr<Application> app = m_factory.Create<Application> ();
+  node->AddApplication (app);
+
+  return app;
+}
+
+
+// HTTP SERVER HELPER /////////////////////////////////////////////////////////
+
+ThreeGppHttpSatelliteServerHelper::ThreeGppHttpSatelliteServerHelper (const Address &address)
+{
+  m_factory.SetTypeId ("ns3::ThreeGppHttpServer");
+  m_factory.Set ("LocalAddress", AddressValue (address));
+}
+
+void
+ThreeGppHttpSatelliteServerHelper::SetAttribute (const std::string &name,
+                                        const AttributeValue &value)
+{
+  m_factory.Set (name, value);
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteServerHelper::Install (Ptr<Node> node) const
+{
+  return ApplicationContainer (InstallPriv (node));
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteServerHelper::Install (const std::string &nodeName) const
+{
+  Ptr<Node> node = Names::Find<Node> (nodeName);
+  return ApplicationContainer (InstallPriv (node));
+}
+
+ApplicationContainer
+ThreeGppHttpSatelliteServerHelper::Install (NodeContainer c) const
+{
+  ApplicationContainer apps;
+  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    {
+      apps.Add (InstallPriv (*i));
+    }
+
+  return apps;
+}
+
+Ptr<Application>
+ThreeGppHttpSatelliteServerHelper::InstallPriv (Ptr<Node> node) const
+{
+  Ptr<Application> app = m_factory.Create<Application> ();
+  node->AddApplication (app);
+
+  return app;
+}
 
 
 // THREE GPP HTTP HELPER ////////////////////////////////////////////////////////////////
@@ -40,8 +138,8 @@ namespace ns3 {
 ThreeGppHttpHelper::ThreeGppHttpHelper ()
 {
   Address invalidAddr;
-  m_clientHelper = new ThreeGppHttpClientHelper (invalidAddr);
-  m_serverHelper = new ThreeGppHttpServerHelper (invalidAddr);
+  m_clientHelper = new ThreeGppHttpSatelliteClientHelper (invalidAddr);
+  m_serverHelper = new ThreeGppHttpSatelliteServerHelper (invalidAddr);
   m_httpVariables = CreateObject<ThreeGppHttpVariables> ();
 }
 

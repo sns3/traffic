@@ -39,6 +39,136 @@
 
 namespace ns3 {
 
+/**
+ * \ingroup applications
+ * Helper to make it easier to instantiate an ThreeGppHttpClient on a set of nodes.
+ */
+class ThreeGppHttpSatelliteClientHelper
+{
+public:
+  /**
+   * Create a ThreeGppHttpSatelliteClientHelper to make it easier to work with ThreeGppHttpClient
+   * applications.
+   * \param address The address of the remote server node to send traffic to.
+   */
+  ThreeGppHttpSatelliteClientHelper (const Address &address);
+
+  /**
+   * Helper function used to set the underlying application attributes, but
+   * *not* the socket attributes.
+   * \param name The name of the application attribute to set.
+   * \param value The value of the application attribute to set.
+   */
+  void SetAttribute (const std::string &name,
+                     const AttributeValue &value);
+
+  /**
+   * Install a ThreeGppHttpClient on each node of the input container configured with
+   * all the attributes set with SetAttribute().
+   * \param c NodeContainer of the set of nodes on which an ThreeGppHttpClient
+   *          will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (NodeContainer c) const;
+
+  /**
+   * Install a ThreeGppHttpClient on each node of the input container
+   * configured with all the attributes set with SetAttribute().
+   * \param node The node on which an ThreeGppHttpClient will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (Ptr<Node> node) const;
+
+  /**
+   * Install a ThreeGppHttpClient on each node of the input container
+   * configured with all the attributes set with SetAttribute().
+   * \param nodeName The name of the node on which an ThreeGppHttpClient
+   *                 will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (const std::string &nodeName) const;
+
+private:
+  /**
+   * \internal
+   * Install a ThreeGppHttpClient on the node configured with all the
+   * attributes set with SetAttribute().
+   * \param node The node on which an ThreeGppHttpClient will be installed.
+   * \return Ptr to the application installed.
+   */
+  Ptr<Application> InstallPriv (Ptr<Node> node) const;
+
+  /// Used to instantiate an ThreeGppHttpClient instance.
+  ObjectFactory m_factory;
+
+}; // end of `class ThreeGppHttpSatelliteClientHelper`
+
+
+
+/**
+ * \ingroup http
+ * Helper to make it easier to instantiate an ThreeGppHttpServer on a set of nodes.
+ */
+class ThreeGppHttpSatelliteServerHelper
+{
+public:
+  /**
+   * Create a ThreeGppHttpSatelliteServerHelper to make it easier to work with
+   * ThreeGppHttpServer applications.
+   * \param address The address of the server.
+   */
+  ThreeGppHttpSatelliteServerHelper (const Address &address);
+
+  /**
+   * Helper function used to set the underlying application attributes, but
+   * *not* the socket attributes.
+   * \param name The name of the application attribute to set.
+   * \param value The value of the application attribute to set.
+   */
+  void SetAttribute (const std::string &name,
+                     const AttributeValue &value);
+
+  /**
+   * Install an ThreeGppHttpServer on each node of the input container
+   * configured with all the attributes set with SetAttribute().
+   * \param c NodeContainer of the set of nodes on which an ThreeGppHttpServer
+   *              will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (NodeContainer c) const;
+
+  /**
+   * Install an ThreeGppHttpServer on each node of the input container
+   * configured with all the attributes set with SetAttribute().
+   * \param node The node on which an ThreeGppHttpServer will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (Ptr<Node> node) const;
+
+  /**
+   * Install an ThreeGppHttpServer on each node of the input container
+   * configured with all the attributes set with SetAttribute().
+   * \param nodeName The name of the node on which an ThreeGppHttpServer
+   *                             will be installed.
+   * \return Container of Ptr to the applications installed.
+   */
+  ApplicationContainer Install (const std::string &nodeName) const;
+
+private:
+  /**
+   * \internal
+   * Install an ThreeGppHttpServer on the node configured with all the
+   * attributes set with SetAttribute().
+   * \param node The node on which an ThreeGppHttpServer will be installed.
+   * \return Ptr to the application installed.
+   */
+  Ptr<Application> InstallPriv (Ptr<Node> node) const;
+
+  /// Used to instantiate a ThreeGppHttpServer instance.
+  ObjectFactory m_factory;
+
+}; // end of `class ThreeGppHttpSatelliteServerHelper`
+
 
 /**
  * \ingroup http
@@ -151,8 +281,8 @@ public:
   ApplicationContainer GetServer () const;
 
 private:
-  ThreeGppHttpServerHelper* m_serverHelper;
-  ThreeGppHttpClientHelper* m_clientHelper;
+  ThreeGppHttpSatelliteServerHelper* m_serverHelper;
+  ThreeGppHttpSatelliteClientHelper* m_clientHelper;
   Ptr<ThreeGppHttpVariables> m_httpVariables;
   ApplicationContainer m_lastInstalledClients;
   ApplicationContainer m_lastInstalledServer;
