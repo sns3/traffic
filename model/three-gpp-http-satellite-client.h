@@ -396,6 +396,8 @@ private:
   ns3::TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
   /// The `RxDelay` trace source.
   ns3::TracedCallback<const Time &, const Address &>  m_rxDelayTrace;
+  /// The `RxPlt` trace source.
+  ns3::TracedCallback<const Time &, const Address &>  m_rxPltTrace;
   /// The `RxRtt` trace source.
   ns3::TracedCallback<const Time &, const Address &>  m_rxRttTrace;
   /// The `StateTransition` trace source.

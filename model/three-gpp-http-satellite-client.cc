@@ -123,6 +123,10 @@ ThreeGppHttpSatelliteClient::GetTypeId ()
                      "General trace of delay for receiving a complete object.",
                      MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxDelayTrace),
                      "ns3::Application::PacketDelayAddressCallback")
+    .AddTraceSource ("RxPlt",
+                     "General trace of PLT for receiving a complete object.",
+                     MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxPltTrace),
+                     "ns3::Application::PacketPltAddressCallback")
     .AddTraceSource ("RxRtt",
                      "General trace of round trip delay time for receiving a complete object.",
                      MakeTraceSourceAccessor (&ThreeGppHttpSatelliteClient::m_rxRttTrace),
@@ -462,7 +466,6 @@ ThreeGppHttpSatelliteClient::RequestMainObject ()
 
       m_txMainObjectRequestTrace (packet);
       m_txTrace (packet);
-      std::cout << "Request main" << std::endl;
       m_requestTime = Simulator::Now ();
       const int actualBytes = m_socket->Send (packet);
       NS_LOG_DEBUG (this << " Send() packet " << packet
@@ -512,7 +515,6 @@ ThreeGppHttpSatelliteClient::RequestEmbeddedObject ()
 
           m_txEmbeddedObjectRequestTrace (packet);
           m_txTrace (packet);
-          std::cout << "Request embedded" << std::endl;
           const int actualBytes = m_socket->Send (packet);
           NS_LOG_DEBUG (this << " Send() packet " << packet
                              << " of " << packet->GetSize () << " bytes,"
@@ -814,7 +816,7 @@ ThreeGppHttpSatelliteClient::EnterReadingTime ()
       NS_LOG_INFO (this << " Client will finish reading this web page in "
                         << readingTime.GetSeconds () << " seconds.");
 
-      std::cout << "PLT: " << (Simulator::Now () - m_requestTime).GetSeconds () << std::endl;
+      m_rxPltTrace (Simulator::Now () - m_requestTime, m_remoteServerAddress);
 
       // Schedule a request of another main object once the reading time expires.
       m_eventRequestMainObject = Simulator::Schedule (
