@@ -51,7 +51,8 @@ NrtvTcpClient::NrtvTcpClient ()
   : m_state (NOT_STARTED),
     m_socket (0),
     m_rxBuffer (Create<NrtvTcpClientRxBuffer> ()),
-    m_nrtvVariables (CreateObject<NrtvVariables> ())
+    m_nrtvVariables (CreateObject<NrtvVariables> ()),
+  m_lastDelay (0)
 {
   NS_LOG_FUNCTION (this);
 
@@ -91,6 +92,10 @@ NrtvTcpClient::GetTypeId ()
     .AddTraceSource ("RxDelay",
                     "Received a whole slice with delay information",
                     MakeTraceSourceAccessor (&NrtvTcpClient::m_rxDelayTrace),
+                    "ns3::ApplicationDelayProbe::PacketDelayAddressCallback")
+    .AddTraceSource ("RxJitter",
+                    "Received a packet with jitter information",
+                    MakeTraceSourceAccessor (&NrtvTcpClient::m_rxJitterTrace),
                     "ns3::ApplicationDelayProbe::PacketDelayAddressCallback")
     .AddTraceSource ("RxSlice",
                     "Received a whole slice",
@@ -502,6 +507,12 @@ NrtvTcpClient::ReceiveVideoSlice (const Address & from)
 
   m_rxSliceTrace (slice);
   m_rxDelayTrace (delay, from);
+  if (m_lastDelay != 0)
+    {
+      Time jitter = Abs (delay - m_lastDelay);
+      m_rxJitterTrace (jitter, from);
+    }
+  m_lastDelay = delay;
 
   if (sliceNumber == numOfSlices)
     {

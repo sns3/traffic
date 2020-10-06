@@ -226,6 +226,8 @@ private:
   Address             m_remoteServerAddress;	///!< Remote server address
   uint16_t            m_remoteServerPort;			///!< Remote server port
 
+  Time                m_lastDelay;             /// Last delay measurement. Used to compute jitter.
+
   // TRACE SOURCES
 
   /**
@@ -247,6 +249,16 @@ private:
    *                           const Address & from);
    */
   TracedCallback<const Time &, const Address &> m_rxDelayTrace;
+
+  /**
+   * \brief Trace source for packet jitter upon receiving of a packet.
+   *
+   * Example signature of callback function (with context):
+   *
+   *     void RxJitterCallback (std::string context, Time jitter,
+   *                           const Address & from);
+   */
+  TracedCallback<const Time &, const Address &> m_rxJitterTrace;
 
   /**
    * \brief Trace source for an entire slice being constructed from the buffer.
