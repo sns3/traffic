@@ -507,7 +507,7 @@ NrtvTcpClient::ReceiveVideoSlice (const Address & from)
 
   m_rxSliceTrace (slice);
   m_rxDelayTrace (delay, from);
-  if (m_lastDelay != 0)
+  if (m_lastDelay.IsZero() == false)
     {
       Time jitter = Abs (delay - m_lastDelay);
       m_rxJitterTrace (jitter, from);
