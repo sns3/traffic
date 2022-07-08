@@ -268,7 +268,7 @@ NrtvUdpServer::AddClient (Address remoteAddress, uint32_t numberOfVideos)
       socket->Connect (Inet6SocketAddress (addr, m_remotePort));
     }
 
-  NS_UNUSED (ret);
+  // NS_UNUSED (ret);
 
   // Create an entry of how many videos are to be streamed to this socket
   // before disconnecting.

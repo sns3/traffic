@@ -188,7 +188,6 @@ NrtvTcpServer::StartApplication ()
             ret = m_initialSocket->Listen ();
             NS_LOG_DEBUG (this << " Listen () return value= " << ret
                                << " GetErrNo= " << m_initialSocket->GetErrno ());
-            NS_UNUSED (ret);
 
         } // end of `if (m_initialSocket == 0)`
 

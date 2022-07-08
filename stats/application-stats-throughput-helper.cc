@@ -369,7 +369,6 @@ ApplicationStatsThroughputHelper::DoInstall ()
             m_probes);
         NS_LOG_INFO (this << " created " << n << " instance(s)"
                           << " of ApplicationPacketProbe");
-        NS_UNUSED (n);
         break;
       }
 
@@ -394,7 +393,6 @@ ApplicationStatsThroughputHelper::DoInstall ()
             MakeCallback (&ApplicationStatsThroughputHelper::RxCallback,
                           this));
         NS_LOG_INFO (this << " connected to " << n << " trace sources");
-        NS_UNUSED (n);
         break;
       }
 

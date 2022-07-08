@@ -418,7 +418,7 @@ ThreeGppHttpSatelliteClient::OpenConnection ()
                              << " GetErrNo= " << m_socket->GetErrno () << ".");
         }
 
-      NS_UNUSED (ret); // Mute compiler warning.
+      // NS_UNUSED (ret); // Mute compiler warning.
       NS_ASSERT_MSG (m_socket != 0, "Failed creating socket.");
 
       SwitchToState (CONNECTING);

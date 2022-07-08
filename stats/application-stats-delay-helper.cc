@@ -285,7 +285,6 @@ ApplicationStatsDelayHelper::DoInstall ()
 
         NS_LOG_INFO (this << " created " << n << " instance(s)"
                           << " of ApplicationDelayProbe");
-        NS_UNUSED (n);
         break;
       }
 
@@ -309,7 +308,6 @@ ApplicationStatsDelayHelper::DoInstall ()
         const uint32_t n = SetupListenersAtReceiver (
             MakeCallback (&ApplicationStatsDelayHelper::RxDelayCallback, this));
         NS_LOG_INFO (this << " connected to " << n << " trace sources");
-        NS_UNUSED (n);
         break;
       }
 

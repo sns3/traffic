@@ -147,8 +147,8 @@ NrtvClientRxBufferTestCase::DoRun ()
   address.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer interfaces = address.Assign (devices);
 
-  bool udp = m_protocolTypeId == TypeId::LookupByName ("ns3::UdpSocketFactory");
-  NS_UNUSED (udp);
+  //bool udp = m_protocolTypeId == TypeId::LookupByName ("ns3::UdpSocketFactory");
+  //NS_UNUSED (udp);
 
   NrtvHelper helper (m_protocolTypeId);
   helper.InstallUsingIpv4 (nodes.Get (0), nodes.Get (1));

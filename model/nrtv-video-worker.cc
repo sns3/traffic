@@ -187,7 +187,6 @@ NrtvVideoWorker::ScheduleNewFrame ()
                                          &NrtvVideoWorker::NewFrame, this);
   NS_LOG_INFO (this << " video frame " << frameNumber << " will be generated in "
                     << m_frameInterval.GetSeconds () << " seconds");
-  NS_UNUSED (frameNumber);
 }
 
 
@@ -243,8 +242,6 @@ NrtvVideoWorker::ScheduleNewSlice ()
       NS_LOG_LOGIC (this << " " << (m_numOfSlices - m_numOfSlicesServed)
                          << " slices are skipped");
     }
-
-  NS_UNUSED (sliceNumber);
 }
 
 

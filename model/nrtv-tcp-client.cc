@@ -402,7 +402,7 @@ NrtvTcpClient::OpenConnection ()
                              << " GetErrNo= " << m_socket->GetErrno ());
         }
 
-      NS_UNUSED (ret); // mute compiler warning
+      // NS_UNUSED (ret); // mute compiler warning
       NS_ASSERT_MSG (m_socket != 0, "Failed creating socket");
 
       m_socket->ShutdownSend ();
@@ -445,7 +445,6 @@ NrtvTcpClient::RetryConnection ()
       int ret = m_socket->Connect (inetSocket);
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
-      NS_UNUSED (ret);
     }
   else if (Ipv6Address::IsMatchingType (m_remoteServerAddress))
     {
@@ -458,7 +457,6 @@ NrtvTcpClient::RetryConnection ()
       int ret = m_socket->Connect (inet6Socket);
       NS_LOG_DEBUG (this << " Connect() return value= " << ret
                          << " GetErrNo= " << m_socket->GetErrno ());
-      NS_UNUSED (ret);
     }
 
   SwitchToState (CONNECTING);
@@ -691,7 +689,6 @@ NrtvTcpClientRxBuffer::PopVideoSlice ()
           m_rxBuffer.front ()->RemoveAtStart (bytesToFetch);
           NS_ASSERT (m_rxBuffer.front ()->GetSize () == residueBytes);
           bytesToFetch = 0; // this exits the loop
-          NS_UNUSED (residueBytes);
         }
 
     } // end of `while (bytesToFetch > 0)`
