@@ -173,7 +173,7 @@ ThreeGppHttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer client
   ApplicationContainer ret; // the return value of the function
 
   Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
-  if (ipv4 == 0)
+  if (ipv4 == nullptr)
     {
       NS_FATAL_ERROR ("No IPv4 object is found within the server node " << serverNode);
     }

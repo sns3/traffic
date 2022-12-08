@@ -152,7 +152,7 @@ NrtvTcpServer::StartApplication ()
 
   if (m_state == NOT_STARTED)
     {
-      if (m_initialSocket == 0)
+      if (m_initialSocket == nullptr)
         {
           m_initialSocket = Socket::CreateSocket (GetNode (),
                                                   TcpSocketFactory::GetTypeId ());
@@ -189,9 +189,9 @@ NrtvTcpServer::StartApplication ()
             NS_LOG_DEBUG (this << " Listen () return value= " << ret
                                << " GetErrNo= " << m_initialSocket->GetErrno ());
 
-        } // end of `if (m_initialSocket == 0)`
+        } // end of `if (m_initialSocket == nullptr)`
 
-      NS_ASSERT_MSG (m_initialSocket != 0, "Failed creating socket");
+      NS_ASSERT_MSG (m_initialSocket != nullptr, "Failed creating socket");
       m_initialSocket->ShutdownRecv ();
       m_initialSocket->SetAcceptCallback (MakeCallback (&NrtvTcpServer::ConnectionRequestCallback,
                                                         this),
@@ -235,7 +235,7 @@ NrtvTcpServer::StopApplication ()
   m_workers.clear ();
 
   // stop listening
-  if (m_initialSocket != 0)
+  if (m_initialSocket != nullptr)
     {
       m_initialSocket->Close ();
       m_initialSocket->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());

@@ -60,7 +60,7 @@ ClientRxTracePlot::ClientRxTracePlot (Ptr<Application> clientApp)
 void
 ClientRxTracePlot::Initialize ()
 {
-  if (m_client == 0)
+  if (m_client == nullptr)
     {
       NS_FATAL_ERROR ("Invalid NrtvTcpClient object is given");
     }

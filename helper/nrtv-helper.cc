@@ -202,7 +202,7 @@ NrtvHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
   bool tcpInUse = m_protocolTid == TypeId::LookupByName ("ns3::TcpSocketFactory");
 
   Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
-  if (ipv4 == 0)
+  if (ipv4 == nullptr)
     {
       NS_FATAL_ERROR ("No IPv4 object is found within the server node " << serverNode);
     }

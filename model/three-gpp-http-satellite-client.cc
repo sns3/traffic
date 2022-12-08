@@ -46,7 +46,7 @@ NS_OBJECT_ENSURE_REGISTERED (ThreeGppHttpSatelliteClient);
 
 ThreeGppHttpSatelliteClient::ThreeGppHttpSatelliteClient ()
   : m_state (NOT_STARTED),
-    m_socket (0),
+    m_socket (nullptr),
     m_objectBytesToBeReceived (0),
     m_objectClientTs (MilliSeconds (0)),
     m_objectServerTs (MilliSeconds (0)),
@@ -419,7 +419,7 @@ ThreeGppHttpSatelliteClient::OpenConnection ()
         }
 
       // NS_UNUSED (ret); // Mute compiler warning.
-      NS_ASSERT_MSG (m_socket != 0, "Failed creating socket.");
+      NS_ASSERT_MSG (m_socket != nullptr, "Failed creating socket.");
 
       SwitchToState (CONNECTING);
 

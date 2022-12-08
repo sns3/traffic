@@ -187,7 +187,7 @@ ApplicationStatsThroughputHelper::DoInstall ()
                                          "EnableContextPrinting", BooleanValue (false),
                                          "GeneralHeading", StringValue ("% throughput_kbps freq"));
         Ptr<MultiFileAggregator> fileAggregator = m_aggregator->GetObject<MultiFileAggregator> ();
-        NS_ASSERT (fileAggregator != 0);
+        NS_ASSERT (fileAggregator != nullptr);
 
         // Setup the final-level collector.
         m_averagingCollector = CreateObject<DistributionCollector> ();
@@ -428,10 +428,10 @@ ApplicationStatsThroughputHelper::RxCallback (Ptr<const Packet> packet,
         {
           // Find the collector with the right identifier.
           Ptr<DataCollectionObject> collector = m_conversionCollectors.Get (it1->second);
-          NS_ASSERT_MSG (collector != 0,
+          NS_ASSERT_MSG (collector != nullptr,
                          "Unable to find collector with identifier " << it1->second);
           Ptr<UnitConversionCollector> c = collector->GetObject<UnitConversionCollector> ();
-          NS_ASSERT (c != 0);
+          NS_ASSERT (c != nullptr);
 
           // Pass the sample to the collector.
           c->TraceSinkUinteger32 (0, packet->GetSize ());
@@ -456,10 +456,10 @@ ApplicationStatsThroughputHelper::SaveAddressAndIdentifier (Ptr<Application> app
   NS_LOG_FUNCTION (this << application << identifier);
 
   Ptr<Node> node = application->GetNode ();
-  NS_ASSERT_MSG (node != 0, "Application is not attached to any Node");
+  NS_ASSERT_MSG (node != nullptr, "Application is not attached to any Node");
   Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> ();
 
-  if (ipv4 == 0)
+  if (ipv4 == nullptr)
     {
       NS_LOG_INFO (this << " Node " << node->GetId ()
                          << " does not support IPv4 protocol");

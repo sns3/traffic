@@ -360,10 +360,10 @@ ApplicationStatsDelayHelper::SaveAddressAndIdentifier (Ptr<Application> applicat
   NS_LOG_FUNCTION (this << application << identifier);
 
   Ptr<Node> node = application->GetNode ();
-  NS_ASSERT_MSG (node != 0, "Application is not attached to any Node");
+  NS_ASSERT_MSG (node != nullptr, "Application is not attached to any Node");
   Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> ();
 
-  if (ipv4 == 0)
+  if (ipv4 == nullptr)
     {
       NS_LOG_INFO (this << " Node " << node->GetId ()
                          << " does not support IPv4 protocol");
@@ -401,7 +401,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector (Time delay, uint32_t identif
   //NS_LOG_FUNCTION (this << delay.GetSeconds () << identifier);
 
   Ptr<DataCollectionObject> collector = m_terminalCollectors.Get (identifier);
-  NS_ASSERT_MSG (collector != 0,
+  NS_ASSERT_MSG (collector != nullptr,
                  "Unable to find collector with identifier " << identifier);
 
   switch (GetOutputType ())
@@ -410,7 +410,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector (Time delay, uint32_t identif
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
       {
         Ptr<ScalarCollector> c = collector->GetObject<ScalarCollector> ();
-        NS_ASSERT (c != 0);
+        NS_ASSERT (c != nullptr);
         c->TraceSinkDouble (0.0, delay.GetSeconds ());
         break;
       }
@@ -419,7 +419,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector (Time delay, uint32_t identif
     case ApplicationStatsHelper::OUTPUT_SCATTER_PLOT:
       {
         Ptr<UnitConversionCollector> c = collector->GetObject<UnitConversionCollector> ();
-        NS_ASSERT (c != 0);
+        NS_ASSERT (c != nullptr);
         c->TraceSinkDouble (0.0, delay.GetSeconds ());
         break;
       }
@@ -432,7 +432,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector (Time delay, uint32_t identif
     case ApplicationStatsHelper::OUTPUT_CDF_PLOT:
       {
         Ptr<DistributionCollector> c = collector->GetObject<DistributionCollector> ();
-        NS_ASSERT (c != 0);
+        NS_ASSERT (c != nullptr);
         c->TraceSinkDouble (0.0, delay.GetSeconds ());
         break;
       }

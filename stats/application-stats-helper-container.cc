@@ -386,7 +386,7 @@ ApplicationStatsHelperContainer::AddSenderApplication (Ptr<Application> applicat
   {
     // Assign a default identifier: node ID.
     Ptr<Node> node = application->GetNode ();
-    NS_ASSERT_MSG (node != 0, "Application is not attached to any Node");
+    NS_ASSERT_MSG (node != nullptr, "Application is not attached to any Node");
     std::ostringstream oss;
     oss << node->GetId ();
     identifier = oss.str ();
@@ -484,7 +484,7 @@ ApplicationStatsHelperContainer::AddReceiverApplication (Ptr<Application> applic
   {
     // Assign a default identifier: node ID and application ID.
     Ptr<Node> node = application->GetNode ();
-    NS_ASSERT_MSG (node != 0, "Application is not attached to any Node");
+    NS_ASSERT_MSG (node != nullptr, "Application is not attached to any Node");
     for (uint32_t i = 0; i < node->GetNApplications (); i++)
     {
       if (node->GetApplication (i) == application)

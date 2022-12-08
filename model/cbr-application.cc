@@ -110,7 +110,7 @@ CbrApplication::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
 
-  m_socket = 0;
+  m_socket = nullptr;
   // chain up
   Application::DoDispose ();
 }
@@ -142,7 +142,7 @@ void CbrApplication::StopApplication () // Called at time specified by Stop
 
   Simulator::Cancel (m_sendEvent);
 
-  if (m_socket != 0)
+  if (m_socket != nullptr)
     {
       m_socket->Close ();
     }

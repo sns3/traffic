@@ -403,7 +403,7 @@ NrtvTcpClient::OpenConnection ()
         }
 
       // NS_UNUSED (ret); // mute compiler warning
-      NS_ASSERT_MSG (m_socket != 0, "Failed creating socket");
+      NS_ASSERT_MSG (m_socket != nullptr, "Failed creating socket");
 
       m_socket->ShutdownSend ();
       m_socket->SetConnectCallback (MakeCallback (&NrtvTcpClient::ConnectionSucceededCallback,
@@ -469,7 +469,7 @@ NrtvTcpClient::CloseConnection ()
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_socket != 0)
+  if (m_socket != nullptr)
     {
       m_socket->Close ();
       m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());

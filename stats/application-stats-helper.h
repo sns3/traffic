@@ -399,7 +399,7 @@ ApplicationStatsHelper::SetupProbesAtReceiver (std::string probeOutputName,
       for (ApplicationContainer::Iterator it2 = it1->second.Begin ();
            it2 != it1->second.End (); ++it2)
         {
-          if ((*it2)->GetInstanceTypeId ().LookupTraceSourceByName (m_traceSourceName) != 0)
+          if ((*it2)->GetInstanceTypeId ().LookupTraceSourceByName (m_traceSourceName) != nullptr)
             {
               // Create the probe.
               Ptr<P> probe = CreateObject<P> ();
@@ -442,7 +442,7 @@ ApplicationStatsHelper::SetupListenersAtReceiver (Callback<void, Q, const Addres
       for (ApplicationContainer::Iterator it2 = it1->second.Begin ();
            it2 != it1->second.End (); ++it2)
         {
-          if ((*it2)->GetInstanceTypeId ().LookupTraceSourceByName (m_traceSourceName) != 0
+          if ((*it2)->GetInstanceTypeId ().LookupTraceSourceByName (m_traceSourceName) != nullptr
               && (*it2)->TraceConnectWithoutContext (m_traceSourceName, cb))
             {
               n++;
