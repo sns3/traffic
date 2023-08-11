@@ -18,71 +18,72 @@
  * Author: Sami Rantanen <sami.rantanen@magister.fi>
  */
 
-#include "ns3/inet-socket-address.h"
-#include "ns3/packet-socket-address.h"
-#include "ns3/string.h"
-#include "ns3/data-rate.h"
-#include "ns3/uinteger.h"
-#include "ns3/names.h"
-#include "ns3/random-variable-stream.h"
 #include "cbr-helper.h"
 
+#include "ns3/data-rate.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/names.h"
+#include "ns3/packet-socket-address.h"
+#include "ns3/random-variable-stream.h"
+#include "ns3/string.h"
+#include "ns3/uinteger.h"
 
-namespace ns3 {
-
-CbrHelper::CbrHelper (std::string protocol, Address address)
+namespace ns3
 {
-  m_factory.SetTypeId ("ns3::CbrApplication");
-  m_factory.Set ("Protocol", StringValue (protocol));
-  m_factory.Set ("Remote", AddressValue (address));
+
+CbrHelper::CbrHelper(std::string protocol, Address address)
+{
+    m_factory.SetTypeId("ns3::CbrApplication");
+    m_factory.Set("Protocol", StringValue(protocol));
+    m_factory.Set("Remote", AddressValue(address));
 }
 
 void
-CbrHelper::SetAttribute (std::string name, const AttributeValue &value)
+CbrHelper::SetAttribute(std::string name, const AttributeValue& value)
 {
-  m_factory.Set (name, value);
+    m_factory.Set(name, value);
 }
 
 ApplicationContainer
-CbrHelper::Install (Ptr<Node> node) const
+CbrHelper::Install(Ptr<Node> node) const
 {
-  return ApplicationContainer (InstallPriv (node));
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-CbrHelper::Install (std::string nodeName) const
+CbrHelper::Install(std::string nodeName) const
 {
-  Ptr<Node> node = Names::Find<Node> (nodeName);
-  return ApplicationContainer (InstallPriv (node));
+    Ptr<Node> node = Names::Find<Node>(nodeName);
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-CbrHelper::Install (NodeContainer c) const
+CbrHelper::Install(NodeContainer c) const
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
-      apps.Add (InstallPriv (*i));
+        apps.Add(InstallPriv(*i));
     }
 
-  return apps;
+    return apps;
 }
 
 Ptr<Application>
-CbrHelper::InstallPriv (Ptr<Node> node) const
+CbrHelper::InstallPriv(Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<Application> ();
+    Ptr<Application> app = m_factory.Create<Application>();
 
-  node->AddApplication (app);
+    node->AddApplication(app);
 
-  return app;
+    return app;
 }
 
 void
-CbrHelper::SetConstantTraffic (Time interval, uint32_t packetSize)
+CbrHelper::SetConstantTraffic(Time interval, uint32_t packetSize)
 {
-  m_factory.Set ("Interval", TimeValue (interval));
-  m_factory.Set ("PacketSize", UintegerValue (packetSize));
+    m_factory.Set("Interval", TimeValue(interval));
+    m_factory.Set("PacketSize", UintegerValue(packetSize));
 }
 
 } // namespace ns3

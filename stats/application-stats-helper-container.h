@@ -22,16 +22,17 @@
 #ifndef APPLICATION_STATS_HELPER_CONTAINER_H
 #define APPLICATION_STATS_HELPER_CONTAINER_H
 
-#include <ns3/object.h>
-#include <ns3/ptr.h>
-#include <ns3/node-container.h>
 #include <ns3/application-container.h>
 #include <ns3/application-stats-helper.h>
+#include <ns3/node-container.h>
+#include <ns3/object.h>
+#include <ns3/ptr.h>
+
 #include <list>
 #include <map>
 
-
-namespace ns3 {
+namespace ns3
+{
 
 /*
  * The macro definitions following this comment block are used to declare the
@@ -44,10 +45,10 @@ namespace ns3 {
  * Also check the Doxygen documentation of this class for more information.
  */
 
-#define APPLICATION_STATS_METHOD_DECLARATION(id)                              \
-  void AddGlobal ## id (ApplicationStatsHelper::OutputType_t outputType);     \
-  void AddPerReceiver ## id (ApplicationStatsHelper::OutputType_t outputType); \
-  void AddPerSender ## id (ApplicationStatsHelper::OutputType_t outputType);
+#define APPLICATION_STATS_METHOD_DECLARATION(id)                                                   \
+    void AddGlobal##id(ApplicationStatsHelper::OutputType_t outputType);                           \
+    void AddPerReceiver##id(ApplicationStatsHelper::OutputType_t outputType);                      \
+    void AddPerSender##id(ApplicationStatsHelper::OutputType_t outputType);
 
 /**
  * \ingroup applicationstats
@@ -81,179 +82,171 @@ namespace ns3 {
  */
 class ApplicationStatsHelperContainer : public Object
 {
-public:
-  /**
-   * \brief Creates a new instance of container.
-   */
-  ApplicationStatsHelperContainer ();
+  public:
+    /**
+     * \brief Creates a new instance of container.
+     */
+    ApplicationStatsHelperContainer();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  /**
-   * \param name a string prefix to be prepended on every output file name.
-   */
-  void SetName (std::string name);
+    /**
+     * \param name a string prefix to be prepended on every output file name.
+     */
+    void SetName(std::string name);
 
-  /**
-   * \return a string prefix prepended on every output file name.
-   */
-  std::string GetName () const;
+    /**
+     * \return a string prefix prepended on every output file name.
+     */
+    std::string GetName() const;
 
-  /**
-   * \param traceSourceName the name of the application's trace source
-   *                        which produces the required data.
-   *
-   * There is no standard trace source name between different applications, so
-   * the name that must be provided to this method depends on the application
-   * type. Please refer to the intended statistics class (i.e., child class of
-   * ApplicationStatsHelper) for the expected trace source signature and
-   * semantic, and then seek (or implement) the trace source in the
-   * application class.
-   *
-   * For example, throughput statistics (see ApplicationStatsThroughputHelper)
-   * require a trace source which exports a pointer to received packet and a
-   * reference to the address of the packet sender. When used together with
-   * PacketSink application, the right trace source to be used is `Rx`, because
-   * it matches the expected signature and semantic.
-   */
-  void SetTraceSourceName (std::string traceSourceName);
+    /**
+     * \param traceSourceName the name of the application's trace source
+     *                        which produces the required data.
+     *
+     * There is no standard trace source name between different applications, so
+     * the name that must be provided to this method depends on the application
+     * type. Please refer to the intended statistics class (i.e., child class of
+     * ApplicationStatsHelper) for the expected trace source signature and
+     * semantic, and then seek (or implement) the trace source in the
+     * application class.
+     *
+     * For example, throughput statistics (see ApplicationStatsThroughputHelper)
+     * require a trace source which exports a pointer to received packet and a
+     * reference to the address of the packet sender. When used together with
+     * PacketSink application, the right trace source to be used is `Rx`, because
+     * it matches the expected signature and semantic.
+     */
+    void SetTraceSourceName(std::string traceSourceName);
 
-  /**
-   * \return the name of the application's trace source from whom this helper
-   *         instance will receive data.
-   */
-  std::string GetTraceSourceName () const;
+    /**
+     * \return the name of the application's trace source from whom this helper
+     *         instance will receive data.
+     */
+    std::string GetTraceSourceName() const;
 
-  // Throughput statistics.
-  APPLICATION_STATS_METHOD_DECLARATION (Throughput)
-  void AddAverageSenderThroughput (ApplicationStatsHelper::OutputType_t outputType);
-  void AddAverageReceiverThroughput (ApplicationStatsHelper::OutputType_t outputType);
+    // Throughput statistics.
+    APPLICATION_STATS_METHOD_DECLARATION(Throughput)
+    void AddAverageSenderThroughput(ApplicationStatsHelper::OutputType_t outputType);
+    void AddAverageReceiverThroughput(ApplicationStatsHelper::OutputType_t outputType);
 
-  // Delay statistics.
-  APPLICATION_STATS_METHOD_DECLARATION (Delay)
-//  void AddAverageSenderDelay (ApplicationStatsHelper::OutputType_t outputType);
-//  void AddAverageReceiverDelay (ApplicationStatsHelper::OutputType_t outputType);
+    // Delay statistics.
+    APPLICATION_STATS_METHOD_DECLARATION(Delay)
+    //  void AddAverageSenderDelay (ApplicationStatsHelper::OutputType_t outputType);
+    //  void AddAverageReceiverDelay (ApplicationStatsHelper::OutputType_t outputType);
 
-  /**
-   * \param outputType an arbitrary output type.
-   * \return a string suffix to be appended at the end of the corresponding
-   *         output file for this output type.
-   */
-  static std::string GetOutputTypeSuffix (ApplicationStatsHelper::OutputType_t outputType);
+    /**
+     * \param outputType an arbitrary output type.
+     * \return a string suffix to be appended at the end of the corresponding
+     *         output file for this output type.
+     */
+    static std::string GetOutputTypeSuffix(ApplicationStatsHelper::OutputType_t outputType);
 
-  // SENDER APPLICATIONS //////////////////////////////////////////////////////
+    // SENDER APPLICATIONS //////////////////////////////////////////////////////
 
-  /**
-   * \brief Register the provided application as a sender.
-   * \param application pointer to the application.
-   * \param identifier name associated with this application (if the argument
-   *                   is omitted, a unique name will be computed).
-   *
-   * The computed identifier name is a combination of the node ID and the
-   * index of the application inside the node.
-   */
-  void AddSenderApplication (Ptr<Application> application,
-                             std::string identifier = "");
+    /**
+     * \brief Register the provided application as a sender.
+     * \param application pointer to the application.
+     * \param identifier name associated with this application (if the argument
+     *                   is omitted, a unique name will be computed).
+     *
+     * The computed identifier name is a combination of the node ID and the
+     * index of the application inside the node.
+     */
+    void AddSenderApplication(Ptr<Application> application, std::string identifier = "");
 
-  /**
-   * \brief Register the provided applications as senders.
-   * \param container group of applications.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddSenderApplications (ApplicationContainer container,
-                              bool isGroup = false,
-                              std::string groupIdentifier = "");
+    /**
+     * \brief Register the provided applications as senders.
+     * \param container group of applications.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddSenderApplications(ApplicationContainer container,
+                               bool isGroup = false,
+                               std::string groupIdentifier = "");
 
-  /**
-   * \brief Register the applications in the provided node as senders.
-   * \param node pointer to the node.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddSenderNode (Ptr<Node> node,
-                      bool isGroup = false,
-                      std::string groupIdentifier = "");
+    /**
+     * \brief Register the applications in the provided node as senders.
+     * \param node pointer to the node.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddSenderNode(Ptr<Node> node, bool isGroup = false, std::string groupIdentifier = "");
 
-  /**
-   * \brief Register the applications in the provided nodes as senders.
-   * \param container group of nodes.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddSenderNodes (NodeContainer container,
-                       bool isGroup = false,
-                       std::string groupIdentifier = "");
-
-  // RECEIVER APPLICATIONS ////////////////////////////////////////////////////
-
-  /**
-   * \brief Register the provided application as a receiver.
-   * \param application pointer to the application.
-   * \param identifier name associated with this application (if the argument
-   *                   is omitted, a unique name will be computed).
-   *
-   * The computed identifier name is a combination of the node ID and the
-   * index of the application inside the node.
-   */
-  void AddReceiverApplication (Ptr<Application> application,
-                               std::string identifier = "");
-
-  /**
-   * \brief Register the provided applications as receivers.
-   * \param container group of applications.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddReceiverApplications (ApplicationContainer container,
-                                bool isGroup = false,
-                                std::string groupIdentifier = "");
-
-  /**
-   * \brief Register the applications in the provided node as receivers.
-   * \param node pointer to the node.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddReceiverNode (Ptr<Node> node,
+    /**
+     * \brief Register the applications in the provided nodes as senders.
+     * \param container group of nodes.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddSenderNodes(NodeContainer container,
                         bool isGroup = false,
                         std::string groupIdentifier = "");
 
-  /**
-   * \brief Register the applications in the provided nodes as receivers.
-   * \param container group of nodes.
-   * \param isGroup not supported yet, please use `false`.
-   * \param groupIdentifier not supported yet, please leave as blank.
-   */
-  void AddReceiverNodes (NodeContainer container,
-                         bool isGroup = false,
-                         std::string groupIdentifier = "");
+    // RECEIVER APPLICATIONS ////////////////////////////////////////////////////
 
-protected:
-  // Inherited from Object base class
-  virtual void DoDispose ();
+    /**
+     * \brief Register the provided application as a receiver.
+     * \param application pointer to the application.
+     * \param identifier name associated with this application (if the argument
+     *                   is omitted, a unique name will be computed).
+     *
+     * The computed identifier name is a combination of the node ID and the
+     * index of the application inside the node.
+     */
+    void AddReceiverApplication(Ptr<Application> application, std::string identifier = "");
 
-private:
-  /// Prefix of every ApplicationStatsHelper instance names and every output file.
-  std::string m_name;
+    /**
+     * \brief Register the provided applications as receivers.
+     * \param container group of applications.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddReceiverApplications(ApplicationContainer container,
+                                 bool isGroup = false,
+                                 std::string groupIdentifier = "");
 
-  /// The name of the application's trace source which produce the required information.
-  std::string m_traceSourceName;
+    /**
+     * \brief Register the applications in the provided node as receivers.
+     * \param node pointer to the node.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddReceiverNode(Ptr<Node> node, bool isGroup = false, std::string groupIdentifier = "");
 
-  /// Maintains the active ApplicationStatsHelper instances which have created.
-  std::list<Ptr<const ApplicationStatsHelper> > m_stats;
+    /**
+     * \brief Register the applications in the provided nodes as receivers.
+     * \param container group of nodes.
+     * \param isGroup not supported yet, please use `false`.
+     * \param groupIdentifier not supported yet, please leave as blank.
+     */
+    void AddReceiverNodes(NodeContainer container,
+                          bool isGroup = false,
+                          std::string groupIdentifier = "");
 
-  /// Internal map of sender applications, indexed by their names.
-  std::map<std::string, ApplicationContainer> m_senderInfo;
+  protected:
+    // Inherited from Object base class
+    virtual void DoDispose();
 
-  /// Internal map of receiver applications, indexed by their names.
-  std::map<std::string, ApplicationContainer> m_receiverInfo;
+  private:
+    /// Prefix of every ApplicationStatsHelper instance names and every output file.
+    std::string m_name;
+
+    /// The name of the application's trace source which produce the required information.
+    std::string m_traceSourceName;
+
+    /// Maintains the active ApplicationStatsHelper instances which have created.
+    std::list<Ptr<const ApplicationStatsHelper>> m_stats;
+
+    /// Internal map of sender applications, indexed by their names.
+    std::map<std::string, ApplicationContainer> m_senderInfo;
+
+    /// Internal map of receiver applications, indexed by their names.
+    std::map<std::string, ApplicationContainer> m_receiverInfo;
 
 }; // end of class ApplicationStatsHelperContainer
 
-
 } // end of namespace ns3
-
 
 #endif /* APPLICATION_STATS_HELPER_CONTAINER_H */

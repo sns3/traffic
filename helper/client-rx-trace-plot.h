@@ -22,13 +22,13 @@
 #ifndef CLIENT_RX_TRACE_PLOT_H
 #define CLIENT_RX_TRACE_PLOT_H
 
-#include <ns3/object.h>
 #include <ns3/application.h>
-#include <ns3/ptr.h>
 #include <ns3/gnuplot.h>
+#include <ns3/object.h>
+#include <ns3/ptr.h>
 
-
-namespace ns3 {
+namespace ns3
+{
 
 class Packet;
 class Address;
@@ -62,73 +62,68 @@ class PacketSink;
  */
 class ClientRxTracePlot : public Object
 {
-public:
+  public:
+    /**
+     * \brief Creates a new object instance which generates a plot file named
+     *        "client-trace.plt".
+     *
+     * \param clientApp the client application from which the traffic data is
+     *                  taken and generated as a plot
+     */
+    ClientRxTracePlot(Ptr<Application> clientApp);
 
-  /**
-   * \brief Creates a new object instance which generates a plot file named
-   *        "client-trace.plt".
-   *
-   * \param clientApp the client application from which the traffic data is
-   *                  taken and generated as a plot
-   */
-  ClientRxTracePlot (Ptr<Application> clientApp);
+    /**
+     * \brief Creates a new object instance which generates a plot file with the
+     *        specified name.
+     *
+     * \param clientApp  the client application from which the traffic data is
+     *                   taken and generated as a plot
+     * \param outputName the name of the plot file, e.g., specifying the value
+     *                   "output" will generate "output.plt" file, which then can
+     *                   be converted to "output.png"
+     */
+    ClientRxTracePlot(Ptr<Application> clientApp, std::string outputName);
 
-  /**
-   * \brief Creates a new object instance which generates a plot file with the
-   *        specified name.
-   *
-   * \param clientApp  the client application from which the traffic data is
-   *                   taken and generated as a plot
-   * \param outputName the name of the plot file, e.g., specifying the value
-   *                   "output" will generate "output.plt" file, which then can
-   *                   be converted to "output.png"
-   */
-  ClientRxTracePlot (Ptr<Application> clientApp, std::string outputName);
+    /// Object destructor, which will generate the output.
+    ~ClientRxTracePlot();
 
-  /// Object destructor, which will generate the output.
-  ~ClientRxTracePlot ();
+    // Inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  // Inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    /**
+     * \param outputName the name of the plot file, e.g., specifying the value
+     *                   "output" will generate "output.plt" file, which then can
+     *                   be converted to "output.png"
+     */
+    void SetOutputName(std::string outputName);
 
-  /**
-   * \param outputName the name of the plot file, e.g., specifying the value
-   *                   "output" will generate "output.plt" file, which then can
-   *                   be converted to "output.png"
-   */
-  void SetOutputName (std::string outputName);
+    /**
+     * \return the name of the plot file
+     */
+    std::string GetOutputName() const;
 
-  /**
-   * \return the name of the plot file
-   */
-  std::string GetOutputName () const;
+  private:
+    /**
+     * \internal
+     * \brief Connecting the object to trace sources in the client application and
+     *        creating the Gnuplot datasets for storing the gathered data.
+     */
+    void Initialize();
 
-private:
+    /// Generating the plot.
+    void Plot();
 
-  /**
-   * \internal
-   * \brief Connecting the object to trace sources in the client application and
-   *        creating the Gnuplot datasets for storing the gathered data.
-   */
-  void Initialize ();
+    // TRACE CALLBACK FUNCTIONS
 
-  /// Generating the plot.
-  void Plot ();
+    void RxCallback(Ptr<const Packet> packet, const Address& from);
 
-  // TRACE CALLBACK FUNCTIONS
-
-  void RxCallback (Ptr<const Packet> packet, const Address & from);
-
-
-  Ptr<Application> m_client;  	 ///< The currently active client application.
-  std::string      m_outputName; ///< The name of the plot file.
-  Gnuplot2dDataset m_packet;     ///< Size of every packet received.
-  u_int32_t m_counter;
+    Ptr<Application> m_client; ///< The currently active client application.
+    std::string m_outputName;  ///< The name of the plot file.
+    Gnuplot2dDataset m_packet; ///< Size of every packet received.
+    u_int32_t m_counter;
 
 }; // end of `class ClientRxTracePlot`
 
-
-} // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif /* CLIENT_RX_TRACE_PLOT_H */

@@ -21,7 +21,8 @@
 /**
  * \defgroup traffic Traffic
  *
- * This section documents the API of the ns-3 contributed traffic module. For a generic functional description, please refer to the ns-3 manual.
+ * This section documents the API of the ns-3 contributed traffic module. For a generic functional
+ * description, please refer to the ns-3 manual.
  */
 
 #endif /* TRAFFIC_H */

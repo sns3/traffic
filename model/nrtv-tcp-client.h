@@ -24,20 +24,19 @@
 #define NRTV_TCP_CLIENT_H
 
 #include <ns3/address.h>
-#include <ns3/nstime.h>
-#include <ns3/traced-callback.h>
-#include <ns3/packet.h>
 #include <ns3/application.h>
+#include <ns3/nstime.h>
+#include <ns3/packet.h>
+#include <ns3/traced-callback.h>
+
 #include <list>
 
-
-namespace ns3 {
-
+namespace ns3
+{
 
 class Socket;
 class NrtvVariables;
 class NrtvTcpClientRxBuffer;
-
 
 /**
  * \ingroup nrtv
@@ -57,244 +56,242 @@ class NrtvTcpClientRxBuffer;
  */
 class NrtvTcpClient : public Application
 {
-public:
+  public:
+    /**
+     * \brief Creates a new instance of NRTV TCP client application.
+     *
+     * After creation, the application must be further configured through
+     * attributes. To avoid having to do this process manually, please use one of
+     * the helper classes (either NrtvHelper or NrtvClientHelper).
+     *
+     * \warning At the moment, only TCP protocol and IPv4 is supported.
+     */
+    NrtvTcpClient();
 
-  /**
-   * \brief Creates a new instance of NRTV TCP client application.
-   *
-   * After creation, the application must be further configured through
-   * attributes. To avoid having to do this process manually, please use one of
-   * the helper classes (either NrtvHelper or NrtvClientHelper).
-   *
-   * \warning At the moment, only TCP protocol and IPv4 is supported.
-   */
-  NrtvTcpClient ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    /**
+     * \return the time the application is scheduled to start
+     */
+    Time GetStartTime() const;
 
-  /**
-   * \return the time the application is scheduled to start
-   */
-  Time GetStartTime () const;
+    /**
+     * \return the time the application is scheduled to stop, or 0 if the stop has
+     *         never been scheduled
+     */
+    Time GetStopTime() const;
 
-  /**
-   * \return the time the application is scheduled to stop, or 0 if the stop has
-   *         never been scheduled
-   */
-  Time GetStopTime () const;
+    /**
+     * \return true if the application has been scheduled to stop during the
+     *         simulation
+     */
+    bool IsScheduledToStop() const;
 
-  /**
-   * \return true if the application has been scheduled to stop during the
-   *         simulation
-   */
-  bool IsScheduledToStop () const;
+    /**
+     * \return the address of the destination server
+     */
+    Address GetRemoteServerAddress() const;
 
-  /**
-   * \return the address of the destination server
-   */
-  Address GetRemoteServerAddress () const;
+    /**
+     * \return the destination port
+     */
+    uint16_t GetRemoteServerPort() const;
 
-  /**
-   * \return the destination port
-   */
-  uint16_t GetRemoteServerPort () const;
+    /// The possible states of the application.
+    enum State_t
+    {
+        /// Before the StartApplication() is executed.
+        NOT_STARTED = 0,
+        /// Sent the server a connection request and waiting for the server to be accept it.
+        CONNECTING,
+        /// Receiving incoming video packets.
+        RECEIVING,
+        /// Finished received a video and transitioning to the next video.
+        IDLE,
+        /// After StopApplication() is invoked.
+        STOPPED
+    };
 
-  /// The possible states of the application.
-  enum State_t
-  {
-    /// Before the StartApplication() is executed.
-    NOT_STARTED = 0,
-    /// Sent the server a connection request and waiting for the server to be accept it.
-    CONNECTING,
-    /// Receiving incoming video packets.
-    RECEIVING,
-    /// Finished received a video and transitioning to the next video.
-    IDLE,
-    /// After StopApplication() is invoked.
-    STOPPED
-  };
+    /**
+     * \return the current state of the application
+     */
+    State_t GetState() const;
 
-  /**
-   * \return the current state of the application
-   */
-  State_t GetState () const;
+    /**
+     * \return the current state of the application in string format
+     */
+    std::string GetStateString() const;
 
-  /**
-   * \return the current state of the application in string format
-   */
-  std::string GetStateString () const;
+    /**
+     * \param state an arbitrary state of an application
+     * \return the state equivalently expressed in string format
+     */
+    static std::string GetStateString(State_t state);
 
-  /**
-   * \param state an arbitrary state of an application
-   * \return the state equivalently expressed in string format
-   */
-  static std::string GetStateString (State_t state);
+  protected:
+    // Inherited from Object base class
+    virtual void DoDispose();
 
-protected:
-  // Inherited from Object base class
-  virtual void DoDispose ();
+    // Inherited from Application base class
+    virtual void StartApplication();
+    virtual void StopApplication();
 
-  // Inherited from Application base class
-  virtual void StartApplication ();
-  virtual void StopApplication ();
+  private:
+    // SOCKET CALLBACK METHODS
 
-private:
-  // SOCKET CALLBACK METHODS
+    /**
+     * Callback for connection succeeding.
+     * \param socket The socket bound to remote server address
+     */
+    void ConnectionSucceededCallback(Ptr<Socket> socket);
 
-  /**
-   * Callback for connection succeeding.
-   * \param socket The socket bound to remote server address
-   */
-  void ConnectionSucceededCallback (Ptr<Socket> socket);
+    /**
+     * Callback for connection failing.
+     * \param socket The socket bound to remote server address
+     */
+    void ConnectionFailedCallback(Ptr<Socket> socket);
 
-  /**
-   * Callback for connection failing.
-   * \param socket The socket bound to remote server address
-   */
-  void ConnectionFailedCallback (Ptr<Socket> socket);
+    /**
+     * Callback for connection closing normally.
+     * \param socket The socket bound to remote server address
+     */
+    void NormalCloseCallback(Ptr<Socket> socket);
 
-  /**
-   * Callback for connection closing normally.
-   * \param socket The socket bound to remote server address
-   */
-  void NormalCloseCallback (Ptr<Socket> socket);
+    /**
+     * Callback for connection closing due to error.
+     * \param socket The socket bound to remote server address
+     */
+    void ErrorCloseCallback(Ptr<Socket> socket);
 
-  /**
-   * Callback for connection closing due to error.
-   * \param socket The socket bound to remote server address
-   */
-  void ErrorCloseCallback (Ptr<Socket> socket);
+    /**
+     * Callback for receiving data from the socket.
+     * \param socket The socket bound to remote server address
+     */
+    void ReceivedDataCallback(Ptr<Socket> socket);
 
-  /**
-   * Callback for receiving data from the socket.
-   * \param socket The socket bound to remote server address
-   */
-  void ReceivedDataCallback (Ptr<Socket> socket);
+    /**
+     * Open connection to the server.
+     */
+    void OpenConnection();
 
-  /**
-   * Open connection to the server.
-   */
-  void OpenConnection ();
+    /**
+     * Retry connecting to the server.
+     */
+    void RetryConnection();
 
-  /**
-   * Retry connecting to the server.
-   */
-  void RetryConnection ();
+    /**
+     * Close connection to the server.
+     */
+    void CloseConnection();
 
-  /**
-   * Close connection to the server.
-   */
-  void CloseConnection ();
+    /**
+     * Receive a video slice from the video buffer.
+     * \param from Address of the sender.
+     * \return Size of the slice in bytes.
+     */
+    uint32_t ReceiveVideoSlice(const Address& from);
 
-  /**
-   * Receive a video slice from the video buffer.
-   * \param from Address of the sender.
-   * \return Size of the slice in bytes.
-   */
-  uint32_t ReceiveVideoSlice (const Address & from);
+    /**
+     * Cancel reconnection event.
+     */
+    void CancelAllPendingEvents();
 
-  /**
-   * Cancel reconnection event.
-   */
-  void CancelAllPendingEvents ();
+    /**
+     * Switch state of the client.
+     * \param state New state.
+     */
+    void SwitchToState(State_t state);
 
-  /**
-   * Switch state of the client.
-   * \param state New state.
-   */
-  void SwitchToState (State_t state);
+    State_t m_state;                 ///< State of the NRTV TCP client
+    Time m_dejitterBufferWindowSize; ///< Dejitter buffer windows size
+    Ptr<Socket> m_socket;            ///< Socket bound to the remote server
 
-  State_t     m_state;                    ///< State of the NRTV TCP client
-  Time        m_dejitterBufferWindowSize; ///< Dejitter buffer windows size
-  Ptr<Socket> m_socket;	                  ///< Socket bound to the remote server
+    /**
+     * An Rx buffer for all received packets, which constructs video slices from received packets
+     * and hands them over to the application.
+     */
+    Ptr<NrtvTcpClientRxBuffer> m_rxBuffer;
 
-  /**
-   * An Rx buffer for all received packets, which constructs video slices from received packets
-   * and hands them over to the application.
-   */
-  Ptr<NrtvTcpClientRxBuffer>  m_rxBuffer;
+    // ATTRIBUTES
 
-  // ATTRIBUTES
+    /**
+     * The random variable collection instance which is used as a source for
+     * client behavior, e.g. idle time between videos.
+     */
+    Ptr<NrtvVariables> m_nrtvVariables;
 
-  /**
-   * The random variable collection instance which is used as a source for
-   * client behavior, e.g. idle time between videos.
-   */
-  Ptr<NrtvVariables>  m_nrtvVariables;
+    Address m_remoteServerAddress; ///!< Remote server address
+    uint16_t m_remoteServerPort;   ///!< Remote server port
 
-  Address             m_remoteServerAddress;	///!< Remote server address
-  uint16_t            m_remoteServerPort;			///!< Remote server port
+    Time m_lastDelay; /// Last delay measurement. Used to compute jitter.
 
-  Time                m_lastDelay;             /// Last delay measurement. Used to compute jitter.
+    // TRACE SOURCES
 
-  // TRACE SOURCES
+    /**
+     * \brief Trace source for packet being received.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxCallback (std::string context, Ptr<const Packet> packet,
+     *                      const Address & from);
+     */
+    TracedCallback<Ptr<const Packet>, const Address&> m_rxTrace;
 
-  /**
-   * \brief Trace source for packet being received.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxCallback (std::string context, Ptr<const Packet> packet,
-   *                      const Address & from);
-   */
-  TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
+    /**
+     * \brief Trace source for packet delay upon receiving of a packet.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxDelayCallback (std::string context, Time delay,
+     *                           const Address & from);
+     */
+    TracedCallback<const Time&, const Address&> m_rxDelayTrace;
 
-  /**
-   * \brief Trace source for packet delay upon receiving of a packet.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxDelayCallback (std::string context, Time delay,
-   *                           const Address & from);
-   */
-  TracedCallback<const Time &, const Address &> m_rxDelayTrace;
+    /**
+     * \brief Trace source for packet jitter upon receiving of a packet.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxJitterCallback (std::string context, Time jitter,
+     *                           const Address & from);
+     */
+    TracedCallback<const Time&, const Address&> m_rxJitterTrace;
 
-  /**
-   * \brief Trace source for packet jitter upon receiving of a packet.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxJitterCallback (std::string context, Time jitter,
-   *                           const Address & from);
-   */
-  TracedCallback<const Time &, const Address &> m_rxJitterTrace;
+    /**
+     * \brief Trace source for an entire slice being constructed from the buffer.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxSliceCallback (std::string context, Ptr<const Packet> slice);
+     */
+    TracedCallback<Ptr<const Packet>> m_rxSliceTrace;
 
-  /**
-   * \brief Trace source for an entire slice being constructed from the buffer.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxSliceCallback (std::string context, Ptr<const Packet> slice);
-   */
-  TracedCallback<Ptr<const Packet> > m_rxSliceTrace;
+    /**
+     * \brief Trace source for all slices of a frame having been received.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxFrameCallback (std::string context,
+     *                           uint32_t frameNumber, uint32_t numOfFrames);
+     */
+    TracedCallback<uint32_t, uint32_t> m_rxFrameTrace;
 
-  /**
-   * \brief Trace source for all slices of a frame having been received.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxFrameCallback (std::string context,
-   *                           uint32_t frameNumber, uint32_t numOfFrames);
-   */
-  TracedCallback<uint32_t, uint32_t> m_rxFrameTrace;
+    /**
+     * \brief Trace source for application state changing.
+     *
+     * Example signature of callback function (with context):
+     *
+     *     void RxFrameCallback (std::string context,
+     *                           std::string oldState, std::string newState);
+     */
+    TracedCallback<std::string, std::string> m_stateTransitionTrace;
 
-  /**
-   * \brief Trace source for application state changing.
-   *
-   * Example signature of callback function (with context):
-   *
-   *     void RxFrameCallback (std::string context,
-   *                           std::string oldState, std::string newState);
-   */
-  TracedCallback<std::string, std::string> m_stateTransitionTrace;
+    // EVENTS
 
-  // EVENTS
-
-  EventId m_eventRetryConnection; ///<! Event for retrying connection
+    EventId m_eventRetryConnection; ///<! Event for retrying connection
 
 }; // end of `class NrtvTcpClient`
-
 
 /**
  * \brief Receive (possibly) fragmented packets from NrtvServer and re-assemble
@@ -302,63 +299,60 @@ private:
  */
 class NrtvTcpClientRxBuffer : public SimpleRefCount<NrtvTcpClientRxBuffer>
 {
-public:
-  /// Create an empty instance of Rx buffer.
-  NrtvTcpClientRxBuffer ();
+  public:
+    /// Create an empty instance of Rx buffer.
+    NrtvTcpClientRxBuffer();
 
-  /**
-   * \brief Check if the buffer is empty.
-   * \return true if the buffer is completely empty
-   */
-  bool IsEmpty () const;
+    /**
+     * \brief Check if the buffer is empty.
+     * \return true if the buffer is completely empty
+     */
+    bool IsEmpty() const;
 
-  /**
-   * \brief Check if the buffer contains at least one complete video slice.
-   *        If at least one slice is found, PopVideoSlice() can be called.
-   * \return true if the buffer contains at least a complete video slice.
-   */
-  bool HasVideoSlice () const;
+    /**
+     * \brief Check if the buffer contains at least one complete video slice.
+     *        If at least one slice is found, PopVideoSlice() can be called.
+     * \return true if the buffer contains at least a complete video slice.
+     */
+    bool HasVideoSlice() const;
 
-  /**
-   * \brief Insert a received packet into the buffer.
-   * \param packet the packet data to be added
-   *
-   * \warning If the packet is the first packet of a video slice, it must
-   *          contain an NrtvHeader.
-   */
-  void PushPacket (Ptr<const Packet> packet);
+    /**
+     * \brief Insert a received packet into the buffer.
+     * \param packet the packet data to be added
+     *
+     * \warning If the packet is the first packet of a video slice, it must
+     *          contain an NrtvHeader.
+     */
+    void PushPacket(Ptr<const Packet> packet);
 
-  /**
-   * \brief Get and remove the next video slice from the buffer as a packet.
-   * \return the next video slice, re-assembled from the packets which have been
-   *         received (still including its NrtvHeader)
-   *
-   * \warning As pre-conditions, IsEmpty() must be false and HasVideoSlice()
-   *          must be true before calling this method.
-   */
-  Ptr<Packet> PopVideoSlice ();
+    /**
+     * \brief Get and remove the next video slice from the buffer as a packet.
+     * \return the next video slice, re-assembled from the packets which have been
+     *         received (still including its NrtvHeader)
+     *
+     * \warning As pre-conditions, IsEmpty() must be false and HasVideoSlice()
+     *          must be true before calling this method.
+     */
+    Ptr<Packet> PopVideoSlice();
 
-private:
+  private:
+    /**
+     * \param packet the packet to be read
+     * \return the slice size field of the NRTV header embedded in the packet
+     *
+     * \warning An NRTV header must be found in the beginning of the packet.
+     */
+    static uint32_t PeekSliceSize(Ptr<const Packet> packet);
 
-  /**
-   * \param packet the packet to be read
-   * \return the slice size field of the NRTV header embedded in the packet
-   *
-   * \warning An NRTV header must be found in the beginning of the packet.
-   */
-  static uint32_t PeekSliceSize (Ptr<const Packet> packet);
-
-  /// The buffer, containing copies of packets received.
-  std::list<Ptr<Packet> > m_rxBuffer;
-  /// Overall size of buffer in bytes (including header).
-  uint32_t m_totalBytes;
-  /// The expected size of the next video slice (zero if size is not yet known).
-  uint32_t m_sizeOfVideoSlice;
+    /// The buffer, containing copies of packets received.
+    std::list<Ptr<Packet>> m_rxBuffer;
+    /// Overall size of buffer in bytes (including header).
+    uint32_t m_totalBytes;
+    /// The expected size of the next video slice (zero if size is not yet known).
+    uint32_t m_sizeOfVideoSlice;
 
 }; // end of `class NrtvTcpClientRxBuffer`
 
-
-}  // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif /* NRTV_TCP_CLIENT_H */

@@ -21,11 +21,11 @@
 #ifndef TRAFFIC_TIME_TAG_H
 #define TRAFFIC_TIME_TAG_H
 
-#include <ns3/tag.h>
 #include <ns3/nstime.h>
+#include <ns3/tag.h>
 
-
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup traffic
@@ -35,28 +35,25 @@ namespace ns3 {
  */
 class TrafficTimeTag : public Tag
 {
-public:
-  static TypeId  GetTypeId (void);
-  virtual TypeId  GetInstanceTypeId (void) const;
+  public:
+    static TypeId GetTypeId(void);
+    virtual TypeId GetInstanceTypeId(void) const;
 
-  TrafficTimeTag ();
-  TrafficTimeTag (Time senderTimestamp);
+    TrafficTimeTag();
+    TrafficTimeTag(Time senderTimestamp);
 
-  virtual void  Serialize (TagBuffer i) const;
-  virtual void  Deserialize (TagBuffer i);
-  virtual uint32_t  GetSerializedSize () const;
-  virtual void Print (std::ostream &os) const;
+    virtual void Serialize(TagBuffer i) const;
+    virtual void Deserialize(TagBuffer i);
+    virtual uint32_t GetSerializedSize() const;
+    virtual void Print(std::ostream& os) const;
 
-  Time GetSenderTimestamp (void) const;
-  void SetSenderTimestamp (Time senderTimestamp);
+    Time GetSenderTimestamp(void) const;
+    void SetSenderTimestamp(Time senderTimestamp);
 
-private:
-  Time m_senderTimestamp;
-
+  private:
+    Time m_senderTimestamp;
 };
 
-
-
-} //namespace ns3
+} // namespace ns3
 
 #endif /* TRAFFIC_TIME_TAG_H */

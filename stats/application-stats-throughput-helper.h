@@ -22,16 +22,16 @@
 #ifndef APPLICATION_STATS_THROUGHPUT_HELPER_H
 #define APPLICATION_STATS_THROUGHPUT_HELPER_H
 
-#include <ns3/application-stats-helper.h>
-#include <ns3/ptr.h>
 #include <ns3/address.h>
+#include <ns3/application-stats-helper.h>
 #include <ns3/collector-map.h>
+#include <ns3/ptr.h>
+
 #include <list>
 #include <map>
 
-
-namespace ns3 {
-
+namespace ns3
+{
 
 // BASE CLASS /////////////////////////////////////////////////////////////////
 
@@ -46,82 +46,79 @@ class DistributionCollector;
  */
 class ApplicationStatsThroughputHelper : public ApplicationStatsHelper
 {
-public:
-  // inherited from ApplicationStatsHelper base class
-  ApplicationStatsThroughputHelper ();
+  public:
+    // inherited from ApplicationStatsHelper base class
+    ApplicationStatsThroughputHelper();
 
-  /// Destructor.
-  virtual ~ApplicationStatsThroughputHelper ();
+    /// Destructor.
+    virtual ~ApplicationStatsThroughputHelper();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  /**
-   * \param averagingMode average all samples before passing them to aggregator.
-   */
-  void SetAveragingMode (bool averagingMode);
+    /**
+     * \param averagingMode average all samples before passing them to aggregator.
+     */
+    void SetAveragingMode(bool averagingMode);
 
-  /**
-   * \return the currently active averaging mode.
-   */
-  bool GetAveragingMode () const;
+    /**
+     * \return the currently active averaging mode.
+     */
+    bool GetAveragingMode() const;
 
-  /**
-   * \brief Receive inputs from trace sources and determine the right collector
-   *        to forward the inputs to.
-   * \param packet received packet data.
-   * \param from the address of the sender of the packet.
-   *
-   * Utilized to replace the role of probes when `SENDER` identifier is active.
-   * The second argument contains the address of the packet sender, which is
-   * then matched with the internal lookup table (pre-filled during Install())
-   * to get an identifier value. The packet size is then forwarded to the
-   * collector which has the same identifier.
-   */
-  void RxCallback (Ptr<const Packet> packet, const Address &from);
+    /**
+     * \brief Receive inputs from trace sources and determine the right collector
+     *        to forward the inputs to.
+     * \param packet received packet data.
+     * \param from the address of the sender of the packet.
+     *
+     * Utilized to replace the role of probes when `SENDER` identifier is active.
+     * The second argument contains the address of the packet sender, which is
+     * then matched with the internal lookup table (pre-filled during Install())
+     * to get an identifier value. The packet size is then forwarded to the
+     * collector which has the same identifier.
+     */
+    void RxCallback(Ptr<const Packet> packet, const Address& from);
 
-protected:
-  // inherited from ApplicationStatsHelper base class
-  virtual void DoInstall ();
+  protected:
+    // inherited from ApplicationStatsHelper base class
+    virtual void DoInstall();
 
-private:
-  /**
-   * \brief Associate the given application's IPv4 address with the given
-   *        identifier.
-   * \param application an application instance.
-   * \param identifier the number to be associated with.
-   *
-   * Any IPv4 address(es) which belong to the Node of the given application
-   * will be saved in the #m_identifierMap member variable. Used only with
-   * `SENDER` identifier.
-   */
-  void SaveAddressAndIdentifier (Ptr<Application> application,
-                                 uint32_t identifier);
+  private:
+    /**
+     * \brief Associate the given application's IPv4 address with the given
+     *        identifier.
+     * \param application an application instance.
+     * \param identifier the number to be associated with.
+     *
+     * Any IPv4 address(es) which belong to the Node of the given application
+     * will be saved in the #m_identifierMap member variable. Used only with
+     * `SENDER` identifier.
+     */
+    void SaveAddressAndIdentifier(Ptr<Application> application, uint32_t identifier);
 
-  /// Maintains a list of probes created by this helper.
-  std::list<Ptr<Probe> > m_probes;
+    /// Maintains a list of probes created by this helper.
+    std::list<Ptr<Probe>> m_probes;
 
-  /// Maintains a list of first-level collectors created by this helper.
-  CollectorMap m_conversionCollectors;
+    /// Maintains a list of first-level collectors created by this helper.
+    CollectorMap m_conversionCollectors;
 
-  /// Maintains a list of second-level collectors created by this helper.
-  CollectorMap m_terminalCollectors;
+    /// Maintains a list of second-level collectors created by this helper.
+    CollectorMap m_terminalCollectors;
 
-  /// The final collector utilized in averaged output (histogram, PDF, and CDF).
-  Ptr<DistributionCollector> m_averagingCollector;
+    /// The final collector utilized in averaged output (histogram, PDF, and CDF).
+    Ptr<DistributionCollector> m_averagingCollector;
 
-  /// The aggregator created by this helper.
-  Ptr<DataCollectionObject> m_aggregator;
+    /// The aggregator created by this helper.
+    Ptr<DataCollectionObject> m_aggregator;
 
-  /// Map of address and the `SENDER` identifier associated with it.
-  std::map<const Address, uint32_t> m_identifierMap;
+    /// Map of address and the `SENDER` identifier associated with it.
+    std::map<const Address, uint32_t> m_identifierMap;
 
-  bool m_averagingMode;  ///< `AveragingMode` attribute.
+    bool m_averagingMode; ///< `AveragingMode` attribute.
 
 }; // end of class ApplicationStatsThroughputHelper
 
-
 } // end of namespace ns3
-
 
 #endif /* APPLICATION_STATS_THROUGHPUT_HELPER_H */

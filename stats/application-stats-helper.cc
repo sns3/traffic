@@ -20,350 +20,348 @@
  */
 
 #include "application-stats-helper.h"
+
+#include <ns3/address.h>
+#include <ns3/data-collection-object.h>
+#include <ns3/enum.h>
 #include <ns3/log.h>
 #include <ns3/object-factory.h>
-#include <ns3/data-collection-object.h>
 #include <ns3/string.h>
-#include <ns3/enum.h>
-#include <ns3/address.h>
+
 #include <sstream>
 
-NS_LOG_COMPONENT_DEFINE ("ApplicationStatsHelper");
+NS_LOG_COMPONENT_DEFINE("ApplicationStatsHelper");
 
+namespace ns3
+{
 
-namespace ns3 {
-
-NS_OBJECT_ENSURE_REGISTERED (ApplicationStatsHelper);
+NS_OBJECT_ENSURE_REGISTERED(ApplicationStatsHelper);
 
 std::string // static
-ApplicationStatsHelper::GetIdentifierTypeName (ApplicationStatsHelper::IdentifierType_t identifierType)
+ApplicationStatsHelper::GetIdentifierTypeName(
+    ApplicationStatsHelper::IdentifierType_t identifierType)
 {
-  switch (identifierType)
+    switch (identifierType)
     {
     case ApplicationStatsHelper::IDENTIFIER_GLOBAL:
-      return "IDENTIFIER_GLOBAL";
+        return "IDENTIFIER_GLOBAL";
     case ApplicationStatsHelper::IDENTIFIER_SENDER:
-      return "IDENTIFIER_SENDER";
+        return "IDENTIFIER_SENDER";
     case ApplicationStatsHelper::IDENTIFIER_RECEIVER:
-      return "IDENTIFIER_RECEIVER";
+        return "IDENTIFIER_RECEIVER";
     default:
-      NS_FATAL_ERROR ("ApplicationStatsHelper - Invalid identifier type");
-      break;
+        NS_FATAL_ERROR("ApplicationStatsHelper - Invalid identifier type");
+        break;
     }
 
-  NS_FATAL_ERROR ("ApplicationStatsHelper - Invalid identifier type");
-  return "";
+    NS_FATAL_ERROR("ApplicationStatsHelper - Invalid identifier type");
+    return "";
 }
 
-
 std::string // static
-ApplicationStatsHelper::GetOutputTypeName (ApplicationStatsHelper::OutputType_t outputType)
+ApplicationStatsHelper::GetOutputTypeName(ApplicationStatsHelper::OutputType_t outputType)
 {
-  switch (outputType)
+    switch (outputType)
     {
     case ApplicationStatsHelper::OUTPUT_NONE:
-      return "OUTPUT_NONE";
+        return "OUTPUT_NONE";
     case ApplicationStatsHelper::OUTPUT_SCALAR_FILE:
-      return "OUTPUT_SCALAR_FILE";
+        return "OUTPUT_SCALAR_FILE";
     case ApplicationStatsHelper::OUTPUT_SCATTER_FILE:
-      return "OUTPUT_SCATTER_FILE";
+        return "OUTPUT_SCATTER_FILE";
     case ApplicationStatsHelper::OUTPUT_HISTOGRAM_FILE:
-      return "OUTPUT_HISTOGRAM_FILE";
+        return "OUTPUT_HISTOGRAM_FILE";
     case ApplicationStatsHelper::OUTPUT_PDF_FILE:
-      return "OUTPUT_PDF_FILE";
+        return "OUTPUT_PDF_FILE";
     case ApplicationStatsHelper::OUTPUT_CDF_FILE:
-      return "OUTPUT_CDF_FILE";
+        return "OUTPUT_CDF_FILE";
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
-      return "OUTPUT_SCALAR_PLOT";
+        return "OUTPUT_SCALAR_PLOT";
     case ApplicationStatsHelper::OUTPUT_SCATTER_PLOT:
-      return "OUTPUT_SCATTER_PLOT";
+        return "OUTPUT_SCATTER_PLOT";
     case ApplicationStatsHelper::OUTPUT_HISTOGRAM_PLOT:
-      return "OUTPUT_HISTOGRAM_PLOT";
+        return "OUTPUT_HISTOGRAM_PLOT";
     case ApplicationStatsHelper::OUTPUT_PDF_PLOT:
-      return "OUTPUT_PDF_PLOT";
+        return "OUTPUT_PDF_PLOT";
     case ApplicationStatsHelper::OUTPUT_CDF_PLOT:
-      return "OUTPUT_CDF_PLOT";
+        return "OUTPUT_CDF_PLOT";
     default:
-      NS_FATAL_ERROR ("ApplicationStatsHelper - Invalid output type");
-      break;
+        NS_FATAL_ERROR("ApplicationStatsHelper - Invalid output type");
+        break;
     }
 
-  NS_FATAL_ERROR ("ApplicationStatsHelper - Invalid output type");
-  return "";
+    NS_FATAL_ERROR("ApplicationStatsHelper - Invalid output type");
+    return "";
 }
 
-
-ApplicationStatsHelper::ApplicationStatsHelper ()
-  : m_name ("stat"),
-    m_identifierType (ApplicationStatsHelper::IDENTIFIER_GLOBAL),
-    m_outputType (ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
-    m_traceSourceName (""),
-    m_isInstalled (false)
+ApplicationStatsHelper::ApplicationStatsHelper()
+    : m_name("stat"),
+      m_identifierType(ApplicationStatsHelper::IDENTIFIER_GLOBAL),
+      m_outputType(ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
+      m_traceSourceName(""),
+      m_isInstalled(false)
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
-
-ApplicationStatsHelper::~ApplicationStatsHelper ()
+ApplicationStatsHelper::~ApplicationStatsHelper()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
-
 
 TypeId // static
-ApplicationStatsHelper::GetTypeId ()
+ApplicationStatsHelper::GetTypeId()
 {
-  static TypeId tid = TypeId ("ns3::ApplicationStatsHelper")
-    .SetParent<Object> ()
-    .AddAttribute ("Name",
-                   "String to be prepended on every output file name.",
-                   StringValue ("stat"),
-                   MakeStringAccessor (&ApplicationStatsHelper::SetName,
-                                       &ApplicationStatsHelper::GetName),
-                   MakeStringChecker ())
-    .AddAttribute ("TraceSourceName",
-                   "The name of the application's trace source "
-                   "which produce the required data.",
-                   StringValue (""),
-                   MakeStringAccessor (&ApplicationStatsHelper::SetTraceSourceName,
-                                       &ApplicationStatsHelper::GetTraceSourceName),
-                   MakeStringChecker ())
-    .AddAttribute ("IdentifierType",
-                   "Determines how the statistics are categorized.",
-                   EnumValue (ApplicationStatsHelper::IDENTIFIER_GLOBAL),
-                   MakeEnumAccessor (&ApplicationStatsHelper::SetIdentifierType,
-                                     &ApplicationStatsHelper::GetIdentifierType),
-                   MakeEnumChecker (ApplicationStatsHelper::IDENTIFIER_GLOBAL,   "GLOBAL",
-                                    ApplicationStatsHelper::IDENTIFIER_SENDER,   "SENDER",
-                                    ApplicationStatsHelper::IDENTIFIER_RECEIVER, "RECEIVER"))
-    .AddAttribute ("OutputType",
-                   "Determines the type and format of the output.",
-                   EnumValue (ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
-                   MakeEnumAccessor (&ApplicationStatsHelper::SetOutputType,
-                                     &ApplicationStatsHelper::GetOutputType),
-                   MakeEnumChecker (ApplicationStatsHelper::OUTPUT_NONE,           "NONE",
-                                    ApplicationStatsHelper::OUTPUT_SCALAR_FILE,    "SCALAR_FILE",
-                                    ApplicationStatsHelper::OUTPUT_SCATTER_FILE,   "SCATTER_FILE",
-                                    ApplicationStatsHelper::OUTPUT_HISTOGRAM_FILE, "HISTOGRAM_FILE",
-                                    ApplicationStatsHelper::OUTPUT_PDF_FILE,       "PDF_FILE",
-                                    ApplicationStatsHelper::OUTPUT_CDF_FILE,       "CDF_FILE",
-                                    ApplicationStatsHelper::OUTPUT_SCATTER_PLOT,   "SCATTER_PLOT",
-                                    ApplicationStatsHelper::OUTPUT_HISTOGRAM_PLOT, "HISTOGRAM_PLOT",
-                                    ApplicationStatsHelper::OUTPUT_PDF_PLOT,       "PDF_PLOT",
-                                    ApplicationStatsHelper::OUTPUT_CDF_PLOT,       "CDF_PLOT"))
-  ;
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::ApplicationStatsHelper")
+            .SetParent<Object>()
+            .AddAttribute("Name",
+                          "String to be prepended on every output file name.",
+                          StringValue("stat"),
+                          MakeStringAccessor(&ApplicationStatsHelper::SetName,
+                                             &ApplicationStatsHelper::GetName),
+                          MakeStringChecker())
+            .AddAttribute("TraceSourceName",
+                          "The name of the application's trace source "
+                          "which produce the required data.",
+                          StringValue(""),
+                          MakeStringAccessor(&ApplicationStatsHelper::SetTraceSourceName,
+                                             &ApplicationStatsHelper::GetTraceSourceName),
+                          MakeStringChecker())
+            .AddAttribute("IdentifierType",
+                          "Determines how the statistics are categorized.",
+                          EnumValue(ApplicationStatsHelper::IDENTIFIER_GLOBAL),
+                          MakeEnumAccessor(&ApplicationStatsHelper::SetIdentifierType,
+                                           &ApplicationStatsHelper::GetIdentifierType),
+                          MakeEnumChecker(ApplicationStatsHelper::IDENTIFIER_GLOBAL,
+                                          "GLOBAL",
+                                          ApplicationStatsHelper::IDENTIFIER_SENDER,
+                                          "SENDER",
+                                          ApplicationStatsHelper::IDENTIFIER_RECEIVER,
+                                          "RECEIVER"))
+            .AddAttribute("OutputType",
+                          "Determines the type and format of the output.",
+                          EnumValue(ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
+                          MakeEnumAccessor(&ApplicationStatsHelper::SetOutputType,
+                                           &ApplicationStatsHelper::GetOutputType),
+                          MakeEnumChecker(ApplicationStatsHelper::OUTPUT_NONE,
+                                          "NONE",
+                                          ApplicationStatsHelper::OUTPUT_SCALAR_FILE,
+                                          "SCALAR_FILE",
+                                          ApplicationStatsHelper::OUTPUT_SCATTER_FILE,
+                                          "SCATTER_FILE",
+                                          ApplicationStatsHelper::OUTPUT_HISTOGRAM_FILE,
+                                          "HISTOGRAM_FILE",
+                                          ApplicationStatsHelper::OUTPUT_PDF_FILE,
+                                          "PDF_FILE",
+                                          ApplicationStatsHelper::OUTPUT_CDF_FILE,
+                                          "CDF_FILE",
+                                          ApplicationStatsHelper::OUTPUT_SCATTER_PLOT,
+                                          "SCATTER_PLOT",
+                                          ApplicationStatsHelper::OUTPUT_HISTOGRAM_PLOT,
+                                          "HISTOGRAM_PLOT",
+                                          ApplicationStatsHelper::OUTPUT_PDF_PLOT,
+                                          "PDF_PLOT",
+                                          ApplicationStatsHelper::OUTPUT_CDF_PLOT,
+                                          "CDF_PLOT"));
+    return tid;
 }
-
 
 void
-ApplicationStatsHelper::SetSenderInformation (std::map<std::string, ApplicationContainer> info)
+ApplicationStatsHelper::SetSenderInformation(std::map<std::string, ApplicationContainer> info)
 {
-  NS_LOG_FUNCTION (this << info.size ());
-  m_senderInfo = info;
+    NS_LOG_FUNCTION(this << info.size());
+    m_senderInfo = info;
 }
-
 
 void
-ApplicationStatsHelper::SetReceiverInformation (std::map<std::string, ApplicationContainer> info)
+ApplicationStatsHelper::SetReceiverInformation(std::map<std::string, ApplicationContainer> info)
 {
-  NS_LOG_FUNCTION (this << info.size ());
-  m_receiverInfo = info;
+    NS_LOG_FUNCTION(this << info.size());
+    m_receiverInfo = info;
 }
-
 
 void
-ApplicationStatsHelper::Install ()
+ApplicationStatsHelper::Install()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  if (m_traceSourceName.empty ())
+    if (m_traceSourceName.empty())
     {
-      NS_FATAL_ERROR ("Trace source name must not be blank.");
+        NS_FATAL_ERROR("Trace source name must not be blank.");
     }
-  else if (m_outputType == ApplicationStatsHelper::OUTPUT_NONE)
+    else if (m_outputType == ApplicationStatsHelper::OUTPUT_NONE)
     {
-      NS_LOG_WARN (this << " Skipping statistics installation"
-                        << " because OUTPUT_NONE output type is selected.");
+        NS_LOG_WARN(this << " Skipping statistics installation"
+                         << " because OUTPUT_NONE output type is selected.");
     }
-  else
+    else
     {
-      DoInstall (); // this method is supposed to be implemented by the child class
-      m_isInstalled = true;
+        DoInstall(); // this method is supposed to be implemented by the child class
+        m_isInstalled = true;
     }
 }
-
 
 void
-ApplicationStatsHelper::SetName (std::string name)
+ApplicationStatsHelper::SetName(std::string name)
 {
-  NS_LOG_FUNCTION (this << name);
+    NS_LOG_FUNCTION(this << name);
 
-  // convert all spaces and slashes in the name to underscores
-  for (size_t pos = name.find_first_of (" /");
-       pos != std::string::npos;
-       pos = name.find_first_of (" /", pos + 1, 1))
+    // convert all spaces and slashes in the name to underscores
+    for (size_t pos = name.find_first_of(" /"); pos != std::string::npos;
+         pos = name.find_first_of(" /", pos + 1, 1))
     {
-      name[pos] = '_';
+        name[pos] = '_';
     }
 
-  m_name = name;
+    m_name = name;
 }
-
 
 std::string
-ApplicationStatsHelper::GetName () const
+ApplicationStatsHelper::GetName() const
 {
-  return m_name;
+    return m_name;
 }
-
 
 void
-ApplicationStatsHelper::SetTraceSourceName (std::string traceSourceName)
+ApplicationStatsHelper::SetTraceSourceName(std::string traceSourceName)
 {
-  NS_LOG_FUNCTION (this << traceSourceName);
-  m_traceSourceName = traceSourceName;
+    NS_LOG_FUNCTION(this << traceSourceName);
+    m_traceSourceName = traceSourceName;
 }
-
 
 std::string
-ApplicationStatsHelper::GetTraceSourceName () const
+ApplicationStatsHelper::GetTraceSourceName() const
 {
-  return m_traceSourceName;
+    return m_traceSourceName;
 }
-
 
 void
-ApplicationStatsHelper::SetIdentifierType (ApplicationStatsHelper::IdentifierType_t identifierType)
+ApplicationStatsHelper::SetIdentifierType(ApplicationStatsHelper::IdentifierType_t identifierType)
 {
-  NS_LOG_FUNCTION (this << GetIdentifierTypeName (identifierType));
+    NS_LOG_FUNCTION(this << GetIdentifierTypeName(identifierType));
 
-  if (m_isInstalled && (m_identifierType != identifierType))
+    if (m_isInstalled && (m_identifierType != identifierType))
     {
-      NS_LOG_WARN (this << " cannot modify the current identifier type"
-                        << " (" << GetIdentifierTypeName (m_identifierType) << ")"
-                        << " because this instance have already been installed");
+        NS_LOG_WARN(this << " cannot modify the current identifier type"
+                         << " (" << GetIdentifierTypeName(m_identifierType) << ")"
+                         << " because this instance have already been installed");
     }
-  else
+    else
     {
-      m_identifierType = identifierType;
+        m_identifierType = identifierType;
     }
 }
-
 
 ApplicationStatsHelper::IdentifierType_t
-ApplicationStatsHelper::GetIdentifierType () const
+ApplicationStatsHelper::GetIdentifierType() const
 {
-  return m_identifierType;
+    return m_identifierType;
 }
-
 
 void
-ApplicationStatsHelper::SetOutputType (ApplicationStatsHelper::OutputType_t outputType)
+ApplicationStatsHelper::SetOutputType(ApplicationStatsHelper::OutputType_t outputType)
 {
-  NS_LOG_FUNCTION (this << GetOutputTypeName (outputType));
+    NS_LOG_FUNCTION(this << GetOutputTypeName(outputType));
 
-  if (m_isInstalled && (m_outputType != outputType))
+    if (m_isInstalled && (m_outputType != outputType))
     {
-      NS_LOG_WARN (this << " cannot modify the current output type"
-                        << " (" << GetIdentifierTypeName (m_identifierType) << ")"
-                        << " because this instance have already been installed");
+        NS_LOG_WARN(this << " cannot modify the current output type"
+                         << " (" << GetIdentifierTypeName(m_identifierType) << ")"
+                         << " because this instance have already been installed");
     }
-  else
+    else
     {
-      m_outputType = outputType;
+        m_outputType = outputType;
     }
 }
-
 
 ApplicationStatsHelper::OutputType_t
-ApplicationStatsHelper::GetOutputType () const
+ApplicationStatsHelper::GetOutputType() const
 {
-  return m_outputType;
+    return m_outputType;
 }
-
 
 bool
-ApplicationStatsHelper::IsInstalled () const
+ApplicationStatsHelper::IsInstalled() const
 {
-  return m_isInstalled;
+    return m_isInstalled;
 }
-
 
 Ptr<DataCollectionObject>
-ApplicationStatsHelper::CreateAggregator (std::string aggregatorTypeId,
-                                          std::string n1, const AttributeValue &v1,
-                                          std::string n2, const AttributeValue &v2,
-                                          std::string n3, const AttributeValue &v3,
-                                          std::string n4, const AttributeValue &v4,
-                                          std::string n5, const AttributeValue &v5)
+ApplicationStatsHelper::CreateAggregator(std::string aggregatorTypeId,
+                                         std::string n1,
+                                         const AttributeValue& v1,
+                                         std::string n2,
+                                         const AttributeValue& v2,
+                                         std::string n3,
+                                         const AttributeValue& v3,
+                                         std::string n4,
+                                         const AttributeValue& v4,
+                                         std::string n5,
+                                         const AttributeValue& v5)
 {
-  NS_LOG_FUNCTION (this << aggregatorTypeId);
+    NS_LOG_FUNCTION(this << aggregatorTypeId);
 
-  TypeId tid = TypeId::LookupByName (aggregatorTypeId);
-  ObjectFactory factory;
-  factory.SetTypeId (tid);
-  factory.Set (n1, v1);
-  factory.Set (n2, v2);
-  factory.Set (n3, v3);
-  factory.Set (n4, v4);
-  factory.Set (n5, v5);
-  return factory.Create ()->GetObject<DataCollectionObject> ();
+    TypeId tid = TypeId::LookupByName(aggregatorTypeId);
+    ObjectFactory factory;
+    factory.SetTypeId(tid);
+    factory.Set(n1, v1);
+    factory.Set(n2, v2);
+    factory.Set(n3, v3);
+    factory.Set(n4, v4);
+    factory.Set(n5, v5);
+    return factory.Create()->GetObject<DataCollectionObject>();
 }
 
-
 uint32_t
-ApplicationStatsHelper::CreateCollectorPerIdentifier (CollectorMap &collectorMap) const
+ApplicationStatsHelper::CreateCollectorPerIdentifier(CollectorMap& collectorMap) const
 {
-  NS_LOG_FUNCTION (this);
-  uint32_t n = 0;
+    NS_LOG_FUNCTION(this);
+    uint32_t n = 0;
 
-  switch (GetIdentifierType ())
+    switch (GetIdentifierType())
     {
-    case ApplicationStatsHelper::IDENTIFIER_GLOBAL:
-      {
-        collectorMap.SetAttribute ("Name", StringValue ("global"));
-        collectorMap.Create (0);
+    case ApplicationStatsHelper::IDENTIFIER_GLOBAL: {
+        collectorMap.SetAttribute("Name", StringValue("global"));
+        collectorMap.Create(0);
         n++;
         break;
-      }
-
-    case ApplicationStatsHelper::IDENTIFIER_RECEIVER:
-      {
-        std::map<std::string, ApplicationContainer>::const_iterator it;
-        for (it = m_receiverInfo.begin (); it != m_receiverInfo.end (); ++it)
-          {
-            collectorMap.SetAttribute ("Name", StringValue (it->first));
-            collectorMap.Create (n);
-            n++;
-          }
-        break;
-      }
-
-    case ApplicationStatsHelper::IDENTIFIER_SENDER:
-      {
-        std::map<std::string, ApplicationContainer>::const_iterator it;
-        for (it = m_senderInfo.begin (); it != m_senderInfo.end (); ++it)
-          {
-            collectorMap.SetAttribute ("Name", StringValue (it->first));
-            collectorMap.Create (n);
-            n++;
-          }
-        break;
-      }
-
-    default:
-      NS_FATAL_ERROR ("ApplicationStatsHelper - Invalid identifier type");
-      break;
     }
 
-  NS_LOG_INFO (this << " created " << n << " instance(s)"
-                    << " of " << collectorMap.GetType ().GetName ()
-                    << " for " << GetIdentifierTypeName (GetIdentifierType ()));
+    case ApplicationStatsHelper::IDENTIFIER_RECEIVER: {
+        std::map<std::string, ApplicationContainer>::const_iterator it;
+        for (it = m_receiverInfo.begin(); it != m_receiverInfo.end(); ++it)
+        {
+            collectorMap.SetAttribute("Name", StringValue(it->first));
+            collectorMap.Create(n);
+            n++;
+        }
+        break;
+    }
 
-  return n;
+    case ApplicationStatsHelper::IDENTIFIER_SENDER: {
+        std::map<std::string, ApplicationContainer>::const_iterator it;
+        for (it = m_senderInfo.begin(); it != m_senderInfo.end(); ++it)
+        {
+            collectorMap.SetAttribute("Name", StringValue(it->first));
+            collectorMap.Create(n);
+            n++;
+        }
+        break;
+    }
+
+    default:
+        NS_FATAL_ERROR("ApplicationStatsHelper - Invalid identifier type");
+        break;
+    }
+
+    NS_LOG_INFO(this << " created " << n << " instance(s)"
+                     << " of " << collectorMap.GetType().GetName() << " for "
+                     << GetIdentifierTypeName(GetIdentifierType()));
+
+    return n;
 
 } // end of `uint32_t CreateCollectorPerIdentifier (CollectorMap &);`
-
 
 } // end of namespace ns3

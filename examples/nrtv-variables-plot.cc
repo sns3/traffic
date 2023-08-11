@@ -49,65 +49,66 @@
  *
  */
 
-#include <ns3/core-module.h>
 #include <ns3/applications-module.h>
+#include <ns3/core-module.h>
 #include <ns3/stats-module.h>
 #include <ns3/traffic-module.h>
 
 using namespace ns3;
 
+NS_LOG_COMPONENT_DEFINE("NrtvVariablesPlot");
 
-NS_LOG_COMPONENT_DEFINE ("NrtvVariablesPlot");
-
-
-int main (int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
-  uint32_t numOfSamples = 100000;
+    uint32_t numOfSamples = 100000;
 
-  // read command line arguments given by the user
-  CommandLine cmd;
-  cmd.AddValue ("numOfSamples",
-                "Number of samples taken from each random number distribution",
-                numOfSamples);
-  cmd.Parse (argc, argv);
+    // read command line arguments given by the user
+    CommandLine cmd;
+    cmd.AddValue("numOfSamples",
+                 "Number of samples taken from each random number distribution",
+                 numOfSamples);
+    cmd.Parse(argc, argv);
 
-  Ptr<NrtvVariables> nrtvVariables = CreateObject<NrtvVariables> ();
-  //nrtvVariables->SetStream (99);
+    Ptr<NrtvVariables> nrtvVariables = CreateObject<NrtvVariables>();
+    // nrtvVariables->SetStream (99);
 
-  HistogramPlotHelper::Plot<uint32_t> (MakeCallback (&NrtvVariables::GetNumOfFrames,
-                                                     nrtvVariables),
-                                       "nrtv-num-of-frames",
-                                       "Histogram of number of frames in NRTV traffic model",
-                                       "Number of frames",
-                                       numOfSamples, 100, // bin width = 100 frames
-                                       static_cast<double> (nrtvVariables->GetNumOfFramesMean ()));
+    HistogramPlotHelper::Plot<uint32_t>(MakeCallback(&NrtvVariables::GetNumOfFrames, nrtvVariables),
+                                        "nrtv-num-of-frames",
+                                        "Histogram of number of frames in NRTV traffic model",
+                                        "Number of frames",
+                                        numOfSamples,
+                                        100, // bin width = 100 frames
+                                        static_cast<double>(nrtvVariables->GetNumOfFramesMean()));
 
-  HistogramPlotHelper::Plot<uint32_t> (MakeCallback (&NrtvVariables::GetSliceSize,
-                                                     nrtvVariables),
-                                       "nrtv-slice-size",
-                                       "Histogram of slice size in NRTV traffic model",
-                                       "Slice size (in bytes)",
-                                       numOfSamples, 5, // bin width = 5 bytes
-                                       nrtvVariables->GetSliceSizeMean (),
-                                       nrtvVariables->GetSliceSizeMax ());
+    HistogramPlotHelper::Plot<uint32_t>(MakeCallback(&NrtvVariables::GetSliceSize, nrtvVariables),
+                                        "nrtv-slice-size",
+                                        "Histogram of slice size in NRTV traffic model",
+                                        "Slice size (in bytes)",
+                                        numOfSamples,
+                                        5, // bin width = 5 bytes
+                                        nrtvVariables->GetSliceSizeMean(),
+                                        nrtvVariables->GetSliceSizeMax());
 
-  HistogramPlotHelper::Plot<uint64_t> (MakeCallback (&NrtvVariables::GetSliceEncodingDelayMilliSeconds,
-                                                     nrtvVariables),
-                                       "nrtv-slice-encoding-delay",
-                                       "Histogram of slice encoding delay in NRTV traffic model",
-                                       "Slice encoding delay (in milliseconds)",
-                                       numOfSamples, 1, // bin width = 1 ms
-                                       nrtvVariables->GetSliceEncodingDelayMean ().GetMilliSeconds (),
-                                       nrtvVariables->GetSliceEncodingDelayMax ().GetMilliSeconds ());
+    HistogramPlotHelper::Plot<uint64_t>(
+        MakeCallback(&NrtvVariables::GetSliceEncodingDelayMilliSeconds, nrtvVariables),
+        "nrtv-slice-encoding-delay",
+        "Histogram of slice encoding delay in NRTV traffic model",
+        "Slice encoding delay (in milliseconds)",
+        numOfSamples,
+        1, // bin width = 1 ms
+        nrtvVariables->GetSliceEncodingDelayMean().GetMilliSeconds(),
+        nrtvVariables->GetSliceEncodingDelayMax().GetMilliSeconds());
 
-  HistogramPlotHelper::Plot<double> (MakeCallback (&NrtvVariables::GetIdleTimeSeconds,
-                                                   nrtvVariables),
-                                     "nrtv-idle-time",
-                                     "Histogram of client idle time in NRTV traffic model",
-                                     "Idle time (in seconds)",
-                                     numOfSamples, 1, // bar width = 1 second
-                                     nrtvVariables->GetIdleTimeMean ().GetSeconds ());
+    HistogramPlotHelper::Plot<double>(
+        MakeCallback(&NrtvVariables::GetIdleTimeSeconds, nrtvVariables),
+        "nrtv-idle-time",
+        "Histogram of client idle time in NRTV traffic model",
+        "Idle time (in seconds)",
+        numOfSamples,
+        1, // bar width = 1 second
+        nrtvVariables->GetIdleTimeMean().GetSeconds());
 
-  return 0;
+    return 0;
 
 } // end of `int main (int argc, char *argv[])`

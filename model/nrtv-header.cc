@@ -20,175 +20,151 @@
  */
 
 #include "nrtv-header.h"
+
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 
+NS_LOG_COMPONENT_DEFINE("NrtvHeader");
 
-NS_LOG_COMPONENT_DEFINE ("NrtvHeader");
-
-
-namespace ns3 {
-
-NS_OBJECT_ENSURE_REGISTERED (NrtvHeader);
-
-
-NrtvHeader::NrtvHeader ()
-  : m_frameNumber (0),
-    m_numOfFrames (0),
-    m_sliceNumber (0),
-    m_numOfSlices (0),
-    m_sliceSize (0),
-    m_arrivalTime (Simulator::Now ())
+namespace ns3
 {
-  NS_LOG_FUNCTION (this);
-}
 
+NS_OBJECT_ENSURE_REGISTERED(NrtvHeader);
+
+NrtvHeader::NrtvHeader()
+    : m_frameNumber(0),
+      m_numOfFrames(0),
+      m_sliceNumber(0),
+      m_numOfSlices(0),
+      m_sliceSize(0),
+      m_arrivalTime(Simulator::Now())
+{
+    NS_LOG_FUNCTION(this);
+}
 
 TypeId
-NrtvHeader::GetTypeId (void)
+NrtvHeader::GetTypeId(void)
 {
-  static TypeId tid = TypeId ("ns3::NrtvHeader")
-    .SetParent<Header> ()
-    .AddConstructor<NrtvHeader> ()
-  ;
-  return tid;
+    static TypeId tid = TypeId("ns3::NrtvHeader").SetParent<Header>().AddConstructor<NrtvHeader>();
+    return tid;
 }
-
 
 void
-NrtvHeader::SetFrameNumber (uint32_t frameNumber)
+NrtvHeader::SetFrameNumber(uint32_t frameNumber)
 {
-  NS_LOG_FUNCTION (this << frameNumber);
-  m_frameNumber = frameNumber;
+    NS_LOG_FUNCTION(this << frameNumber);
+    m_frameNumber = frameNumber;
 }
-
 
 uint32_t
-NrtvHeader::GetFrameNumber () const
+NrtvHeader::GetFrameNumber() const
 {
-  return m_frameNumber;
+    return m_frameNumber;
 }
-
 
 void
-NrtvHeader::SetNumOfFrames (uint32_t numOfFrames)
+NrtvHeader::SetNumOfFrames(uint32_t numOfFrames)
 {
-  NS_LOG_FUNCTION (this << numOfFrames);
-  m_numOfFrames = numOfFrames;
+    NS_LOG_FUNCTION(this << numOfFrames);
+    m_numOfFrames = numOfFrames;
 }
-
 
 uint32_t
-NrtvHeader::GetNumOfFrames () const
+NrtvHeader::GetNumOfFrames() const
 {
-  return m_numOfFrames;
+    return m_numOfFrames;
 }
 
 void
-NrtvHeader::SetSliceNumber (uint16_t sliceNumber)
+NrtvHeader::SetSliceNumber(uint16_t sliceNumber)
 {
-  NS_LOG_FUNCTION (this << sliceNumber);
-  m_sliceNumber = sliceNumber;
+    NS_LOG_FUNCTION(this << sliceNumber);
+    m_sliceNumber = sliceNumber;
 }
-
 
 uint16_t
-NrtvHeader::GetSliceNumber () const
+NrtvHeader::GetSliceNumber() const
 {
-  return m_sliceNumber;
+    return m_sliceNumber;
 }
 
 void
-NrtvHeader::SetNumOfSlices (uint16_t numOfSlices)
+NrtvHeader::SetNumOfSlices(uint16_t numOfSlices)
 {
-  NS_LOG_FUNCTION (this << numOfSlices);
-  m_numOfSlices = numOfSlices;
+    NS_LOG_FUNCTION(this << numOfSlices);
+    m_numOfSlices = numOfSlices;
 }
-
 
 uint16_t
-NrtvHeader::GetNumOfSlices () const
+NrtvHeader::GetNumOfSlices() const
 {
-  return m_numOfSlices;
+    return m_numOfSlices;
 }
-
 
 void
-NrtvHeader::SetSliceSize (uint32_t sliceSize)
+NrtvHeader::SetSliceSize(uint32_t sliceSize)
 {
-  NS_LOG_FUNCTION (this << sliceSize);
-  m_sliceSize = sliceSize;
+    NS_LOG_FUNCTION(this << sliceSize);
+    m_sliceSize = sliceSize;
 }
-
 
 uint32_t
-NrtvHeader::GetSliceSize () const
+NrtvHeader::GetSliceSize() const
 {
-  return m_sliceSize;
+    return m_sliceSize;
 }
-
 
 Time
-NrtvHeader::GetArrivalTime () const
+NrtvHeader::GetArrivalTime() const
 {
-  return m_arrivalTime;
+    return m_arrivalTime;
 }
-
 
 uint32_t
-NrtvHeader::GetSerializedSize () const
+NrtvHeader::GetSerializedSize() const
 {
-  return 24;
+    return 24;
 }
-
 
 void
-NrtvHeader::Print (std::ostream &os) const
+NrtvHeader::Print(std::ostream& os) const
 {
-  os << "(frameNumber: " << m_frameNumber
-     << " numOfFrames: " << m_numOfFrames
-     << " sliceNumber: " << m_sliceNumber
-     << " numOfSlices: " << m_numOfSlices
-     << " sliceSize: " << m_sliceSize
-     << " arrivalTime: " << m_arrivalTime << ")";
+    os << "(frameNumber: " << m_frameNumber << " numOfFrames: " << m_numOfFrames
+       << " sliceNumber: " << m_sliceNumber << " numOfSlices: " << m_numOfSlices
+       << " sliceSize: " << m_sliceSize << " arrivalTime: " << m_arrivalTime << ")";
 }
-
 
 void
-NrtvHeader::Serialize (Buffer::Iterator start) const
+NrtvHeader::Serialize(Buffer::Iterator start) const
 {
-  NS_LOG_FUNCTION (this << &start);
-  Buffer::Iterator i = start;
-  i.WriteHtonU32 (m_frameNumber);
-  i.WriteHtonU32 (m_numOfFrames);
-  i.WriteHtonU16 (m_sliceNumber);
-  i.WriteHtonU16 (m_numOfSlices);
-  i.WriteHtonU32 (m_sliceSize);
-  i.WriteHtonU64 (m_arrivalTime.GetNanoSeconds ());
+    NS_LOG_FUNCTION(this << &start);
+    Buffer::Iterator i = start;
+    i.WriteHtonU32(m_frameNumber);
+    i.WriteHtonU32(m_numOfFrames);
+    i.WriteHtonU16(m_sliceNumber);
+    i.WriteHtonU16(m_numOfSlices);
+    i.WriteHtonU32(m_sliceSize);
+    i.WriteHtonU64(m_arrivalTime.GetNanoSeconds());
 }
-
 
 uint32_t
-NrtvHeader::Deserialize (Buffer::Iterator start)
+NrtvHeader::Deserialize(Buffer::Iterator start)
 {
-  NS_LOG_FUNCTION (this << &start);
-  Buffer::Iterator i = start;
-  m_frameNumber = i.ReadNtohU32 ();
-  m_numOfFrames = i.ReadNtohU32 ();
-  m_sliceNumber = i.ReadNtohU16 ();
-  m_numOfSlices = i.ReadNtohU16 ();
-  m_sliceSize = i.ReadNtohU32 ();
-  m_arrivalTime = NanoSeconds (i.ReadNtohU64 ());
-  return GetSerializedSize ();
+    NS_LOG_FUNCTION(this << &start);
+    Buffer::Iterator i = start;
+    m_frameNumber = i.ReadNtohU32();
+    m_numOfFrames = i.ReadNtohU32();
+    m_sliceNumber = i.ReadNtohU16();
+    m_numOfSlices = i.ReadNtohU16();
+    m_sliceSize = i.ReadNtohU32();
+    m_arrivalTime = NanoSeconds(i.ReadNtohU64());
+    return GetSerializedSize();
 }
-
 
 TypeId
-NrtvHeader::GetInstanceTypeId () const
+NrtvHeader::GetInstanceTypeId() const
 {
-  return GetTypeId ();
+    return GetTypeId();
 }
 
-
-} // end of `namespace ns3`
-
+} // namespace ns3

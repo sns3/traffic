@@ -22,7 +22,8 @@
 #ifndef TRAFFIC_H
 #define TRAFFIC_H
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \brief Common signature used by callback to collector's trace source.
@@ -31,7 +32,6 @@ namespace ns3 {
  */
 typedef void (*StateTransitionCallback)(std::string, std::string);
 
-} // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif /* TRAFFIC_H */

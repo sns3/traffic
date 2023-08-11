@@ -41,7 +41,7 @@ set(header_files
 )
 
 set(test_sources
-    test/cbr-test.cc 
+    test/cbr-test.cc
     test/nrtv-test.cc
 )
 

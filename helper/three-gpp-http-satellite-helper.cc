@@ -27,193 +27,190 @@
  *
  */
 
-#include <ns3/names.h>
 #include <ns3/ipv4.h>
+#include <ns3/names.h>
 #include <ns3/three-gpp-http-satellite-helper.h>
 
-namespace ns3 {
+namespace ns3
+{
 
 // 3GPP HTTP SATELLITE CLIENT HELPER /////////////////////////////////////////////////////////
 
-ThreeGppHttpSatelliteClientHelper::ThreeGppHttpSatelliteClientHelper (const Address &address)
+ThreeGppHttpSatelliteClientHelper::ThreeGppHttpSatelliteClientHelper(const Address& address)
 {
-  m_factory.SetTypeId ("ns3::ThreeGppHttpSatelliteClient");
-  m_factory.Set ("RemoteServerAddress", AddressValue (address));
+    m_factory.SetTypeId("ns3::ThreeGppHttpSatelliteClient");
+    m_factory.Set("RemoteServerAddress", AddressValue(address));
 }
 
 void
-ThreeGppHttpSatelliteClientHelper::SetAttribute (const std::string &name,
-                                        const AttributeValue &value)
+ThreeGppHttpSatelliteClientHelper::SetAttribute(const std::string& name,
+                                                const AttributeValue& value)
 {
-  m_factory.Set (name, value);
+    m_factory.Set(name, value);
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteClientHelper::Install (Ptr<Node> node) const
+ThreeGppHttpSatelliteClientHelper::Install(Ptr<Node> node) const
 {
-  return ApplicationContainer (InstallPriv (node));
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteClientHelper::Install (const std::string &nodeName) const
+ThreeGppHttpSatelliteClientHelper::Install(const std::string& nodeName) const
 {
-  Ptr<Node> node = Names::Find<Node> (nodeName);
-  return ApplicationContainer (InstallPriv (node));
+    Ptr<Node> node = Names::Find<Node>(nodeName);
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteClientHelper::Install (NodeContainer c) const
+ThreeGppHttpSatelliteClientHelper::Install(NodeContainer c) const
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
-      apps.Add (InstallPriv (*i));
+        apps.Add(InstallPriv(*i));
     }
 
-  return apps;
+    return apps;
 }
 
 Ptr<Application>
-ThreeGppHttpSatelliteClientHelper::InstallPriv (Ptr<Node> node) const
+ThreeGppHttpSatelliteClientHelper::InstallPriv(Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<Application> ();
-  node->AddApplication (app);
+    Ptr<Application> app = m_factory.Create<Application>();
+    node->AddApplication(app);
 
-  return app;
+    return app;
 }
-
 
 // HTTP SERVER HELPER /////////////////////////////////////////////////////////
 
-ThreeGppHttpSatelliteServerHelper::ThreeGppHttpSatelliteServerHelper (const Address &address)
+ThreeGppHttpSatelliteServerHelper::ThreeGppHttpSatelliteServerHelper(const Address& address)
 {
-  m_factory.SetTypeId ("ns3::ThreeGppHttpServer");
-  m_factory.Set ("LocalAddress", AddressValue (address));
+    m_factory.SetTypeId("ns3::ThreeGppHttpServer");
+    m_factory.Set("LocalAddress", AddressValue(address));
 }
 
 void
-ThreeGppHttpSatelliteServerHelper::SetAttribute (const std::string &name,
-                                        const AttributeValue &value)
+ThreeGppHttpSatelliteServerHelper::SetAttribute(const std::string& name,
+                                                const AttributeValue& value)
 {
-  m_factory.Set (name, value);
+    m_factory.Set(name, value);
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteServerHelper::Install (Ptr<Node> node) const
+ThreeGppHttpSatelliteServerHelper::Install(Ptr<Node> node) const
 {
-  return ApplicationContainer (InstallPriv (node));
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteServerHelper::Install (const std::string &nodeName) const
+ThreeGppHttpSatelliteServerHelper::Install(const std::string& nodeName) const
 {
-  Ptr<Node> node = Names::Find<Node> (nodeName);
-  return ApplicationContainer (InstallPriv (node));
+    Ptr<Node> node = Names::Find<Node>(nodeName);
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-ThreeGppHttpSatelliteServerHelper::Install (NodeContainer c) const
+ThreeGppHttpSatelliteServerHelper::Install(NodeContainer c) const
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
-      apps.Add (InstallPriv (*i));
+        apps.Add(InstallPriv(*i));
     }
 
-  return apps;
+    return apps;
 }
 
 Ptr<Application>
-ThreeGppHttpSatelliteServerHelper::InstallPriv (Ptr<Node> node) const
+ThreeGppHttpSatelliteServerHelper::InstallPriv(Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<Application> ();
-  node->AddApplication (app);
+    Ptr<Application> app = m_factory.Create<Application>();
+    node->AddApplication(app);
 
-  return app;
+    return app;
 }
-
 
 // THREE GPP HTTP HELPER ////////////////////////////////////////////////////////////////
 
-ThreeGppHttpHelper::ThreeGppHttpHelper ()
+ThreeGppHttpHelper::ThreeGppHttpHelper()
 {
-  Address invalidAddr;
-  m_clientHelper = new ThreeGppHttpSatelliteClientHelper (invalidAddr);
-  m_serverHelper = new ThreeGppHttpSatelliteServerHelper (invalidAddr);
-  m_httpVariables = CreateObject<ThreeGppHttpVariables> ();
+    Address invalidAddr;
+    m_clientHelper = new ThreeGppHttpSatelliteClientHelper(invalidAddr);
+    m_serverHelper = new ThreeGppHttpSatelliteServerHelper(invalidAddr);
+    m_httpVariables = CreateObject<ThreeGppHttpVariables>();
 }
 
-ThreeGppHttpHelper::~ThreeGppHttpHelper ()
+ThreeGppHttpHelper::~ThreeGppHttpHelper()
 {
-  delete m_clientHelper;
-  delete m_serverHelper;
-}
-
-void
-ThreeGppHttpHelper::SetClientAttribute (std::string name, const AttributeValue &value)
-{
-  m_clientHelper->SetAttribute (name, value);
+    delete m_clientHelper;
+    delete m_serverHelper;
 }
 
 void
-ThreeGppHttpHelper::SetServerAttribute (std::string name, const AttributeValue &value)
+ThreeGppHttpHelper::SetClientAttribute(std::string name, const AttributeValue& value)
 {
-  m_serverHelper->SetAttribute (name, value);
+    m_clientHelper->SetAttribute(name, value);
 }
 
 void
-ThreeGppHttpHelper::SetVariablesAttribute (std::string name, const AttributeValue &value)
+ThreeGppHttpHelper::SetServerAttribute(std::string name, const AttributeValue& value)
 {
-	m_httpVariables->SetAttribute (name, value);
+    m_serverHelper->SetAttribute(name, value);
+}
+
+void
+ThreeGppHttpHelper::SetVariablesAttribute(std::string name, const AttributeValue& value)
+{
+    m_httpVariables->SetAttribute(name, value);
 }
 
 ApplicationContainer
-ThreeGppHttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, NodeContainer clientNodes)
+ThreeGppHttpHelper::InstallUsingIpv4(Ptr<Node> serverNode, NodeContainer clientNodes)
 {
-  ApplicationContainer ret; // the return value of the function
+    ApplicationContainer ret; // the return value of the function
 
-  Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
-  if (ipv4 == nullptr)
+    Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4>();
+    if (ipv4 == nullptr)
     {
-      NS_FATAL_ERROR ("No IPv4 object is found within the server node " << serverNode);
+        NS_FATAL_ERROR("No IPv4 object is found within the server node " << serverNode);
     }
-  else
+    else
     {
-      /// Still unclear if the hard-coded indices below will work in any possible cases.
-      const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress (1, 0);
-      const Ipv4Address serverAddress = interfaceAddress.GetLocal ();
+        /// Still unclear if the hard-coded indices below will work in any possible cases.
+        const Ipv4InterfaceAddress interfaceAddress = ipv4->GetAddress(1, 0);
+        const Ipv4Address serverAddress = interfaceAddress.GetLocal();
 
-      m_serverHelper->SetAttribute ("LocalAddress", AddressValue (serverAddress));
+        m_serverHelper->SetAttribute("LocalAddress", AddressValue(serverAddress));
 
-      m_lastInstalledServer = m_serverHelper->Install (serverNode);
-      ret.Add (m_lastInstalledServer);
+        m_lastInstalledServer = m_serverHelper->Install(serverNode);
+        ret.Add(m_lastInstalledServer);
 
-			m_clientHelper->SetAttribute ("RemoteServerAddress",
-																		AddressValue (serverAddress));
-			m_lastInstalledClients = m_clientHelper->Install (clientNodes);
-			ret.Add (m_lastInstalledClients);
+        m_clientHelper->SetAttribute("RemoteServerAddress", AddressValue(serverAddress));
+        m_lastInstalledClients = m_clientHelper->Install(clientNodes);
+        ret.Add(m_lastInstalledClients);
     }
 
-  return ret;
+    return ret;
 }
 
 ApplicationContainer
-ThreeGppHttpHelper::InstallUsingIpv4 (Ptr<Node> serverNode, Ptr<Node> clientNode)
+ThreeGppHttpHelper::InstallUsingIpv4(Ptr<Node> serverNode, Ptr<Node> clientNode)
 {
-  return InstallUsingIpv4 (serverNode, NodeContainer (clientNode));
+    return InstallUsingIpv4(serverNode, NodeContainer(clientNode));
 }
 
 ApplicationContainer
-ThreeGppHttpHelper::GetClients () const
+ThreeGppHttpHelper::GetClients() const
 {
-  return m_lastInstalledClients;
+    return m_lastInstalledClients;
 }
 
 ApplicationContainer
-ThreeGppHttpHelper::GetServer () const
+ThreeGppHttpHelper::GetServer() const
 {
-  return m_lastInstalledServer;
+    return m_lastInstalledServer;
 }
 
-
-} // end of `namespace ns3`
+} // namespace ns3

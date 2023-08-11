@@ -20,75 +20,74 @@
 
 #include "traffic-time-tag.h"
 
-namespace ns3 {
-
-NS_OBJECT_ENSURE_REGISTERED (TrafficTimeTag);
-
-TrafficTimeTag::TrafficTimeTag ()
-  : m_senderTimestamp (Seconds (0))
+namespace ns3
 {
-  // Nothing to do here
+
+NS_OBJECT_ENSURE_REGISTERED(TrafficTimeTag);
+
+TrafficTimeTag::TrafficTimeTag()
+    : m_senderTimestamp(Seconds(0))
+{
+    // Nothing to do here
 }
 
-TrafficTimeTag::TrafficTimeTag (Time senderTimestamp)
-  : m_senderTimestamp (senderTimestamp)
+TrafficTimeTag::TrafficTimeTag(Time senderTimestamp)
+    : m_senderTimestamp(senderTimestamp)
 {
-  // Nothing to do here
-}
-
-TypeId
-TrafficTimeTag::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::TrafficTimeTag")
-    .SetParent<Tag> ()
-    .AddConstructor<TrafficTimeTag> ();
-  return tid;
+    // Nothing to do here
 }
 
 TypeId
-TrafficTimeTag::GetInstanceTypeId (void) const
+TrafficTimeTag::GetTypeId(void)
 {
-  return GetTypeId ();
+    static TypeId tid =
+        TypeId("ns3::TrafficTimeTag").SetParent<Tag>().AddConstructor<TrafficTimeTag>();
+    return tid;
+}
+
+TypeId
+TrafficTimeTag::GetInstanceTypeId(void) const
+{
+    return GetTypeId();
 }
 
 uint32_t
-TrafficTimeTag::GetSerializedSize (void) const
+TrafficTimeTag::GetSerializedSize(void) const
 {
-  return sizeof(Time);
+    return sizeof(Time);
 }
 
 void
-TrafficTimeTag::Serialize (TagBuffer i) const
+TrafficTimeTag::Serialize(TagBuffer i) const
 {
-  int64_t senderTimestamp = m_senderTimestamp.GetNanoSeconds ();
-  i.Write ((const uint8_t *)&senderTimestamp, sizeof(int64_t));
+    int64_t senderTimestamp = m_senderTimestamp.GetNanoSeconds();
+    i.Write((const uint8_t*)&senderTimestamp, sizeof(int64_t));
 }
 
 void
-TrafficTimeTag::Deserialize (TagBuffer i)
+TrafficTimeTag::Deserialize(TagBuffer i)
 {
-  int64_t senderTimestamp;
-  i.Read ((uint8_t *)&senderTimestamp, 8);
-  m_senderTimestamp = NanoSeconds (senderTimestamp);
+    int64_t senderTimestamp;
+    i.Read((uint8_t*)&senderTimestamp, 8);
+    m_senderTimestamp = NanoSeconds(senderTimestamp);
 }
 
 void
-TrafficTimeTag::Print (std::ostream &os) const
+TrafficTimeTag::Print(std::ostream& os) const
 {
-  os << m_senderTimestamp;
+    os << m_senderTimestamp;
 }
 
 Time
-TrafficTimeTag::GetSenderTimestamp (void) const
+TrafficTimeTag::GetSenderTimestamp(void) const
 {
-  return m_senderTimestamp;
+    return m_senderTimestamp;
 }
 
 void
-TrafficTimeTag::SetSenderTimestamp (Time senderTimestamp)
+TrafficTimeTag::SetSenderTimestamp(Time senderTimestamp)
 {
-  this->m_senderTimestamp = senderTimestamp;
+    this->m_senderTimestamp = senderTimestamp;
 }
 
 } // namespace ns3
-

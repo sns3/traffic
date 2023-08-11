@@ -23,13 +23,15 @@
 #define NRTV_UDP_SERVER_H
 
 #include <ns3/address.h>
-#include <ns3/event-id.h>
-#include <ns3/callback.h>
-#include <ns3/traced-callback.h>
-#include <map>
 #include <ns3/application.h>
+#include <ns3/callback.h>
+#include <ns3/event-id.h>
+#include <ns3/traced-callback.h>
 
-namespace ns3 {
+#include <map>
+
+namespace ns3
+{
 
 class Packet;
 class Socket;
@@ -50,108 +52,107 @@ class NrtvVideoWorker;
  */
 class NrtvUdpServer : public Application
 {
-public:
-  /**
-   * \brief Creates a new instance of NRTV server application which operates
-   *        over UDP.
-   *
-   * After creation, the application must be further configured through
-   * attributes. To avoid having to do this process manually, please use one of
-   * the helper classes (either NrtvHelper or NrtvServerHelper).
-   */
-  NrtvUdpServer ();
+  public:
+    /**
+     * \brief Creates a new instance of NRTV server application which operates
+     *        over UDP.
+     *
+     * After creation, the application must be further configured through
+     * attributes. To avoid having to do this process manually, please use one of
+     * the helper classes (either NrtvHelper or NrtvServerHelper).
+     */
+    NrtvUdpServer();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Adds a client in remote address to the server memory.
-   *        a video worker instance will be created for the client.
-   *        Once server is started (or if it has already been started),
-   *        the video worker starts generating and sending packets.
-   *
-   * \param remoteAddress Address of the remote application.
-   * \param numberOfVideos Number of videos streamed to the client.
-   */
-  void AddClient (Address remoteAddress, uint32_t numberOfVideos = 1);
+    /**
+     * \brief Adds a client in remote address to the server memory.
+     *        a video worker instance will be created for the client.
+     *        Once server is started (or if it has already been started),
+     *        the video worker starts generating and sending packets.
+     *
+     * \param remoteAddress Address of the remote application.
+     * \param numberOfVideos Number of videos streamed to the client.
+     */
+    void AddClient(Address remoteAddress, uint32_t numberOfVideos = 1);
 
-  /**
-   * \return the address of the destination client
-   */
-  Address GetRemoteAddress () const;
+    /**
+     * \return the address of the destination client
+     */
+    Address GetRemoteAddress() const;
 
-  /**
-   * \return the destination port
-   */
-  uint16_t GetRemotePort () const;
+    /**
+     * \return the destination port
+     */
+    uint16_t GetRemotePort() const;
 
-  /// The possible states of the application.
-  enum State_t
-  {
-    NOT_STARTED = 0,  ///< Before StartApplication() is invoked.
-    STARTED,          ///< Transmitting video stream to the remote host.
-    STOPPED           ///< After StopApplication() is invoked.
-  };
+    /// The possible states of the application.
+    enum State_t
+    {
+        NOT_STARTED = 0, ///< Before StartApplication() is invoked.
+        STARTED,         ///< Transmitting video stream to the remote host.
+        STOPPED          ///< After StopApplication() is invoked.
+    };
 
-  /**
-   * \return the current state of the application
-   */
-  State_t GetState () const;
+    /**
+     * \return the current state of the application
+     */
+    State_t GetState() const;
 
-  /**
-   * \return the current state of the application in string format
-   */
-  std::string GetStateString () const;
+    /**
+     * \return the current state of the application in string format
+     */
+    std::string GetStateString() const;
 
-  /**
-   * \param state an arbitrary state of an application
-   * \return the state equivalently expressed in string format
-   */
-  static std::string GetStateString (State_t state);
+    /**
+     * \param state an arbitrary state of an application
+     * \return the state equivalently expressed in string format
+     */
+    static std::string GetStateString(State_t state);
 
-protected:
-  // Inherited from Object base class
-  virtual void DoDispose ();
+  protected:
+    // Inherited from Object base class
+    virtual void DoDispose();
 
-  // Inherited from Application base class
-  virtual void StartApplication ();
-  virtual void StopApplication ();
+    // Inherited from Application base class
+    virtual void StartApplication();
+    virtual void StopApplication();
 
-private:
-  /// Invoked by NrtvVideoWorker instance after transmitting a video slice.
-  void NotifyTxSlice (Ptr<Socket> socket, Ptr<const Packet> packet);
+  private:
+    /// Invoked by NrtvVideoWorker instance after transmitting a video slice.
+    void NotifyTxSlice(Ptr<Socket> socket, Ptr<const Packet> packet);
 
-  /// Invoked by NrtvVideoWorker instance after completed a video.
-  void NotifyVideoCompleted (Ptr<Socket> socket);
+    /// Invoked by NrtvVideoWorker instance after completed a video.
+    void NotifyVideoCompleted(Ptr<Socket> socket);
 
-  /**
-   * Add a video worker for the socket. Socket is assumed to be
-   * bound to remote address.
-   */
-  void AddVideoWorker (Ptr<Socket> socket);
+    /**
+     * Add a video worker for the socket. Socket is assumed to be
+     * bound to remote address.
+     */
+    void AddVideoWorker(Ptr<Socket> socket);
 
-  /**
-   * Switches the state of the application.
-   */
-  void SwitchToState (State_t state);
+    /**
+     * Switches the state of the application.
+     */
+    void SwitchToState(State_t state);
 
-  State_t                                        m_state;         ///< Internal state of the application
-  std::map<Ptr<Socket>, uint32_t >               videosLeft;      ///< Videos left to be streamed to the socket.
-  std::map<Ptr<Socket>, Ptr<NrtvVideoWorker> >   m_workers;       ///< Worker memory
-  Ptr<NrtvVariables>                             m_nrtvVariables; ///< Nrtv variable collection of this instance
+    State_t m_state;                            ///< Internal state of the application
+    std::map<Ptr<Socket>, uint32_t> videosLeft; ///< Videos left to be streamed to the socket.
+    std::map<Ptr<Socket>, Ptr<NrtvVideoWorker>> m_workers; ///< Worker memory
+    Ptr<NrtvVariables> m_nrtvVariables; ///< Nrtv variable collection of this instance
 
-  // ATTRIBUTES
+    // ATTRIBUTES
 
-  uint16_t  m_remotePort;
+    uint16_t m_remotePort;
 
-  // TRACE SOURCES
+    // TRACE SOURCES
 
-  TracedCallback<Ptr<const Packet> >        m_txTrace;
-  TracedCallback<std::string, std::string>  m_stateTransitionTrace;
+    TracedCallback<Ptr<const Packet>> m_txTrace;
+    TracedCallback<std::string, std::string> m_stateTransitionTrace;
 
 }; // end of `class NrtvUdpServer`
 
-
-} // end of `namespace ns3`
+} // namespace ns3
 
 #endif /* NRTV_UDP_SERVER_H */

@@ -20,292 +20,271 @@
  */
 
 #include "nrtv-udp-server.h"
-#include <ns3/log.h>
-#include <ns3/simulator.h>
-#include <ns3/nstime.h>
-#include <ns3/pointer.h>
-#include <ns3/uinteger.h>
+
+#include <ns3/address-utils.h>
 #include <ns3/boolean.h>
+#include <ns3/inet-socket-address.h>
+#include <ns3/inet6-socket-address.h>
+#include <ns3/ipv4-address.h>
+#include <ns3/ipv6-address.h>
+#include <ns3/log.h>
+#include <ns3/nrtv-variables.h>
+#include <ns3/nrtv-video-worker.h>
+#include <ns3/nstime.h>
 #include <ns3/packet.h>
+#include <ns3/pointer.h>
+#include <ns3/simulator.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/udp-socket-factory.h>
-#include <ns3/address-utils.h>
-#include <ns3/ipv4-address.h>
-#include <ns3/ipv6-address.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/inet6-socket-address.h>
-#include <ns3/nrtv-variables.h>
-#include <ns3/nrtv-video-worker.h>
+#include <ns3/uinteger.h>
 #include <ns3/unused.h>
 
+NS_LOG_COMPONENT_DEFINE("NrtvUdpServer");
 
-NS_LOG_COMPONENT_DEFINE ("NrtvUdpServer");
-
-
-namespace ns3 {
-
-
-NS_OBJECT_ENSURE_REGISTERED (NrtvUdpServer);
-
-
-NrtvUdpServer::NrtvUdpServer ()
-  : m_state (NOT_STARTED),
-    m_remotePort (0)
+namespace ns3
 {
-  NS_LOG_FUNCTION (this);
-  m_nrtvVariables = CreateObject<NrtvVariables> ();
-}
 
+NS_OBJECT_ENSURE_REGISTERED(NrtvUdpServer);
+
+NrtvUdpServer::NrtvUdpServer()
+    : m_state(NOT_STARTED),
+      m_remotePort(0)
+{
+    NS_LOG_FUNCTION(this);
+    m_nrtvVariables = CreateObject<NrtvVariables>();
+}
 
 TypeId
-NrtvUdpServer::GetTypeId ()
+NrtvUdpServer::GetTypeId()
 {
-  static TypeId tid = TypeId ("ns3::NrtvUdpServer")
-    .SetParent<Application> ()
-    .AddConstructor<NrtvUdpServer> ()
-    .AddAttribute ("Variables",
-                   "Pointer to random number generator",
-                   PointerValue (),
-                   MakePointerAccessor (&NrtvUdpServer::m_nrtvVariables),
-                   MakePointerChecker<NrtvVariables> ())
-    .AddAttribute ("RemotePort",
-                   "The destination port of the outbound packets",
-                   UintegerValue (1935), // the default port for Adobe Flash video
-                   MakeUintegerAccessor (&NrtvUdpServer::m_remotePort),
-                   MakeUintegerChecker<uint16_t> ())
-    .AddTraceSource ("Tx",
-                     "A packet has been sent",
-                     MakeTraceSourceAccessor (&NrtvUdpServer::m_txTrace),
-                     "ns3::Packet::TracedCallback")
-    .AddTraceSource ("StateTransition",
-                     "Trace fired upon every NRTV UDP server state transition",
-                     MakeTraceSourceAccessor (&NrtvUdpServer::m_stateTransitionTrace),
-                     "ns3::NrtvVariables::StateTransitionCallback")
-  ;
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::NrtvUdpServer")
+            .SetParent<Application>()
+            .AddConstructor<NrtvUdpServer>()
+            .AddAttribute("Variables",
+                          "Pointer to random number generator",
+                          PointerValue(),
+                          MakePointerAccessor(&NrtvUdpServer::m_nrtvVariables),
+                          MakePointerChecker<NrtvVariables>())
+            .AddAttribute("RemotePort",
+                          "The destination port of the outbound packets",
+                          UintegerValue(1935), // the default port for Adobe Flash video
+                          MakeUintegerAccessor(&NrtvUdpServer::m_remotePort),
+                          MakeUintegerChecker<uint16_t>())
+            .AddTraceSource("Tx",
+                            "A packet has been sent",
+                            MakeTraceSourceAccessor(&NrtvUdpServer::m_txTrace),
+                            "ns3::Packet::TracedCallback")
+            .AddTraceSource("StateTransition",
+                            "Trace fired upon every NRTV UDP server state transition",
+                            MakeTraceSourceAccessor(&NrtvUdpServer::m_stateTransitionTrace),
+                            "ns3::NrtvVariables::StateTransitionCallback");
+    return tid;
 }
-
 
 uint16_t
-NrtvUdpServer::GetRemotePort () const
+NrtvUdpServer::GetRemotePort() const
 {
-  return m_remotePort;
+    return m_remotePort;
 }
-
 
 NrtvUdpServer::State_t
-NrtvUdpServer::GetState () const
+NrtvUdpServer::GetState() const
 {
-  return m_state;
+    return m_state;
 }
 
-
 std::string
-NrtvUdpServer::GetStateString () const
+NrtvUdpServer::GetStateString() const
 {
-  return GetStateString (m_state);
+    return GetStateString(m_state);
 }
 
-
 std::string
-NrtvUdpServer::GetStateString (NrtvUdpServer::State_t state)
+NrtvUdpServer::GetStateString(NrtvUdpServer::State_t state)
 {
-  switch (state)
+    switch (state)
     {
     case NOT_STARTED:
-      return "NOT_STARTED";
-      break;
+        return "NOT_STARTED";
+        break;
     case STARTED:
-      return "STARTED";
-      break;
+        return "STARTED";
+        break;
     case STOPPED:
-      return "STOPPED";
-      break;
+        return "STOPPED";
+        break;
     default:
-      NS_FATAL_ERROR ("Unknown state");
-      return "";
-      break;
+        NS_FATAL_ERROR("Unknown state");
+        return "";
+        break;
     }
 }
 
-
 void
-NrtvUdpServer::DoDispose ()
+NrtvUdpServer::DoDispose()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  if (!Simulator::IsFinished ()) // guard against canceling out-of-bound events
+    if (!Simulator::IsFinished()) // guard against canceling out-of-bound events
     {
-      StopApplication ();
+        StopApplication();
     }
 
-  Application::DoDispose (); // chain up
+    Application::DoDispose(); // chain up
 }
 
-
 void
-NrtvUdpServer::StartApplication ()
+NrtvUdpServer::StartApplication()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  if (m_state == NOT_STARTED)
+    if (m_state == NOT_STARTED)
     {
-      SwitchToState (STARTED);
-      NS_LOG_INFO (this << " NRTV UDP server was started - "
-      									<< " Starting workers...");
+        SwitchToState(STARTED);
+        NS_LOG_INFO(this << " NRTV UDP server was started - "
+                         << " Starting workers...");
 
-      for (auto w = m_workers.begin (); w != m_workers.end (); w++)
+        for (auto w = m_workers.begin(); w != m_workers.end(); w++)
         {
-          Simulator::Schedule (m_nrtvVariables->GetConnectionOpenDelay (),
-      		  	                 &NrtvVideoWorker::ChangeState,
-          	  								 w->second, NrtvVideoWorker::READY);
+            Simulator::Schedule(m_nrtvVariables->GetConnectionOpenDelay(),
+                                &NrtvVideoWorker::ChangeState,
+                                w->second,
+                                NrtvVideoWorker::READY);
         }
     }
-  else
+    else
     {
-      NS_LOG_WARN (this << " invalid state " << GetStateString ()
-                        << " for StartApplication");
+        NS_LOG_WARN(this << " invalid state " << GetStateString() << " for StartApplication");
     }
 
 } // end of `void StartApplication ()`
 
-
 void
-NrtvUdpServer::StopApplication ()
+NrtvUdpServer::StopApplication()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  if (m_state == STOPPED)
+    if (m_state == STOPPED)
     {
-      NS_LOG_ERROR ("Cannot stop stopped NrtvUdpServer application.");
-      return;
+        NS_LOG_ERROR("Cannot stop stopped NrtvUdpServer application.");
+        return;
     }
 
-  SwitchToState (STOPPED);
+    SwitchToState(STOPPED);
 
-  // close all accepted sockets
-  for (std::map<Ptr<Socket>, Ptr<NrtvVideoWorker> >::iterator it = m_workers.begin ();
-       it != m_workers.end (); ++it)
+    // close all accepted sockets
+    for (std::map<Ptr<Socket>, Ptr<NrtvVideoWorker>>::iterator it = m_workers.begin();
+         it != m_workers.end();
+         ++it)
     {
-      it->first->Close ();
-      it->first->SetSendCallback (MakeNullCallback<void, Ptr<Socket>, uint32_t > ());
+        it->first->Close();
+        it->first->SetSendCallback(MakeNullCallback<void, Ptr<Socket>, uint32_t>());
     }
-  // Clear video workers
-  m_workers.clear ();
-
+    // Clear video workers
+    m_workers.clear();
 }
 
-
 void
-NrtvUdpServer::NotifyTxSlice (Ptr<Socket> socket, Ptr<const Packet> packet)
+NrtvUdpServer::NotifyTxSlice(Ptr<Socket> socket, Ptr<const Packet> packet)
 {
-  NS_LOG_FUNCTION (this << socket << packet << packet->GetSize ());
-  NS_LOG_INFO ("NrtvUdpServer sent " << packet->GetSize () << " bytes.");
-  m_txTrace (packet);
+    NS_LOG_FUNCTION(this << socket << packet << packet->GetSize());
+    NS_LOG_INFO("NrtvUdpServer sent " << packet->GetSize() << " bytes.");
+    m_txTrace(packet);
 }
 
-
 void
-NrtvUdpServer::NotifyVideoCompleted (Ptr<Socket> socket)
+NrtvUdpServer::NotifyVideoCompleted(Ptr<Socket> socket)
 {
-  NS_LOG_FUNCTION (this << socket);
+    NS_LOG_FUNCTION(this << socket);
 
-  auto it = m_workers.find (socket);
-  NS_ASSERT (it != m_workers.end ());
-  m_workers.erase (it); // this will destroy the worker
-  videosLeft[socket]--;
+    auto it = m_workers.find(socket);
+    NS_ASSERT(it != m_workers.end());
+    m_workers.erase(it); // this will destroy the worker
+    videosLeft[socket]--;
 
-  if (videosLeft[socket] == 0)
+    if (videosLeft[socket] == 0)
     {
-      socket->Close ();
-      NS_LOG_LOGIC (this << " a video has just completed. "
-                        " The client is now disconnected.");
+        socket->Close();
+        NS_LOG_LOGIC(this << " a video has just completed. "
+                             " The client is now disconnected.");
 
-      return;
+        return;
     }
 
-  // Socket was not closed, so we will re-use it for the next video.
-  // This has to be done since there is no connection between UDP
-  // client and server, and client (PacketSink) does not have
-  // capability to request a new video.
+    // Socket was not closed, so we will re-use it for the next video.
+    // This has to be done since there is no connection between UDP
+    // client and server, and client (PacketSink) does not have
+    // capability to request a new video.
 
-  // Wait until the next video.
-  const Time idleTime = m_nrtvVariables->GetIdleTime ();
-  NS_LOG_LOGIC (this << " a video has just completed, now waiting for "
-                     << idleTime.GetSeconds () << " seconds before the next video");
+    // Wait until the next video.
+    const Time idleTime = m_nrtvVariables->GetIdleTime();
+    NS_LOG_LOGIC(this << " a video has just completed, now waiting for " << idleTime.GetSeconds()
+                      << " seconds before the next video");
 
-  Simulator::Schedule (idleTime,
-                       &NrtvUdpServer::AddVideoWorker,
-                       this,
-                       socket);
+    Simulator::Schedule(idleTime, &NrtvUdpServer::AddVideoWorker, this, socket);
 }
 
-
 void
-NrtvUdpServer::AddClient (Address remoteAddress, uint32_t numberOfVideos)
+NrtvUdpServer::AddClient(Address remoteAddress, uint32_t numberOfVideos)
 {
-  NS_LOG_FUNCTION (this << remoteAddress);
+    NS_LOG_FUNCTION(this << remoteAddress);
 
-  Ptr<Socket> socket = Socket::CreateSocket (GetNode (),
-                                             UdpSocketFactory::GetTypeId ());
-  int ret;
+    Ptr<Socket> socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+    int ret;
 
-  if (Ipv4Address::IsMatchingType (remoteAddress))
+    if (Ipv4Address::IsMatchingType(remoteAddress))
     {
-      ret = socket->Bind ();
-      NS_LOG_DEBUG (this << " Bind() return value= " << ret
-                         << " GetErrNo= " << socket->GetErrno ());
-      Ipv4Address addr = Ipv4Address::ConvertFrom (remoteAddress);
-      socket->Connect (InetSocketAddress (addr, m_remotePort));
+        ret = socket->Bind();
+        NS_LOG_DEBUG(this << " Bind() return value= " << ret
+                          << " GetErrNo= " << socket->GetErrno());
+        Ipv4Address addr = Ipv4Address::ConvertFrom(remoteAddress);
+        socket->Connect(InetSocketAddress(addr, m_remotePort));
     }
-  else if (Ipv6Address::IsMatchingType (remoteAddress))
+    else if (Ipv6Address::IsMatchingType(remoteAddress))
     {
-      ret = socket->Bind6 ();
-      NS_LOG_DEBUG (this << " Bind6() return value= " << ret
-                         << " GetErrNo= " << socket->GetErrno ());
-      Ipv6Address addr = Ipv6Address::ConvertFrom (remoteAddress);
-      socket->Connect (Inet6SocketAddress (addr, m_remotePort));
+        ret = socket->Bind6();
+        NS_LOG_DEBUG(this << " Bind6() return value= " << ret
+                          << " GetErrNo= " << socket->GetErrno());
+        Ipv6Address addr = Ipv6Address::ConvertFrom(remoteAddress);
+        socket->Connect(Inet6SocketAddress(addr, m_remotePort));
     }
 
-  // NS_UNUSED (ret);
+    // NS_UNUSED (ret);
 
-  // Create an entry of how many videos are to be streamed to this socket
-  // before disconnecting.
-  videosLeft[socket] = numberOfVideos;
+    // Create an entry of how many videos are to be streamed to this socket
+    // before disconnecting.
+    videosLeft[socket] = numberOfVideos;
 
-  // Assign video worker for the socket
-  AddVideoWorker (socket);
+    // Assign video worker for the socket
+    AddVideoWorker(socket);
 
-  NS_LOG_INFO ("NrtvUdpServer will stream " << numberOfVideos
-               << " videos to " << remoteAddress);
+    NS_LOG_INFO("NrtvUdpServer will stream " << numberOfVideos << " videos to " << remoteAddress);
 } // end of `void AddClient ()`
 
 void
-NrtvUdpServer::AddVideoWorker (Ptr<Socket> socket)
+NrtvUdpServer::AddVideoWorker(Ptr<Socket> socket)
 {
-  Ptr<NrtvVideoWorker> worker = CreateObject<NrtvVideoWorker> (socket);
-  m_workers[socket] = worker;
-  worker->SetTxCallback (
-      MakeCallback (&NrtvUdpServer::NotifyTxSlice, this));
-  worker->SetVideoCompletedCallback (
-      MakeCallback (&NrtvUdpServer::NotifyVideoCompleted, this));
-  if (GetState () == STARTED)
+    Ptr<NrtvVideoWorker> worker = CreateObject<NrtvVideoWorker>(socket);
+    m_workers[socket] = worker;
+    worker->SetTxCallback(MakeCallback(&NrtvUdpServer::NotifyTxSlice, this));
+    worker->SetVideoCompletedCallback(MakeCallback(&NrtvUdpServer::NotifyVideoCompleted, this));
+    if (GetState() == STARTED)
     {
-      worker->ChangeState (NrtvVideoWorker::READY);
+        worker->ChangeState(NrtvVideoWorker::READY);
     }
 }
 
 void
-NrtvUdpServer::SwitchToState (NrtvUdpServer::State_t state)
+NrtvUdpServer::SwitchToState(NrtvUdpServer::State_t state)
 {
-  const std::string oldState = GetStateString ();
-  const std::string newState = GetStateString (state);
-  NS_LOG_FUNCTION (this << oldState << newState);
-  m_state = state;
-  NS_LOG_INFO (this << " NrtvUdpServer " << oldState << " --> " << newState);
-  m_stateTransitionTrace (oldState, newState);
+    const std::string oldState = GetStateString();
+    const std::string newState = GetStateString(state);
+    NS_LOG_FUNCTION(this << oldState << newState);
+    m_state = state;
+    NS_LOG_INFO(this << " NrtvUdpServer " << oldState << " --> " << newState);
+    m_stateTransitionTrace(oldState, newState);
 }
 
-
-} // end of `namespace ns3`
+} // namespace ns3

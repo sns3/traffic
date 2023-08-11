@@ -22,16 +22,16 @@
 #ifndef APPLICATION_STATS_DELAY_HELPER_H
 #define APPLICATION_STATS_DELAY_HELPER_H
 
-#include <ns3/application-stats-helper.h>
-#include <ns3/ptr.h>
 #include <ns3/address.h>
+#include <ns3/application-stats-helper.h>
 #include <ns3/collector-map.h>
+#include <ns3/ptr.h>
+
 #include <list>
 #include <map>
 
-
-namespace ns3 {
-
+namespace ns3
+{
 
 // BASE CLASS /////////////////////////////////////////////////////////////////
 
@@ -45,72 +45,69 @@ class DataCollectionObject;
  */
 class ApplicationStatsDelayHelper : public ApplicationStatsHelper
 {
-public:
-  // inherited from ApplicationStatsHelper base class
-  ApplicationStatsDelayHelper ();
+  public:
+    // inherited from ApplicationStatsHelper base class
+    ApplicationStatsDelayHelper();
 
-  /// Destructor.
-  virtual ~ApplicationStatsDelayHelper ();
+    /// Destructor.
+    virtual ~ApplicationStatsDelayHelper();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Receive inputs from trace sources and determine the right collector
-   *        to forward the inputs to.
-   * \param delay packet delay.
-   * \param from the address of the sender of the packet.
-   *
-   * Utilized to replace the role of probes when `SENDER` identifier is active.
-   * The second argument contains the address of the packet sender, which is
-   * then matched with the internal lookup table (pre-filled during Install())
-   * to get an identifier value. The packet size is then forwarded to the
-   * collector which has the same identifier.
-   */
-  void RxDelayCallback (Time delay, const Address &from);
+    /**
+     * \brief Receive inputs from trace sources and determine the right collector
+     *        to forward the inputs to.
+     * \param delay packet delay.
+     * \param from the address of the sender of the packet.
+     *
+     * Utilized to replace the role of probes when `SENDER` identifier is active.
+     * The second argument contains the address of the packet sender, which is
+     * then matched with the internal lookup table (pre-filled during Install())
+     * to get an identifier value. The packet size is then forwarded to the
+     * collector which has the same identifier.
+     */
+    void RxDelayCallback(Time delay, const Address& from);
 
-protected:
-  // inherited from ApplicationStatsHelper base class
-  virtual void DoInstall ();
+  protected:
+    // inherited from ApplicationStatsHelper base class
+    virtual void DoInstall();
 
-private:
-  /**
-   * \brief Associate the given application's IPv4 address with the given
-   *        identifier.
-   * \param application an application instance.
-   * \param identifier the number to be associated with.
-   *
-   * Any IPv4 address(es) which belong to the Node of the given application
-   * will be saved in the #m_identifierMap member variable. Used only with
-   * `SENDER` identifier.
-   */
-  void SaveAddressAndIdentifier (Ptr<Application> application,
-                                 uint32_t identifier);
+  private:
+    /**
+     * \brief Associate the given application's IPv4 address with the given
+     *        identifier.
+     * \param application an application instance.
+     * \param identifier the number to be associated with.
+     *
+     * Any IPv4 address(es) which belong to the Node of the given application
+     * will be saved in the #m_identifierMap member variable. Used only with
+     * `SENDER` identifier.
+     */
+    void SaveAddressAndIdentifier(Ptr<Application> application, uint32_t identifier);
 
-  /**
-   * \brief Find a collector with the right identifier and pass a sample data
-   *        to it.
-   * \param delay packet delay.
-   * \param identifier collector identifier.
-   */
-  void PassSampleToCollector (Time delay, uint32_t identifier);
+    /**
+     * \brief Find a collector with the right identifier and pass a sample data
+     *        to it.
+     * \param delay packet delay.
+     * \param identifier collector identifier.
+     */
+    void PassSampleToCollector(Time delay, uint32_t identifier);
 
-  /// Maintains a list of probes created by this helper.
-  std::list<Ptr<Probe> > m_probes;
+    /// Maintains a list of probes created by this helper.
+    std::list<Ptr<Probe>> m_probes;
 
-  /// Maintains a list of collectors created by this helper.
-  CollectorMap m_terminalCollectors;
+    /// Maintains a list of collectors created by this helper.
+    CollectorMap m_terminalCollectors;
 
-  /// The aggregator created by this helper.
-  Ptr<DataCollectionObject> m_aggregator;
+    /// The aggregator created by this helper.
+    Ptr<DataCollectionObject> m_aggregator;
 
-  /// Map of address and the `SENDER` identifier associated with it.
-  std::map<const Address, uint32_t> m_identifierMap;
+    /// Map of address and the `SENDER` identifier associated with it.
+    std::map<const Address, uint32_t> m_identifierMap;
 
 }; // end of class ApplicationStatsDelayHelper
 
-
 } // end of namespace ns3
-
 
 #endif /* APPLICATION_STATS_DELAY_HELPER_H */

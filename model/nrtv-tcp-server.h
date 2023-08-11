@@ -23,19 +23,18 @@
 #define NRTV_TCP_SERVER_H
 
 #include <ns3/address.h>
+#include <ns3/application.h>
 #include <ns3/nstime.h>
 #include <ns3/traced-callback.h>
+
 #include <map>
-#include <ns3/application.h>
 
-
-namespace ns3 {
-
+namespace ns3
+{
 
 class Socket;
 class NrtvVariables;
 class NrtvVideoWorker;
-
 
 /**
  * \ingroup nrtv
@@ -54,100 +53,96 @@ class NrtvVideoWorker;
  */
 class NrtvTcpServer : public Application
 {
-public:
+  public:
+    /**
+     * \brief Creates a new instance of NRTV server application which operates
+     *        over TCP.
+     *
+     * After creation, the application must be further configured through
+     * attributes. To avoid having to do this process manually, please use one of
+     * the helper classes (either NrtvHelper or NrtvTcpServerHelper).
+     */
+    NrtvTcpServer();
 
-  /**
-   * \brief Creates a new instance of NRTV server application which operates
-   *        over TCP.
-   *
-   * After creation, the application must be further configured through
-   * attributes. To avoid having to do this process manually, please use one of
-   * the helper classes (either NrtvHelper or NrtvTcpServerHelper).
-   */
-  NrtvTcpServer ();
+    // inherited from ObjectBase base class
+    static TypeId GetTypeId();
 
-  // inherited from ObjectBase base class
-  static TypeId GetTypeId ();
+    /**
+     * \return the address bound to the server
+     */
+    Address GetLocalAddress() const;
 
-  /**
-   * \return the address bound to the server
-   */
-  Address GetLocalAddress () const;
+    /**
+     * \return the port the server listens to
+     */
+    uint16_t GetLocalPort() const;
 
-  /**
-   * \return the port the server listens to
-   */
-  uint16_t GetLocalPort () const;
+    /// The possible states of the application.
+    enum State_t
+    {
+        NOT_STARTED = 0, ///< Before StartApplication() is invoked.
+        STARTED,         ///< Passively waiting for connections and/or actively sending videos.
+        STOPPED          ///< After StopApplication() is invoked.
+    };
 
-  /// The possible states of the application.
-  enum State_t
-  {
-    NOT_STARTED = 0,  ///< Before StartApplication() is invoked.
-    STARTED,          ///< Passively waiting for connections and/or actively sending videos.
-    STOPPED           ///< After StopApplication() is invoked.
-  };
+    /**
+     * \return the current state of the application
+     */
+    State_t GetState() const;
 
-  /**
-   * \return the current state of the application
-   */
-  State_t GetState () const;
+    /**
+     * \return the current state of the application in string format
+     */
+    std::string GetStateString() const;
 
-  /**
-   * \return the current state of the application in string format
-   */
-  std::string GetStateString () const;
+    /**
+     * \param state an arbitrary state of an application
+     * \return the state equivalently expressed in string format
+     */
+    static std::string GetStateString(State_t state);
 
-  /**
-   * \param state an arbitrary state of an application
-   * \return the state equivalently expressed in string format
-   */
-  static std::string GetStateString (State_t state);
+  protected:
+    // Inherited from Object base class
+    virtual void DoDispose();
 
-protected:
-  // Inherited from Object base class
-  virtual void DoDispose ();
+    // Inherited from Application base class
+    virtual void StartApplication();
+    virtual void StopApplication();
 
-  // Inherited from Application base class
-  virtual void StartApplication ();
-  virtual void StopApplication ();
+  private:
+    // LISTENER SOCKET CALLBACK METHODS
+    bool ConnectionRequestCallback(Ptr<Socket> socket, const Address& address);
+    void NewConnectionCreatedCallback(Ptr<Socket> socket, const Address& address);
 
-private:
-  // LISTENER SOCKET CALLBACK METHODS
-  bool ConnectionRequestCallback (Ptr<Socket> socket, const Address & address);
-  void NewConnectionCreatedCallback (Ptr<Socket> socket,
-                                     const Address & address);
+    void NormalCloseCallback(Ptr<Socket> socket);
+    void ErrorCloseCallback(Ptr<Socket> socket);
 
-  void NormalCloseCallback (Ptr<Socket> socket);
-  void ErrorCloseCallback (Ptr<Socket> socket);
+    /// Invoked by NrtvVideoWorker instance after transmitting a video slice.
+    void NotifyTxSlice(Ptr<Socket> socket, Ptr<const Packet> packet);
 
-  /// Invoked by NrtvVideoWorker instance after transmitting a video slice.
-  void NotifyTxSlice (Ptr<Socket> socket, Ptr<const Packet> packet);
+    /// Invoked by NrtvVideoWorker instance after completed a video.
+    void NotifyVideoCompleted(Ptr<Socket> socket);
 
-  /// Invoked by NrtvVideoWorker instance after completed a video.
-  void NotifyVideoCompleted (Ptr<Socket> socket);
+    void SwitchToState(State_t state);
 
-  void SwitchToState (State_t state);
+    State_t m_state;
+    Ptr<Socket> m_initialSocket;
 
-  State_t               m_state;
-  Ptr<Socket>           m_initialSocket;
+    /// Keeping all the active workers.
+    std::map<Ptr<Socket>, Ptr<NrtvVideoWorker>> m_workers;
 
-  /// Keeping all the active workers.
-  std::map<Ptr<Socket>, Ptr<NrtvVideoWorker> > m_workers;
+    // ATTRIBUTES
 
-  // ATTRIBUTES
+    Address m_localAddress;
+    uint16_t m_localPort;
 
-  Address             m_localAddress;
-  uint16_t            m_localPort;
+    // TRACE SOURCES
 
-  // TRACE SOURCES
-
-  TracedCallback<Ptr<const Packet> >        m_txTrace;
-  TracedCallback<std::string, std::string>  m_stateTransitionTrace;
+    TracedCallback<Ptr<const Packet>> m_txTrace;
+    TracedCallback<std::string, std::string> m_stateTransitionTrace;
 
 }; // end of `class NrtvTcpServer`
 
-
-} // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif /* NRTV_TCP_SERVER_H */

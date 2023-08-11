@@ -6,8 +6,8 @@
 Model Description
 *****************
 
-The model is a part of the applications library. The HTTP model is based on a commonly 
-used 3GPP model in standardization `[4]`_. 
+The model is a part of the applications library. The HTTP model is based on a commonly
+used 3GPP model in standardization `[4]`_.
 
 Design
 ======
@@ -49,7 +49,7 @@ and :ref:`fig-http-embedded-object-size`.
 A major portion of the traffic pattern is *reading time*, which does not
 generate any traffic. Because of this, one may need to simulate a good
 number of clients and/or sufficiently long simulation duration in order to
-generate any significant traffic in the system. Reading time is illustrated in 
+generate any significant traffic in the system. Reading time is illustrated in
 :ref:`fig-http-reading-time`.
 
 .. _fig-http-reading-time:
@@ -83,12 +83,12 @@ served and the number of bytes left to be sent.
 The application accepts connection request from clients. Every connection is
 kept open until the client disconnects.
 
-Maximum transmission unit (MTU) size is configurable in ``ThreeGppHttpServer`` or in 
-``ThreeGppHttpVariables``. By default, the low variant is 536 bytes and high variant is 1460 bytes. 
-The default values are set with the intention of having a TCP header (size of which is 40 bytes) added 
-in the packet in such way that lower layers can avoid splitting packets. The change of MTU sizes 
-affects all TCP sockets after the server application has started. It is mainly visible in sizes of 
-packets received by ``ThreeGppHttpClient`` applications. 
+Maximum transmission unit (MTU) size is configurable in ``ThreeGppHttpServer`` or in
+``ThreeGppHttpVariables``. By default, the low variant is 536 bytes and high variant is 1460 bytes.
+The default values are set with the intention of having a TCP header (size of which is 40 bytes) added
+in the packet in such way that lower layers can avoid splitting packets. The change of MTU sizes
+affects all TCP sockets after the server application has started. It is mainly visible in sizes of
+packets received by ``ThreeGppHttpClient`` applications.
 
 3GPP HTTP client description
 ############################
@@ -103,10 +103,10 @@ In summary, the application works as follows.
 2. After the connection is established, the application immediately requests
    a *main object* from the server by sending a request packet.
 3. After receiving a main object (which can take some time if it consists of
-   several packets), the application "parses" the main object. Parsing time 
+   several packets), the application "parses" the main object. Parsing time
    is illustrated in figure :ref:`fig-http-parsing-time`.
 4. The parsing takes a short time (randomly determined) to determine the
-   number of *embedded objects* (also randomly determined) in the web page. 
+   number of *embedded objects* (also randomly determined) in the web page.
    Number of embedded object is illustrated in :ref:`fig-http-num-of-embedded-objects`.
     - If at least one embedded object is determined, the application requests
       the first embedded object from the server. The request for the next
@@ -126,7 +126,7 @@ In summary, the application works as follows.
 
    3GPP HTTP parsing time histogram
 
-.. _fig-http-num-of-embedded-objects: 
+.. _fig-http-num-of-embedded-objects:
 
 .. figure:: figures/http-num-of-embedded-objects.*
    :figwidth: 15cm
@@ -147,8 +147,8 @@ compute the delay and RTT of the packet).
 References
 ==========
 
-Many aspects of the traffic are randomly determined by ``ThreeGppHttpVariables``. 
-A separate instance of this object is used by the HTTP server and client applications. 
+Many aspects of the traffic are randomly determined by ``ThreeGppHttpVariables``.
+A separate instance of this object is used by the HTTP server and client applications.
 These characteristics are based on a legacy 3GPP specification. The description
 can be found in the following references:
 
@@ -158,7 +158,7 @@ can be found in the following references:
 
 [1] 3GPP TR 25.892, "Feasibility Study for Orthogonal Frequency Division Multiplexing (OFDM) for UTRAN enhancement"
 
-\ 
+\
 
 .. _`[2]`:
 
@@ -181,27 +181,27 @@ can be found in the following references:
 Usage
 *****
 
-The three-gpp-http-example can be referenced to see basic usage of the HTTP applications. 
-In summary, using the ``ThreeGppHttpServerHelper`` and ``ThreeGppHttpClientHelper`` allow the 
+The three-gpp-http-example can be referenced to see basic usage of the HTTP applications.
+In summary, using the ``ThreeGppHttpServerHelper`` and ``ThreeGppHttpClientHelper`` allow the
 user to easily install ``ThreeGppHttpServer`` and ``ThreeGppHttpClient`` applications to nodes.
 The helper objects can be used to configure attribute values for the client
-and server objects, but not for the ``ThreeGppHttpVariables`` object. Configuration of variables 
-is done by modifying attributes of ``ThreeGppHttpVariables``, which should be done prior to helpers 
-installing applications to nodes. 
+and server objects, but not for the ``ThreeGppHttpVariables`` object. Configuration of variables
+is done by modifying attributes of ``ThreeGppHttpVariables``, which should be done prior to helpers
+installing applications to nodes.
 
 The client and server provide a number of ns-3 trace sources such as
 "Tx", "Rx", "RxDelay", and "StateTransition" on the server side, and a large
 number on the client side ("ConnectionEstablished",
 "ConnectionClosed","TxMainObjectRequest", "TxEmbeddedObjectRequest",
 "RxMainObjectPacket", "RxMainObject", "RxEmbeddedObjectPacket",
-"RxEmbeddedObject", "Rx", "RxDelay", "RxRtt", "StateTransition"). 
+"RxEmbeddedObject", "Rx", "RxDelay", "RxRtt", "StateTransition").
 
 
-Building the 3GPP HTTP applications 
+Building the 3GPP HTTP applications
 ===================================
 
-Building the applications does not require any special steps to be taken. It suffices to enable 
-the applications module. 
+Building the applications does not require any special steps to be taken. It suffices to enable
+the applications module.
 
 Examples
 ========
@@ -211,8 +211,8 @@ run::
 
   $ ./waf --run 'three-gpp-http-example'
 
-By default, the example will print out the web page requests of the client and responses of the 
-server and client receiving content packets by using LOG_INFO of ``ThreeGppHttpServer`` and ``ThreeGppHttpClient``. 
+By default, the example will print out the web page requests of the client and responses of the
+server and client receiving content packets by using LOG_INFO of ``ThreeGppHttpServer`` and ``ThreeGppHttpClient``.
 
 Tests
 =====
@@ -220,13 +220,13 @@ Tests
 For testing HTTP applications, three-gpp-http-client-server-test is provided. Run::
 
   $ ./test.py -s three-gpp-http-client-server-test
-  
-The test consists of simple Internet nodes having HTTP server and client applications installed. 
-Multiple variant scenarios are tested: delay is 3ms, 30ms or 300ms, bit error rate 0 or 5.0*10^(-6), 
-MTU size 536 or 1460 bytes and either IPV4 or IPV6 is used. A simulation with each combination of 
-these parameters is run multiple times to verify functionality with different random variables. 
 
-Test cases themselves are rather simple: test verifies that HTTP object packet bytes sent match 
+The test consists of simple Internet nodes having HTTP server and client applications installed.
+Multiple variant scenarios are tested: delay is 3ms, 30ms or 300ms, bit error rate 0 or 5.0*10^(-6),
+MTU size 536 or 1460 bytes and either IPV4 or IPV6 is used. A simulation with each combination of
+these parameters is run multiple times to verify functionality with different random variables.
+
+Test cases themselves are rather simple: test verifies that HTTP object packet bytes sent match
 total bytes received by the client, and that ``ThreeGppHttpHeader`` matches the expected packet.
 
 
@@ -236,32 +236,32 @@ NRTV (Near Real-Time Video) applications
 Model Description
 *****************
 
-The model is a part of the applications library. The NRTV model is based on a 3GPP model in standardization `[7]`_. 
+The model is a part of the applications library. The NRTV model is based on a 3GPP model in standardization `[7]`_.
 
 Design
 ======
 
-This traffic generator simulates NRTV traffic using either TCP or UDP on transport 
+This traffic generator simulates NRTV traffic using either TCP or UDP on transport
 layer. When streamed over TCP, the model consists of one or more ``NrtvTcpClient``
-applications which connect to a ``NrtvTcpServer`` application, and over UDP 
-a slightly different ``NrtvUdpServer`` with ``PacketSink`` as receiver 
+applications which connect to a ``NrtvTcpServer`` application, and over UDP
+a slightly different ``NrtvUdpServer`` with ``PacketSink`` as receiver
 application is used. The client
 models a video client application which connects to a video server. The server
-starts video workers (``NrtvVideoWorker``) for each socket created for connected clients. 
+starts video workers (``NrtvVideoWorker``) for each socket created for connected clients.
 
-Video workers create packets modeling video traffic according to NRTV specifications `[7]`_: 
-First, a video length in frames is decided. The workers attempt 
-to deliver video frames according to a configured frame rate to the client. 
-Each frame is then split into slices, which can be delivered each in their own packets. 
-Between generating slices and frame, encoding delays are applied. 
+Video workers create packets modeling video traffic according to NRTV specifications `[7]`_:
+First, a video length in frames is decided. The workers attempt
+to deliver video frames according to a configured frame rate to the client.
+Each frame is then split into slices, which can be delivered each in their own packets.
+Between generating slices and frame, encoding delays are applied.
 
-To take things even further, each slice packet carries an overhead caused by a 24-byte header 
-containing information about the slice: the frame it belongs to, the number of slices the frame is 
-split to, and the index of the slice. To confirm that the entire slice is delivered in received packets, 
-the header also contains the length of slice. Each of these slice characteristics are handled 
-in more detail by ``NrtvTcpClient``, since TCP may split and reassemble packets. To be more 
-precise, ``NrtvTcpClient`` implements an Rx buffer for the slice packets and parses slices 
-from the buffer once they are delivered. An example of traffic received by a single client is illustrated in 
+To take things even further, each slice packet carries an overhead caused by a 24-byte header
+containing information about the slice: the frame it belongs to, the number of slices the frame is
+split to, and the index of the slice. To confirm that the entire slice is delivered in received packets,
+the header also contains the length of slice. Each of these slice characteristics are handled
+in more detail by ``NrtvTcpClient``, since TCP may split and reassemble packets. To be more
+precise, ``NrtvTcpClient`` implements an Rx buffer for the slice packets and parses slices
+from the buffer once they are delivered. An example of traffic received by a single client is illustrated in
 :ref:`fig-nrtv-client-trace`.
 
 .. _fig-nrtv-client-trace:
@@ -276,42 +276,42 @@ NRTV Server Description
 #######################
 
 NRTV servers are model applications which simulate the traffic of a NRTV video server. These
-applications work in conjunction with NRTV client applications: 
-``NrtvTcpServer`` with ``NrtvTcpClient`` and ``NrtvUdpServer`` with ``PacketSink``. 
-Packet sink is used as client application over UDP since there is no connection 
+applications work in conjunction with NRTV client applications:
+``NrtvTcpServer`` with ``NrtvTcpClient`` and ``NrtvUdpServer`` with ``PacketSink``.
+Packet sink is used as client application over UDP since there is no connection
 between server and client in UDP.
 
-``NrtvTcpServer`` works by responding to connecting ``NrtvTcpClient`` applications: 
-an ``NrtvVideoWorker`` instance is created to stream video to the client. 
-Once client disconnects or the video has ended, the socket will be closed 
+``NrtvTcpServer`` works by responding to connecting ``NrtvTcpClient`` applications:
+an ``NrtvVideoWorker`` instance is created to stream video to the client.
+Once client disconnects or the video has ended, the socket will be closed
 and video worker removed.
 
-``NrtvUdpServer``  is connected to a ``PacketSink`` client application by 
-manually calling ``AddClient ()`` method of the server application. The method 
-requires the remote address of the node to which a ``PacketSink`` is installed. 
-It is also possible to decide how many videos are streamed to the client by 
-input parameters of the same method. After the videos have each ended, the socket 
-and corresponding video worker will be closed. Note that there is no way of knowing 
-if a client application has stopped before the videos have ended, and thus 
+``NrtvUdpServer``  is connected to a ``PacketSink`` client application by
+manually calling ``AddClient ()`` method of the server application. The method
+requires the remote address of the node to which a ``PacketSink`` is installed.
+It is also possible to decide how many videos are streamed to the client by
+input parameters of the same method. After the videos have each ended, the socket
+and corresponding video worker will be closed. Note that there is no way of knowing
+if a client application has stopped before the videos have ended, and thus
 the server will keep sending video slice packets until the end.
 
-To configure the applications more efficiently, it is recommended to use 
+To configure the applications more efficiently, it is recommended to use
 ``NrtvHelper``.
 
 
 NRTV Client Description
 #######################
 
-NRTV clients are model applications which simulate the video receiver applications. 
-``NrtvTcpClient`` is used over TCP and a generic ``PacketSink`` over UDP. 
+NRTV clients are model applications which simulate the video receiver applications.
+``NrtvTcpClient`` is used over TCP and a generic ``PacketSink`` over UDP.
 
-Unlike ``PacketSink``, the ``NrtvTcpClient`` is a more active receiver: it requests 
-a TCP connection to the server and keeps the connection alive until application is 
-either stopped or the video stream has ended. The latter is done by the server: 
+Unlike ``PacketSink``, the ``NrtvTcpClient`` is a more active receiver: it requests
+a TCP connection to the server and keeps the connection alive until application is
+either stopped or the video stream has ended. The latter is done by the server:
 When the server terminates the connection, the application regards it as the
 end of a video session. At this point, the application enters the IDLE state,
 which is a randomly determined delay that simulates the user "resting"
-between videos (e.g., commenting or picking the next video) - this is illustrated in 
+between videos (e.g., commenting or picking the next video) - this is illustrated in
 :ref:`fig-nrtv-idle-time`. After the IDLE
 timer expires, the application restarts again by sending another connection
 request.
@@ -326,11 +326,11 @@ request.
 NRTV Video Worker
 #################
 
-The NRTV video worker represents a single video session and its transmission: 
+The NRTV video worker represents a single video session and its transmission:
 It works under an NRTV server application and handles video traffic generation.
 The worker will determine the length of video using `` NrtvVariables`` class.
 Other variables are also retrieved from this class, such as number of
-frames per second (frame rate) and number of slices per frame. The average 
+frames per second (frame rate) and number of slices per frame. The average
 number of frames is illustrated in :ref:`fig-nrtv-num-of-frames`.
 
 .. _fig-nrtv-num-of-frames:
@@ -340,11 +340,11 @@ number of frames is illustrated in :ref:`fig-nrtv-num-of-frames`.
 
    NRTV number of frames per video histogram
 
-The first video frame starts once the server has given a permission to do so 
+The first video frame starts once the server has given a permission to do so
 via ``ChangeState ()`` public method. Each frame has a fixed number of
 slices, and each slice is preceded by a random length of encoding delay.
 Each slice constitutes a single packet, which size is also determined
-randomly. Each packet begins with a 24-byte ``NrtvHeader``. Slice sizes 
+randomly. Each packet begins with a 24-byte ``NrtvHeader``. Slice sizes
 and encoding delays with default attribute values can be seen in figures
 :ref:`fig-nrtv-slice-size` and :ref:`fig-nrtv-slice-encoding-delay`.
 
@@ -354,7 +354,7 @@ and encoding delays with default attribute values can be seen in figures
    :figwidth: 15cm
 
    NRTV slice size histogram
-   
+
 .. _fig-nrtv-slice-encoding-delay:
 
 .. figure:: figures/nrtv-slice-encoding-delay.*
@@ -383,9 +383,9 @@ invoked.
 NRTV Variables
 ##############
 
-``NrtvVariables`` is a container class of various random variables for assisting 
-the generation of streaming traffic pattern by the Near Real-Time Video (NRTV) 
-traffic model. A separate instance of this object is used by all the NRTV objects 
+``NrtvVariables`` is a container class of various random variables for assisting
+the generation of streaming traffic pattern by the Near Real-Time Video (NRTV)
+traffic model. A separate instance of this object is used by all the NRTV objects
 (e.g. servers, TCP client, video worker).
 
 The default configuration of some of the underlying random distributions are
@@ -413,14 +413,14 @@ References
 
 \
 
-.. _`[5]`: 
+.. _`[5]`:
 
 [5] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology", v1.0, January 2008.
 
 \
 
 .. _`[6]`:
-    
+
 [6] WiMAX Forum, "WiMAX (TM) System Evaluation Methodology", Version 2.1, July 2008.
 
 \
@@ -434,28 +434,28 @@ References
 Usage
 *****
 
-The nrtv-p2p-example can be referenced to see basic usage of the NRTV applications. 
-In summary, using the ``NrtvHelper`` allows the 
-user to easily install ``NrtvTcpServer`` and ``NrtvTcpClient`` or ``NrtvUdpServer`` and ``PacketSink`` 
+The nrtv-p2p-example can be referenced to see basic usage of the NRTV applications.
+In summary, using the ``NrtvHelper`` allows the
+user to easily install ``NrtvTcpServer`` and ``NrtvTcpClient`` or ``NrtvUdpServer`` and ``PacketSink``
 applications to nodes, depending on the protocol used.
 The helper object can be used to configure attribute values for the client
 and server objects via ``SetClientAttribute ()`` and ``SetClientAttribute ()``  methods - note that
-it is most efficient to configure these before installing applications by calling ``InstallUsingIpv4 ()`` 
-on server and client nodes. 
-Configuration of variables is done by modifying attributes of ``NrtvVariables``, 
-which should be done prior to helpers installing applications to nodes. 
+it is most efficient to configure these before installing applications by calling ``InstallUsingIpv4 ()``
+on server and client nodes.
+Configuration of variables is done by modifying attributes of ``NrtvVariables``,
+which should be done prior to helpers installing applications to nodes.
 
 The client and server provide a number of ns-3 trace sources such as
-"Tx", "StateTransition" on the server side, and depending on the protocol some 
-on the client side number on the client side: TCP client offers "Rx", "RxDelay","RxSlice", 
-"RxFrame", and "StateTransition" trace sources, while currently Packet Sink, which is used 
+"Tx", "StateTransition" on the server side, and depending on the protocol some
+on the client side number on the client side: TCP client offers "Rx", "RxDelay","RxSlice",
+"RxFrame", and "StateTransition" trace sources, while currently Packet Sink, which is used
 as a UDP client, offers only "Rx".
 
-Building the NRTV applications 
+Building the NRTV applications
 ==============================
 
-Building the applications does not require any special steps to be taken. It suffices to enable 
-the applications module. 
+Building the applications does not require any special steps to be taken. It suffices to enable
+the applications module.
 
 Examples
 ========
@@ -465,19 +465,19 @@ run::
 
   $ ./waf --run 'nrtv-p2p-example'
 
-By default, the example will run a point-to-point scenario of NRTV server and client using either TCP or UDP, 
-depending on the input arguments. 
-In the end, time trace of the received bytes by client is given as a Gnuplot script. Running:: 
+By default, the example will run a point-to-point scenario of NRTV server and client using either TCP or UDP,
+depending on the input arguments.
+In the end, time trace of the received bytes by client is given as a Gnuplot script. Running::
 
   $ gnuplot NRTV-TCP-client-trace.plt
-  
-will print out a PNG file of the trace. 
 
-Another example using the same plot mechanism to demonstrate the default values given by NRTV variables is 
+will print out a PNG file of the trace.
+
+Another example using the same plot mechanism to demonstrate the default values given by NRTV variables is
 nrtv-variables-plot. Run it by::
 
   $ ./waf --run 'nrtv-variables-plot'
-  
+
 and use gnuplot on the output plt files to get the PNG files.
 
 Tests
@@ -486,12 +486,12 @@ Tests
 For testing NRTV applications, nrtv-test is provided. Run::
 
   $ ./test.py -s nrtv
-  
-The test consists of simple Internet nodes having NRTV server and client applications installed. 
-Currently, the test tries to run the server and client for 5 seconds using a delay of 3ms, 30ms or 300ms, 
-and either TCP or UDP. In TCP case, it is verified that slice packets can be parsed in a correct order 
-from the Rx buffer. In UDP case, since the error rate is 0, it is just tested that packets are sent and got in 
-correct order and their sizes are the same. 
+
+The test consists of simple Internet nodes having NRTV server and client applications installed.
+Currently, the test tries to run the server and client for 5 seconds using a delay of 3ms, 30ms or 300ms,
+and either TCP or UDP. In TCP case, it is verified that slice packets can be parsed in a correct order
+from the Rx buffer. In UDP case, since the error rate is 0, it is just tested that packets are sent and got in
+correct order and their sizes are the same.
 
 
 

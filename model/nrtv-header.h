@@ -25,9 +25,8 @@
 #include <ns3/header.h>
 #include <ns3/nstime.h>
 
-
-namespace ns3 {
-
+namespace ns3
+{
 
 /**
  * \ingroup nrtv
@@ -93,100 +92,98 @@ namespace ns3 {
  */
 class NrtvHeader : public Header
 {
-public:
-  /// Create a plain new instance of NRTV header.
-  NrtvHeader ();
+  public:
+    /// Create a plain new instance of NRTV header.
+    NrtvHeader();
 
-  // Inherited from ObjectBase base class
-  static TypeId GetTypeId (void);
+    // Inherited from ObjectBase base class
+    static TypeId GetTypeId(void);
 
-  /**
-   * \param frameNumber the value for the "frame number" field of this header
-   *                    instance
-   */
-  void SetFrameNumber (uint32_t frameNumber);
+    /**
+     * \param frameNumber the value for the "frame number" field of this header
+     *                    instance
+     */
+    void SetFrameNumber(uint32_t frameNumber);
 
-  /**
-   * \return the current value of the "frame number" field of this header
-   *         instance
-   */
-  uint32_t GetFrameNumber () const;
+    /**
+     * \return the current value of the "frame number" field of this header
+     *         instance
+     */
+    uint32_t GetFrameNumber() const;
 
-  /**
-   * \param numOfFrames the value for the "number of frames" field of this
-   *                    header instance
-   */
-  void SetNumOfFrames (uint32_t numOfFrames);
+    /**
+     * \param numOfFrames the value for the "number of frames" field of this
+     *                    header instance
+     */
+    void SetNumOfFrames(uint32_t numOfFrames);
 
-  /**
-   * \return the current value of the "number of frames" field of this header
-   *         instance
-   */
-  uint32_t GetNumOfFrames () const;
+    /**
+     * \return the current value of the "number of frames" field of this header
+     *         instance
+     */
+    uint32_t GetNumOfFrames() const;
 
-  /**
-   * \param sliceNumber the value for the "slice number" field of this header
-   *                    instance
-   */
-  void SetSliceNumber (uint16_t sliceNumber);
+    /**
+     * \param sliceNumber the value for the "slice number" field of this header
+     *                    instance
+     */
+    void SetSliceNumber(uint16_t sliceNumber);
 
-  /**
-   * \return the current value of the "slice number" field of this header
-   *         instance
-   */
-  uint16_t GetSliceNumber () const;
+    /**
+     * \return the current value of the "slice number" field of this header
+     *         instance
+     */
+    uint16_t GetSliceNumber() const;
 
-  /**
-   * \param numOfSlices the value for the "number of slices" field of this
-   *                    header instance
-   */
-  void SetNumOfSlices (uint16_t numOfSlices);
+    /**
+     * \param numOfSlices the value for the "number of slices" field of this
+     *                    header instance
+     */
+    void SetNumOfSlices(uint16_t numOfSlices);
 
-  /**
-   * \return the current value of the "number of slices" field of this header
-   *         instance
-   */
-  uint16_t GetNumOfSlices () const;
+    /**
+     * \return the current value of the "number of slices" field of this header
+     *         instance
+     */
+    uint16_t GetNumOfSlices() const;
 
-  /**
-   * \param sliceSize the value for the "slice size" field of this header
-   *                    instance
-   */
-  void SetSliceSize (uint32_t sliceSize);
+    /**
+     * \param sliceSize the value for the "slice size" field of this header
+     *                    instance
+     */
+    void SetSliceSize(uint32_t sliceSize);
 
-  /**
-   * \return the current value of the "slice size" field of this header
-   *         instance
-   */
-  uint32_t GetSliceSize () const;
+    /**
+     * \return the current value of the "slice size" field of this header
+     *         instance
+     */
+    uint32_t GetSliceSize() const;
 
-  /**
-   * \return the time the packet arrives on the sender side (can be used to
-   *         calculate packet delay)
-   */
-  Time GetArrivalTime () const;
+    /**
+     * \return the time the packet arrives on the sender side (can be used to
+     *         calculate packet delay)
+     */
+    Time GetArrivalTime() const;
 
-  // Inherited from Header base class
-  virtual uint32_t GetSerializedSize () const;
-  virtual void Serialize (Buffer::Iterator start) const;
-  virtual uint32_t Deserialize (Buffer::Iterator start);
-  virtual void Print (std::ostream &os) const;
+    // Inherited from Header base class
+    virtual uint32_t GetSerializedSize() const;
+    virtual void Serialize(Buffer::Iterator start) const;
+    virtual uint32_t Deserialize(Buffer::Iterator start);
+    virtual void Print(std::ostream& os) const;
 
-  // Inherited from ObjectBase base class
-  virtual TypeId GetInstanceTypeId () const;
+    // Inherited from ObjectBase base class
+    virtual TypeId GetInstanceTypeId() const;
 
-private:
-  uint32_t m_frameNumber;  ///< Frame number field (an index starting from 0).
-  uint32_t m_numOfFrames;  ///< Number of frames field.
-  uint16_t m_sliceNumber;  ///< Slice number field (an index starting from 0).
-  uint16_t m_numOfSlices;  ///< Number of slices field.
-  uint16_t m_sliceSize;    ///< Slice size field.
-  Time     m_arrivalTime;  ///< Arrival time field in Time format.
+  private:
+    uint32_t m_frameNumber; ///< Frame number field (an index starting from 0).
+    uint32_t m_numOfFrames; ///< Number of frames field.
+    uint16_t m_sliceNumber; ///< Slice number field (an index starting from 0).
+    uint16_t m_numOfSlices; ///< Number of slices field.
+    uint16_t m_sliceSize;   ///< Slice size field.
+    Time m_arrivalTime;     ///< Arrival time field in Time format.
 
 }; // end of `class NrtvHeader`
 
-
-}  // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif /* NRTV_HEADER_H */
