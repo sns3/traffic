@@ -48,7 +48,6 @@
 #include <ns3/type-id.h>
 #include <ns3/udp-socket-factory.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 #include <list>
 #include <sstream>

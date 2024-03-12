@@ -39,7 +39,6 @@
 #include <ns3/scalar-collector.h>
 #include <ns3/string.h>
 #include <ns3/unit-conversion-collector.h>
-#include <ns3/unused.h>
 
 #include <sstream>
 

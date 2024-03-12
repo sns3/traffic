@@ -33,7 +33,6 @@
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/three-gpp-http-variables.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 NS_LOG_COMPONENT_DEFINE("ThreeGppHttpSatelliteClient");
 

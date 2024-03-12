@@ -30,7 +30,6 @@
 #include <ns3/simulator.h>
 #include <ns3/socket.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 NS_LOG_COMPONENT_DEFINE("NrtvVideoWorker");
 
