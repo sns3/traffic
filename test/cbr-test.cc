@@ -122,9 +122,9 @@ class CbrTestSuite : public TestSuite
 };
 
 CbrTestSuite::CbrTestSuite()
-    : TestSuite("cbr-test", UNIT)
+    : TestSuite("cbr-test", Type::UNIT)
 {
-    AddTestCase(new CbrTestCase1, TestCase::QUICK);
+    AddTestCase(new CbrTestCase1, TestCase::Duration::QUICK);
 }
 
 // Allocate an instance of this TestSuite
