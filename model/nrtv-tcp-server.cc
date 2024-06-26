@@ -21,18 +21,18 @@
 
 #include "nrtv-tcp-server.h"
 
+#include "nrtv-video-worker.h"
+
 #include <ns3/address-utils.h>
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/log.h>
-#include <ns3/nrtv-video-worker.h>
 #include <ns3/packet.h>
 #include <ns3/pointer.h>
 #include <ns3/simulator.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 NS_LOG_COMPONENT_DEFINE("NrtvTcpServer");
 

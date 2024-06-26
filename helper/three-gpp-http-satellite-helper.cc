@@ -27,9 +27,10 @@
  *
  */
 
+#include "three-gpp-http-satellite-helper.h"
+
 #include <ns3/ipv4.h>
 #include <ns3/names.h>
-#include <ns3/three-gpp-http-satellite-helper.h>
 
 namespace ns3
 {

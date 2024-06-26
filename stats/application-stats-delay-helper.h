@@ -22,8 +22,9 @@
 #ifndef APPLICATION_STATS_DELAY_HELPER_H
 #define APPLICATION_STATS_DELAY_HELPER_H
 
+#include "application-stats-helper.h"
+
 #include <ns3/address.h>
-#include <ns3/application-stats-helper.h>
 #include <ns3/collector-map.h>
 #include <ns3/ptr.h>
 

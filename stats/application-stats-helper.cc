@@ -131,8 +131,9 @@ ApplicationStatsHelper::GetTypeId()
             .AddAttribute("IdentifierType",
                           "Determines how the statistics are categorized.",
                           EnumValue(ApplicationStatsHelper::IDENTIFIER_GLOBAL),
-                          MakeEnumAccessor(&ApplicationStatsHelper::SetIdentifierType,
-                                           &ApplicationStatsHelper::GetIdentifierType),
+                          MakeEnumAccessor<ApplicationStatsHelper::IdentifierType_t>(
+                              &ApplicationStatsHelper::SetIdentifierType,
+                              &ApplicationStatsHelper::GetIdentifierType),
                           MakeEnumChecker(ApplicationStatsHelper::IDENTIFIER_GLOBAL,
                                           "GLOBAL",
                                           ApplicationStatsHelper::IDENTIFIER_SENDER,
@@ -142,8 +143,9 @@ ApplicationStatsHelper::GetTypeId()
             .AddAttribute("OutputType",
                           "Determines the type and format of the output.",
                           EnumValue(ApplicationStatsHelper::OUTPUT_SCATTER_FILE),
-                          MakeEnumAccessor(&ApplicationStatsHelper::SetOutputType,
-                                           &ApplicationStatsHelper::GetOutputType),
+                          MakeEnumAccessor<ApplicationStatsHelper::OutputType_t>(
+                              &ApplicationStatsHelper::SetOutputType,
+                              &ApplicationStatsHelper::GetOutputType),
                           MakeEnumChecker(ApplicationStatsHelper::OUTPUT_NONE,
                                           "NONE",
                                           ApplicationStatsHelper::OUTPUT_SCALAR_FILE,

@@ -21,6 +21,8 @@
 
 #include "three-gpp-http-satellite-client.h"
 
+#include "three-gpp-http-variables.h"
+
 #include <ns3/callback.h>
 #include <ns3/double.h>
 #include <ns3/inet-socket-address.h>
@@ -31,9 +33,7 @@
 #include <ns3/simulator.h>
 #include <ns3/socket.h>
 #include <ns3/tcp-socket-factory.h>
-#include <ns3/three-gpp-http-variables.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 NS_LOG_COMPONENT_DEFINE("ThreeGppHttpSatelliteClient");
 

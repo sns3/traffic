@@ -21,16 +21,16 @@
 
 #include "nrtv-video-worker.h"
 
+#include "nrtv-header.h"
+#include "nrtv-variables.h"
+
 #include <ns3/boolean.h>
 #include <ns3/log.h>
-#include <ns3/nrtv-header.h>
-#include <ns3/nrtv-variables.h>
 #include <ns3/packet.h>
 #include <ns3/pointer.h>
 #include <ns3/simulator.h>
 #include <ns3/socket.h>
 #include <ns3/uinteger.h>
-#include <ns3/unused.h>
 
 NS_LOG_COMPONENT_DEFINE("NrtvVideoWorker");
 

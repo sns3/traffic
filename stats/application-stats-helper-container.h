@@ -22,8 +22,9 @@
 #ifndef APPLICATION_STATS_HELPER_CONTAINER_H
 #define APPLICATION_STATS_HELPER_CONTAINER_H
 
+#include "application-stats-helper.h"
+
 #include <ns3/application-container.h>
-#include <ns3/application-stats-helper.h>
 #include <ns3/node-container.h>
 #include <ns3/object.h>
 #include <ns3/ptr.h>

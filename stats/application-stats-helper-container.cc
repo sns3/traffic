@@ -21,9 +21,10 @@
 
 #include "application-stats-helper-container.h"
 
-#include <ns3/application-stats-delay-helper.h>
-#include <ns3/application-stats-helper.h>
-#include <ns3/application-stats-throughput-helper.h>
+#include "application-stats-delay-helper.h"
+#include "application-stats-helper.h"
+#include "application-stats-throughput-helper.h"
+
 #include <ns3/enum.h>
 #include <ns3/log.h>
 #include <ns3/string.h>
@@ -95,7 +96,7 @@ ApplicationStatsHelperContainer::DoDispose()
   .AddAttribute (# id,                                                         \
                  std::string ("Enable the output of ") + desc,                \
                  EnumValue (ST_HE_CL::OUTPUT_NONE),                           \
-                 MakeEnumAccessor (&ST_HE_CO_CL::Add ## id),
+                 MakeEnumAccessor<ApplicationStatsHelper::OutputType_t> (&ST_HE_CO_CL::Add ## id),
 
 #define ADD_APPLICATION_STATS_ATTRIBUTES_BASIC_SET(id, desc)                                       \
     ADD_APPLICATION_STATS_ATTRIBUTE_HEAD(Global##id, std::string("global ") + desc)                \
