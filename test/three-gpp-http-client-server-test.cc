@@ -313,7 +313,7 @@ ThreeGppHttpObjectTestCase::ThreeGppHttpObjectTestCase(const std::string& name,
 
     m_errorModel = CreateObject<RateErrorModel>();
     m_errorModel->SetRate(bitErrorRate);
-    m_errorModel->SetUnit(RateErrorModel::ERROR_UNIT_BIT);
+    m_errorModel->SetUnit(RateErrorModel::ERROR_Type::UNIT_BIT);
 
     m_ipv4AddressHelper.SetBase(Ipv4Address("10.0.0.0"),
                                 Ipv4Mask("255.0.0.0"),
@@ -792,7 +792,7 @@ class ThreeGppHttpClientServerTestSuite : public TestSuite
   public:
     /// Instantiate the test suite.
     ThreeGppHttpClientServerTestSuite()
-        : TestSuite("three-gpp-http-client-server-test", SYSTEM)
+        : TestSuite("three-gpp-http-client-server-test", Type::SYSTEM)
     {
         // LogComponentEnable ("ThreeGppHttpClientServerTest", LOG_INFO);
         // LogComponentEnable ("ThreeGppHttpClient", LOG_INFO);
@@ -866,7 +866,7 @@ class ThreeGppHttpClientServerTestSuite : public TestSuite
         }
 
         // Assign higher fullness for tests with higher RngRun.
-        TestCase::TestDuration testDuration = TestCase::QUICK;
+        TestCase::TestDuration testDuration = TestCase::Duration::QUICK;
         if (rngRun > 20)
         {
             testDuration = TestCase::EXTENSIVE;

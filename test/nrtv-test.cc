@@ -258,7 +258,7 @@ class NrtvTestSuite : public TestSuite
 };
 
 NrtvTestSuite::NrtvTestSuite()
-    : TestSuite("nrtv", SYSTEM)
+    : TestSuite("nrtv", Type::SYSTEM)
 {
     // LogComponentEnable ("NrtvTest", LOG_INFO);
     // LogComponentEnable ("NrtvTest", LOG_PREFIX_ALL);
@@ -284,7 +284,7 @@ NrtvTestSuite::NrtvTestSuite()
                                                            protocols[i],
                                                            MilliSeconds(delayMs[j]),
                                                            Seconds(5)),
-                            TestCase::QUICK);
+                            TestCase::Duration::QUICK);
             }
         }
     }

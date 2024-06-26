@@ -92,6 +92,7 @@ class CbrApplication : public Application
   private:
     Ptr<Socket> m_socket;  // Associated socket
     Address m_peer;        // Peer address
+    uint8_t m_tos;         //!< The packets Type of Service
     Time m_interval;       // Time interval for cbr sending
     uint32_t m_pktSize;    // Size of packets
     Time m_lastStartTime;  // Time last packet sent

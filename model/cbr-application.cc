@@ -61,6 +61,12 @@ CbrApplication::GetTypeId(void)
                           AddressValue(),
                           MakeAddressAccessor(&CbrApplication::m_peer),
                           MakeAddressChecker())
+            .AddAttribute("Tos",
+                          "The Type of Service used to send IPv4 packets. "
+                          "All 8 bits of the TOS byte are set (including ECN bits).",
+                          UintegerValue(0),
+                          MakeUintegerAccessor(&CbrApplication::m_tos),
+                          MakeUintegerChecker<uint8_t>())
             .AddAttribute(
                 "Interval",
                 "Interval to send constant packets. The value zero means that no sending.",
@@ -137,6 +143,11 @@ CbrApplication::StartApplication() // Called at time specified by Start
 
         m_socket->SetConnectCallback(MakeCallback(&CbrApplication::ConnectionSucceeded, this),
                                      MakeCallback(&CbrApplication::ConnectionFailed, this));
+
+        if (InetSocketAddress::IsMatchingType(m_peer))
+        {
+            m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
+        }
 
         m_socket->Connect((const Address&)m_peer);
         m_socket->SetAllowBroadcast(true);

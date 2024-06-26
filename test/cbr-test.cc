@@ -112,8 +112,8 @@ CbrTestCase1::DoRun(void)
     NS_TEST_ASSERT_MSG_EQ(sink->GetTotalRx(), sender->GetSent(), "Packets were lost !");
 }
 
-// The CbrTestSuite class names the TestSuite as cbr-test, identifies what type of TestSuite (UNIT),
-// and enables the TestCases to be run CbrTestCase1.
+// The CbrTestSuite class names the TestSuite as cbr-test, identifies what type of TestSuite
+// (Type::UNIT), and enables the TestCases to be run CbrTestCase1.
 //
 class CbrTestSuite : public TestSuite
 {
@@ -122,9 +122,9 @@ class CbrTestSuite : public TestSuite
 };
 
 CbrTestSuite::CbrTestSuite()
-    : TestSuite("cbr-test", UNIT)
+    : TestSuite("cbr-test", Type::UNIT)
 {
-    AddTestCase(new CbrTestCase1, TestCase::QUICK);
+    AddTestCase(new CbrTestCase1, TestCase::Duration::QUICK);
 }
 
 // Allocate an instance of this TestSuite
