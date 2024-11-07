@@ -35,6 +35,8 @@
 #include <ns3/udp-socket-factory.h>
 #include <ns3/uinteger.h>
 
+#include <string>
+
 NS_LOG_COMPONENT_DEFINE("NrtvTcpClient");
 
 namespace ns3

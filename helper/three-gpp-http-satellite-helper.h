@@ -36,6 +36,8 @@
 #include <ns3/three-gpp-http-helper.h>
 #include <ns3/three-gpp-http-variables.h>
 
+#include <string>
+
 namespace ns3
 {
 

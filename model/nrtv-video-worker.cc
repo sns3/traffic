@@ -32,6 +32,8 @@
 #include <ns3/socket.h>
 #include <ns3/uinteger.h>
 
+#include <algorithm>
+
 NS_LOG_COMPONENT_DEFINE("NrtvVideoWorker");
 
 namespace ns3

@@ -30,6 +30,7 @@
 #include <ns3/traced-callback.h>
 
 #include <list>
+#include <string>
 
 namespace ns3
 {

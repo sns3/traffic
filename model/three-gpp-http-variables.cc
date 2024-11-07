@@ -25,6 +25,7 @@
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 
+#include <cmath>
 #include <math.h>
 
 NS_LOG_COMPONENT_DEFINE("ThreeGppHttpVariables");

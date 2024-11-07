@@ -32,6 +32,7 @@
 #include <ns3/string.h>
 
 #include <map>
+#include <string>
 #include <tuple>
 #include <vector>
 

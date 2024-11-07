@@ -35,6 +35,8 @@
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/uinteger.h>
 
+#include <string>
+
 NS_LOG_COMPONENT_DEFINE("ThreeGppHttpSatelliteClient");
 
 namespace ns3

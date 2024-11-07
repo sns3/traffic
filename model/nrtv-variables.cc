@@ -30,6 +30,7 @@
 #include <ns3/uinteger.h>
 
 #include <cmath>
+#include <limits>
 
 NS_LOG_COMPONENT_DEFINE("NrtvVariables");
 

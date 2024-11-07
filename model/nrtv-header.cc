@@ -24,6 +24,8 @@
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 
+#include <ostream>
+
 NS_LOG_COMPONENT_DEFINE("NrtvHeader");
 
 namespace ns3

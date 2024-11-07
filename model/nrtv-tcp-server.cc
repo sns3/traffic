@@ -34,6 +34,9 @@
 #include <ns3/tcp-socket-factory.h>
 #include <ns3/uinteger.h>
 
+#include <map>
+#include <string>
+
 NS_LOG_COMPONENT_DEFINE("NrtvTcpServer");
 
 namespace ns3

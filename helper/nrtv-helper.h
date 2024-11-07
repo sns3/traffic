@@ -36,6 +36,7 @@
 #include <ns3/object-factory.h>
 
 #include <map>
+#include <string>
 #include <tuple>
 #include <vector>
 

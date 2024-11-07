@@ -40,6 +40,9 @@
 #include <ns3/udp-socket-factory.h>
 #include <ns3/uinteger.h>
 
+#include <map>
+#include <string>
+
 NS_LOG_COMPONENT_DEFINE("NrtvUdpServer");
 
 namespace ns3

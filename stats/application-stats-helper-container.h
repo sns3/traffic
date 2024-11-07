@@ -31,6 +31,7 @@
 
 #include <list>
 #include <map>
+#include <string>
 
 namespace ns3
 {

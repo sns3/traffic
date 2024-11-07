@@ -20,6 +20,8 @@
 
 #include "traffic-time-tag.h"
 
+#include <ostream>
+
 namespace ns3
 {
 

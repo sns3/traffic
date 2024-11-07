@@ -29,6 +29,7 @@
 #include <ns3/simulator.h>
 
 #include <fstream>
+#include <string>
 
 NS_LOG_COMPONENT_DEFINE("ClientTracePlot");
 
