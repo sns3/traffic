@@ -38,8 +38,8 @@ class NrtvTcpClient;
 class PacketSink;
 
 /**
- * \ingroup applications
- * \brief Installed on an application with "Rx" trace source, this helper class will
+ * @ingroup applications
+ * @brief Installed on an application with "Rx" trace source, this helper class will
  *        generate a Gnuplot file out of the Rx traffic experienced by the
  *        application.
  *
@@ -66,21 +66,21 @@ class ClientRxTracePlot : public Object
 {
   public:
     /**
-     * \brief Creates a new object instance which generates a plot file named
+     * @brief Creates a new object instance which generates a plot file named
      *        "client-trace.plt".
      *
-     * \param clientApp the client application from which the traffic data is
+     * @param clientApp the client application from which the traffic data is
      *                  taken and generated as a plot
      */
     ClientRxTracePlot(Ptr<Application> clientApp);
 
     /**
-     * \brief Creates a new object instance which generates a plot file with the
+     * @brief Creates a new object instance which generates a plot file with the
      *        specified name.
      *
-     * \param clientApp  the client application from which the traffic data is
+     * @param clientApp  the client application from which the traffic data is
      *                   taken and generated as a plot
-     * \param outputName the name of the plot file, e.g., specifying the value
+     * @param outputName the name of the plot file, e.g., specifying the value
      *                   "output" will generate "output.plt" file, which then can
      *                   be converted to "output.png"
      */
@@ -93,21 +93,21 @@ class ClientRxTracePlot : public Object
     static TypeId GetTypeId();
 
     /**
-     * \param outputName the name of the plot file, e.g., specifying the value
+     * @param outputName the name of the plot file, e.g., specifying the value
      *                   "output" will generate "output.plt" file, which then can
      *                   be converted to "output.png"
      */
     void SetOutputName(std::string outputName);
 
     /**
-     * \return the name of the plot file
+     * @return the name of the plot file
      */
     std::string GetOutputName() const;
 
   private:
     /**
-     * \internal
-     * \brief Connecting the object to trace sources in the client application and
+     * @internal
+     * @brief Connecting the object to trace sources in the client application and
      *        creating the Gnuplot datasets for storing the gathered data.
      */
     void Initialize();

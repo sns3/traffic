@@ -42,7 +42,7 @@ namespace ns3
 {
 
 /**
- * \ingroup applications
+ * @ingroup applications
  * Helper to make it easier to instantiate an ThreeGppHttpClient on a set of nodes.
  */
 class ThreeGppHttpSatelliteClientHelper
@@ -51,51 +51,51 @@ class ThreeGppHttpSatelliteClientHelper
     /**
      * Create a ThreeGppHttpSatelliteClientHelper to make it easier to work with ThreeGppHttpClient
      * applications.
-     * \param address The address of the remote server node to send traffic to.
+     * @param address The address of the remote server node to send traffic to.
      */
     ThreeGppHttpSatelliteClientHelper(const Address& address);
 
     /**
      * Helper function used to set the underlying application attributes, but
      * *not* the socket attributes.
-     * \param name The name of the application attribute to set.
-     * \param value The value of the application attribute to set.
+     * @param name The name of the application attribute to set.
+     * @param value The value of the application attribute to set.
      */
     void SetAttribute(const std::string& name, const AttributeValue& value);
 
     /**
      * Install a ThreeGppHttpClient on each node of the input container configured with
      * all the attributes set with SetAttribute().
-     * \param c NodeContainer of the set of nodes on which an ThreeGppHttpClient
+     * @param c NodeContainer of the set of nodes on which an ThreeGppHttpClient
      *          will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(NodeContainer c) const;
 
     /**
      * Install a ThreeGppHttpClient on each node of the input container
      * configured with all the attributes set with SetAttribute().
-     * \param node The node on which an ThreeGppHttpClient will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @param node The node on which an ThreeGppHttpClient will be installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(Ptr<Node> node) const;
 
     /**
      * Install a ThreeGppHttpClient on each node of the input container
      * configured with all the attributes set with SetAttribute().
-     * \param nodeName The name of the node on which an ThreeGppHttpClient
+     * @param nodeName The name of the node on which an ThreeGppHttpClient
      *                 will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(const std::string& nodeName) const;
 
   private:
     /**
-     * \internal
+     * @internal
      * Install a ThreeGppHttpClient on the node configured with all the
      * attributes set with SetAttribute().
-     * \param node The node on which an ThreeGppHttpClient will be installed.
-     * \return Ptr to the application installed.
+     * @param node The node on which an ThreeGppHttpClient will be installed.
+     * @return Ptr to the application installed.
      */
     Ptr<Application> InstallPriv(Ptr<Node> node) const;
 
@@ -105,7 +105,7 @@ class ThreeGppHttpSatelliteClientHelper
 }; // end of `class ThreeGppHttpSatelliteClientHelper`
 
 /**
- * \ingroup http
+ * @ingroup http
  * Helper to make it easier to instantiate an ThreeGppHttpServer on a set of nodes.
  */
 class ThreeGppHttpSatelliteServerHelper
@@ -114,51 +114,51 @@ class ThreeGppHttpSatelliteServerHelper
     /**
      * Create a ThreeGppHttpSatelliteServerHelper to make it easier to work with
      * ThreeGppHttpServer applications.
-     * \param address The address of the server.
+     * @param address The address of the server.
      */
     ThreeGppHttpSatelliteServerHelper(const Address& address);
 
     /**
      * Helper function used to set the underlying application attributes, but
      * *not* the socket attributes.
-     * \param name The name of the application attribute to set.
-     * \param value The value of the application attribute to set.
+     * @param name The name of the application attribute to set.
+     * @param value The value of the application attribute to set.
      */
     void SetAttribute(const std::string& name, const AttributeValue& value);
 
     /**
      * Install an ThreeGppHttpServer on each node of the input container
      * configured with all the attributes set with SetAttribute().
-     * \param c NodeContainer of the set of nodes on which an ThreeGppHttpServer
+     * @param c NodeContainer of the set of nodes on which an ThreeGppHttpServer
      *              will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(NodeContainer c) const;
 
     /**
      * Install an ThreeGppHttpServer on each node of the input container
      * configured with all the attributes set with SetAttribute().
-     * \param node The node on which an ThreeGppHttpServer will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @param node The node on which an ThreeGppHttpServer will be installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(Ptr<Node> node) const;
 
     /**
      * Install an ThreeGppHttpServer on each node of the input container
      * configured with all the attributes set with SetAttribute().
-     * \param nodeName The name of the node on which an ThreeGppHttpServer
+     * @param nodeName The name of the node on which an ThreeGppHttpServer
      *                             will be installed.
-     * \return Container of Ptr to the applications installed.
+     * @return Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(const std::string& nodeName) const;
 
   private:
     /**
-     * \internal
+     * @internal
      * Install an ThreeGppHttpServer on the node configured with all the
      * attributes set with SetAttribute().
-     * \param node The node on which an ThreeGppHttpServer will be installed.
-     * \return Ptr to the application installed.
+     * @param node The node on which an ThreeGppHttpServer will be installed.
+     * @return Ptr to the application installed.
      */
     Ptr<Application> InstallPriv(Ptr<Node> node) const;
 
@@ -168,18 +168,18 @@ class ThreeGppHttpSatelliteServerHelper
 }; // end of `class ThreeGppHttpSatelliteServerHelper`
 
 /**
- * \ingroup http
- * \brief Helper to make it easier to instantiate a 3GPP HTTP server and a group of
+ * @ingroup http
+ * @brief Helper to make it easier to instantiate a 3GPP HTTP server and a group of
  *        connected 3GPP HTTP clients.
  */
 class ThreeGppHttpHelper
 {
   public:
     /**
-     * \brief Create a ThreeGppHttpHelper to make it easier to work with
+     * @brief Create a ThreeGppHttpHelper to make it easier to work with
      *        ThreeGppHttpClient and ThreeGppHttpServer applications.
      *
-     * \param protocolTid The TypeId of the protocol to be used by the server
+     * @param protocolTid The TypeId of the protocol to be used by the server
      *                    and client. Either TypeId of TcpSocketFactory or UdpSocketFactory.
      */
     ThreeGppHttpHelper();
@@ -188,45 +188,45 @@ class ThreeGppHttpHelper
     virtual ~ThreeGppHttpHelper();
 
     /**
-     * \brief Helper function used to set the underlying ThreeGppHttpTcpClient
+     * @brief Helper function used to set the underlying ThreeGppHttpTcpClient
      *        application attributes, but *not* the socket attributes.
      *
-     * \param name the name of the application attribute to set
-     * \param value the value of the application attribute to set
+     * @param name the name of the application attribute to set
+     * @param value the value of the application attribute to set
      */
     void SetClientAttribute(std::string name, const AttributeValue& value);
 
     /**
-     * \brief Helper function used to set the underlying ThreeGppHttpServer
+     * @brief Helper function used to set the underlying ThreeGppHttpServer
      *        application attributes, but *not* the
      *        socket attributes.
      *
-     * \param name the name of the application attribute to set
-     * \param value the value of the application attribute to set
+     * @param name the name of the application attribute to set
+     * @param value the value of the application attribute to set
      */
     void SetServerAttribute(std::string name, const AttributeValue& value);
 
     /**
-     * \brief Helper function used to set the ThreeGppHttpVariables attributes
+     * @brief Helper function used to set the ThreeGppHttpVariables attributes
      *        used by this helper instance. Currently, only number of videos
      *        specified in the Variables class is used.
      *
-     * \param name the name of the application attribute to set
-     * \param value the value of the application attribute to set
+     * @param name the name of the application attribute to set
+     * @param value the value of the application attribute to set
      */
     void SetVariablesAttribute(std::string name, const AttributeValue& value);
 
     /**
-     * \brief Install an ThreeGppHttp Server application and several ThreeGppHttp client
+     * @brief Install an ThreeGppHttp Server application and several ThreeGppHttp client
      *        applications, in which each client is connected using IPv4 to the
      *        server.
      *
-     * \param serverNode the node on which an ThreeGppHttpServer will be installed
-     * \param clientNodes the set of nodes on which ThreeGppHttpClient applications will
+     * @param serverNode the node on which an ThreeGppHttpServer will be installed
+     * @param clientNodes the set of nodes on which ThreeGppHttpClient applications will
      *                    be installed
-     * \return container of Ptr to the server and client applications installed
+     * @return container of Ptr to the server and client applications installed
      *
-     * \warning The given nodes must have Internet stack installed properly
+     * @warning The given nodes must have Internet stack installed properly
      *          before this method can be called.
      *
      * The installed applications will be configured with all the attributes set
@@ -237,15 +237,15 @@ class ThreeGppHttpHelper
     ApplicationContainer InstallUsingIpv4(Ptr<Node> serverNode, NodeContainer clientNodes);
 
     /**
-     * \brief Install an ThreeGppHttp Server application and an ThreeGppHttp client
+     * @brief Install an ThreeGppHttp Server application and an ThreeGppHttp client
      *        applications, in which each client is connected using IPv4 to the
      *        server.
      *
-     * \param serverNode the node on which an ThreeGppHttpServer will be installed
-     * \param clientNode the node on which an ThreeGppHttpClient will be installed
-     * \return container of Ptr to the server and client applications installed
+     * @param serverNode the node on which an ThreeGppHttpServer will be installed
+     * @param clientNode the node on which an ThreeGppHttpClient will be installed
+     * @return container of Ptr to the server and client applications installed
      *
-     * \warning The given nodes must have Internet stack installed properly
+     * @warning The given nodes must have Internet stack installed properly
      *          before this method can be called.
      *
      * The installed applications will be configured with all the attributes set
@@ -256,19 +256,19 @@ class ThreeGppHttpHelper
     ApplicationContainer InstallUsingIpv4(Ptr<Node> serverNode, Ptr<Node> clientNode);
 
     /**
-     * \brief Retrieve pointers to the 3GPP HTTP clients which were installed by the
+     * @brief Retrieve pointers to the 3GPP HTTP clients which were installed by the
      *        previous call of Install().
      *
-     * \return an application container containing 3GPP HTTP clients, or an empty
+     * @return an application container containing 3GPP HTTP clients, or an empty
      *         container if Install() has never been called before
      */
     ApplicationContainer GetClients() const;
 
     /**
-     * \brief Retrieve a pointer to the 3GPP HTTP server which was installed by the
+     * @brief Retrieve a pointer to the 3GPP HTTP server which was installed by the
      *        previous call of Install().
      *
-     * \return an application container containing a single 3GPP HTTP server, or an
+     * @return an application container containing a single 3GPP HTTP server, or an
      *         empty container if Install() has never been called before
      */
     ApplicationContainer GetServer() const;

@@ -41,21 +41,21 @@ class DataCollectionObject;
 class Address;
 
 /**
- * \ingroup traffic
- * \defgroup applicationstats Application Statistics
+ * @ingroup traffic
+ * @defgroup applicationstats Application Statistics
  *
  * Data Collection Framework (DCF) implementation on Application module. For
  * usage in simulation script, see ApplicationStatsHelperContainer.
  *
- * \warning ApplicationStatsHelperContainer takes care of setting the attributes
+ * @warning ApplicationStatsHelperContainer takes care of setting the attributes
  *          `Name`, `IdentifierType`, and `OutputType`. Thus it's *not*
  *          recommended to manually set the values of these attributes while
  *          using ApplicationStatsHelperContainer.
  */
 
 /**
- * \ingroup applicationstats
- * \brief Parent abstract class of all application statistics helpers.
+ * @ingroup applicationstats
+ * @brief Parent abstract class of all application statistics helpers.
  *
  * A helper is responsible to locate source objects, create probes, collectors,
  * and aggregators, and connect them together in a proper way to produce the
@@ -64,7 +64,7 @@ class Address;
  * As shown in the example code below, the helper requires several inputs.
  * After all the necessary inputs have been set, the statistics can be started
  * into action by invoking Install().
- * \code
+ * @code
  *     ApplicationContainer txApps;
  *     ApplicationContainer rxApps;
  *     // ... (snip) ...
@@ -82,7 +82,7 @@ class Address;
  *     stat->SetOutputType (ApplicationStatsHelper::OUTPUT_SCALAR_FILE);
  *     stat->Install ();
  *     m_stats.push_back (stat);
- * \endcode
+ * @endcode
  *
  * However, it's recommended to use the ApplicationStatsHelperContainer class
  * to automatically handle the above.
@@ -91,7 +91,7 @@ class Address;
  * intended to simplify the development of child classes by sharing common
  * functions.
  *
- * \see ApplicationStatsHelperContainer
+ * @see ApplicationStatsHelperContainer
  */
 class ApplicationStatsHelper : public Object
 {
@@ -99,8 +99,8 @@ class ApplicationStatsHelper : public Object
     // COMMON ENUM DATA TYPES ///////////////////////////////////////////////////
 
     /**
-     * \enum IdentifierType_t
-     * \brief Possible categorization of statistics output.
+     * @enum IdentifierType_t
+     * @brief Possible categorization of statistics output.
      */
     typedef enum
     {
@@ -110,14 +110,14 @@ class ApplicationStatsHelper : public Object
     } IdentifierType_t;
 
     /**
-     * \param identifierType an arbitrary identifier type.
-     * \return representation of the identifier type in string.
+     * @param identifierType an arbitrary identifier type.
+     * @return representation of the identifier type in string.
      */
     static std::string GetIdentifierTypeName(IdentifierType_t identifierType);
 
     /**
-     * \enum OutputType_t
-     * \brief Possible types and formats of statistics output.
+     * @enum OutputType_t
+     * @brief Possible types and formats of statistics output.
      */
     typedef enum
     {
@@ -135,8 +135,8 @@ class ApplicationStatsHelper : public Object
     } OutputType_t;
 
     /**
-     * \param outputType an arbitrary output type.
-     * \return representation of the output type in string.
+     * @param outputType an arbitrary output type.
+     * @return representation of the output type in string.
      */
     static std::string GetOutputTypeName(OutputType_t outputType);
 
@@ -154,9 +154,9 @@ class ApplicationStatsHelper : public Object
     // PUBLIC METHODS ///////////////////////////////////////////////////////////
 
     /**
-     * \brief Provide the helper pointers to applications who will act as the
+     * @brief Provide the helper pointers to applications who will act as the
      *        senders.
-     * \param info pairs of a name and a group of applications.
+     * @param info pairs of a name and a group of applications.
      *
      * Subsequent calls will replace any existing sender information that have
      * been provided before.
@@ -167,9 +167,9 @@ class ApplicationStatsHelper : public Object
     void SetSenderInformation(std::map<std::string, ApplicationContainer> info);
 
     /**
-     * \brief Provide the helper pointers to applications who will act as the
+     * @brief Provide the helper pointers to applications who will act as the
      *        receivers.
-     * \param info pairs of a name and a group of applications.
+     * @param info pairs of a name and a group of applications.
      *
      * Subsequent calls will replace any existing receiver information that have
      * been provided before.
@@ -180,7 +180,7 @@ class ApplicationStatsHelper : public Object
     void SetReceiverInformation(std::map<std::string, ApplicationContainer> info);
 
     /**
-     * \brief Install probes, collectors, and aggregators.
+     * @brief Install probes, collectors, and aggregators.
      *
      * Behaviour should be implemented by child class in DoInstall().
      */
@@ -189,57 +189,57 @@ class ApplicationStatsHelper : public Object
     // SETTER AND GETTER METHODS ////////////////////////////////////////////////
 
     /**
-     * \param name string to be prepended on every output file name.
+     * @param name string to be prepended on every output file name.
      */
     void SetName(std::string name);
 
     /**
-     * \return the name of this helper instance.
+     * @return the name of this helper instance.
      */
     std::string GetName() const;
 
     /**
-     * \param traceSourceName the name of the application's trace source
+     * @param traceSourceName the name of the application's trace source
      *                        which produces the required data.
      */
     void SetTraceSourceName(std::string traceSourceName);
 
     /**
-     * \return the name of the application's trace source from whom this helper
+     * @return the name of the application's trace source from whom this helper
      *         instance will receive data.
      */
     std::string GetTraceSourceName() const;
 
     /**
-     * \param identifierType categorization of statistics output.
-     * \warning Does not have any effect if invoked after Install().
+     * @param identifierType categorization of statistics output.
+     * @warning Does not have any effect if invoked after Install().
      */
     void SetIdentifierType(IdentifierType_t identifierType);
 
     /**
-     * \return the currently active categorization of statistics output.
+     * @return the currently active categorization of statistics output.
      */
     IdentifierType_t GetIdentifierType() const;
 
     /**
-     * \param outputType types and formats of statistics output.
-     * \warning Does not have any effect if invoked after Install().
+     * @param outputType types and formats of statistics output.
+     * @warning Does not have any effect if invoked after Install().
      */
     void SetOutputType(OutputType_t outputType);
 
     /**
-     * \return the currently active types and formats of statistics output.
+     * @return the currently active types and formats of statistics output.
      */
     OutputType_t GetOutputType() const;
 
     /**
-     * \return true if Install() has been invoked, otherwise false.
+     * @return true if Install() has been invoked, otherwise false.
      */
     bool IsInstalled() const;
 
   protected:
     /**
-     * \brief Install the probes, collectors, and aggregators necessary to
+     * @brief Install the probes, collectors, and aggregators necessary to
      *        produce the statistics output.
      *
      * An abstract method of ApplicationStatsHelper which must be implemented by
@@ -248,19 +248,19 @@ class ApplicationStatsHelper : public Object
     virtual void DoInstall() = 0;
 
     /**
-     * \brief Create the aggregator according to the output type.
-     * \param aggregatorTypeId the type of aggregator to be created.
-     * \param n1 the name of the attribute to be set on the aggregator created.
-     * \param v1 the value of the attribute to be set on the aggregator created.
-     * \param n2 the name of the attribute to be set on the aggregator created.
-     * \param v2 the value of the attribute to be set on the aggregator created.
-     * \param n3 the name of the attribute to be set on the aggregator created.
-     * \param v3 the value of the attribute to be set on the aggregator created.
-     * \param n4 the name of the attribute to be set on the aggregator created.
-     * \param v4 the value of the attribute to be set on the aggregator created.
-     * \param n5 the name of the attribute to be set on the aggregator created.
-     * \param v5 the value of the attribute to be set on the aggregator created.
-     * \return the created aggregator.
+     * @brief Create the aggregator according to the output type.
+     * @param aggregatorTypeId the type of aggregator to be created.
+     * @param n1 the name of the attribute to be set on the aggregator created.
+     * @param v1 the value of the attribute to be set on the aggregator created.
+     * @param n2 the name of the attribute to be set on the aggregator created.
+     * @param v2 the value of the attribute to be set on the aggregator created.
+     * @param n3 the name of the attribute to be set on the aggregator created.
+     * @param v3 the value of the attribute to be set on the aggregator created.
+     * @param n4 the name of the attribute to be set on the aggregator created.
+     * @param v4 the value of the attribute to be set on the aggregator created.
+     * @param n5 the name of the attribute to be set on the aggregator created.
+     * @param v5 the value of the attribute to be set on the aggregator created.
+     * @return the created aggregator.
      *
      * The created aggregator is stored in #m_aggregator. It can be retrieved
      * from outside using GetAggregator().
@@ -278,9 +278,9 @@ class ApplicationStatsHelper : public Object
                                                const AttributeValue& v5 = EmptyAttributeValue());
 
     /**
-     * \brief Create one collector instance for each identifier in the simulation.
-     * \param collectorMap the CollectorMap where the collectors will be created.
-     * \return number of collector instances created.
+     * @brief Create one collector instance for each identifier in the simulation.
+     * @param collectorMap the CollectorMap where the collectors will be created.
+     * @return number of collector instances created.
      *
      * The identifier is determined by the currently active identifier type, as
      * previously selected by SetIdentifierType() method or `IdentifierType`
@@ -296,33 +296,33 @@ class ApplicationStatsHelper : public Object
     uint32_t CreateCollectorPerIdentifier(CollectorMap& collectorMap) const;
 
     /**
-     * \brief Create a probe attached to every receiver application and connected
+     * @brief Create a probe attached to every receiver application and connected
      *        to a collector.
-     * \param probeOutputName the name of the trace source of the probe to be
+     * @param probeOutputName the name of the trace source of the probe to be
      *                        connected with the collector.
-     * \param collectorMap a map containing the collectors.
-     * \param collectorTraceSink a pointer to a function of the collectors in the
+     * @param collectorMap a map containing the collectors.
+     * @param collectorTraceSink a pointer to a function of the collectors in the
      *                           target map which acts as a trace sink.
-     * \param probeList an output argument of this function, which is a list of
+     * @param probeList an output argument of this function, which is a list of
      *                  probes where the newly created probes will be pushed.
-     * \return number of probes created.
+     * @return number of probes created.
      *
      * The type of probe to be created (must be a child class of Probe) is
      * specified as a template argument to the method call. For example, below we
      * create an ApplicationPacketProbe for each receiver:
-     * \code
+     * @code
      *     uint32_t n = SetupProbesAtReceiver<ApplicationPacketProbe> (
      *                      "OutputBytes",
      *                      collectorMap,
      *                      &ScalarCollector::TraceSinkUinteger32,
      *                      m_probes);
-     * \endcode
+     * @endcode
      *
      * The probe will listen to each Application previously specified by
      * SetReceiverInformation(). The trace source which the probe listens to is
      * specified using SetTraceSourceName().
      *
-     * \warning This method is only applicable for `GLOBAL` and `RECEIVER`
+     * @warning This method is only applicable for `GLOBAL` and `RECEIVER`
      *          identifiers. In addition, the number of collectors in the
      *          `collectorMap` argument must match the number of identifiers,
      *          i.e., the CreateCollectorPerIdentifier() method should be
@@ -335,10 +335,10 @@ class ApplicationStatsHelper : public Object
                                    std::list<Ptr<Probe>>& probeList);
 
     /**
-     * \brief Connect the trace source of every receiver application to a given
+     * @brief Connect the trace source of every receiver application to a given
      *        callback function.
-     * \param cb a callback function whose second argument is the sender address.
-     * \return number of trace sources connected with the callback.
+     * @param cb a callback function whose second argument is the sender address.
+     * @return number of trace sources connected with the callback.
      *
      * The callback will listen to each Application previously specified by
      * SetReceiverInformation(). The trace source which the callback listens to

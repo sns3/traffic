@@ -40,8 +40,8 @@ class NrtvVariables;
 class NrtvVideoWorker;
 
 /**
- * \ingroup nrtv
- * \brief Model application which simulates the traffic of a Near Real-Time
+ * @ingroup nrtv
+ * @brief Model application which simulates the traffic of a Near Real-Time
  *        Video (NRTV) service, i.e., a video streaming service, over UDP.
  *
  * The application provides unidirectional NRTV-like traffic to a multiple
@@ -55,7 +55,7 @@ class NrtvUdpServer : public Application
 {
   public:
     /**
-     * \brief Creates a new instance of NRTV server application which operates
+     * @brief Creates a new instance of NRTV server application which operates
      *        over UDP.
      *
      * After creation, the application must be further configured through
@@ -68,23 +68,23 @@ class NrtvUdpServer : public Application
     static TypeId GetTypeId();
 
     /**
-     * \brief Adds a client in remote address to the server memory.
+     * @brief Adds a client in remote address to the server memory.
      *        a video worker instance will be created for the client.
      *        Once server is started (or if it has already been started),
      *        the video worker starts generating and sending packets.
      *
-     * \param remoteAddress Address of the remote application.
-     * \param numberOfVideos Number of videos streamed to the client.
+     * @param remoteAddress Address of the remote application.
+     * @param numberOfVideos Number of videos streamed to the client.
      */
     void AddClient(Address remoteAddress, uint32_t numberOfVideos = 1);
 
     /**
-     * \return the address of the destination client
+     * @return the address of the destination client
      */
     Address GetRemoteAddress() const;
 
     /**
-     * \return the destination port
+     * @return the destination port
      */
     uint16_t GetRemotePort() const;
 
@@ -97,18 +97,18 @@ class NrtvUdpServer : public Application
     };
 
     /**
-     * \return the current state of the application
+     * @return the current state of the application
      */
     State_t GetState() const;
 
     /**
-     * \return the current state of the application in string format
+     * @return the current state of the application in string format
      */
     std::string GetStateString() const;
 
     /**
-     * \param state an arbitrary state of an application
-     * \return the state equivalently expressed in string format
+     * @param state an arbitrary state of an application
+     * @return the state equivalently expressed in string format
      */
     static std::string GetStateString(State_t state);
 

@@ -30,8 +30,8 @@ namespace ns3
 {
 
 /**
- * \ingroup traffic
- * \brief Time tag used at the traffic model to time stamp a generated
+ * @ingroup traffic
+ * @brief Time tag used at the traffic model to time stamp a generated
  * packet. Time tag may be used to calculated delay and jitter statistics
  * at the receiver side.
  */

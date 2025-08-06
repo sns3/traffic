@@ -275,7 +275,7 @@ NrtvTcpClient::ErrorCloseCallback(Ptr<Socket> socket)
 
     CancelAllPendingEvents();
     m_eventRetryConnection = Simulator::ScheduleNow(&NrtvTcpClient::RetryConnection, this);
-    /// \todo This won't work because the socket is already closed
+    /// @todo This won't work because the socket is already closed
 }
 
 void

@@ -40,8 +40,8 @@ class NrtvVariables;
 class NrtvTcpClientRxBuffer;
 
 /**
- * \ingroup nrtv
- * \brief Model application which simulates the traffic of a client of a Near
+ * @ingroup nrtv
+ * @brief Model application which simulates the traffic of a client of a Near
  *        Real-Time Video (NRTV) service, i.e., a client accessing a video
  *        streaming service, over TCP.
  *
@@ -59,13 +59,13 @@ class NrtvTcpClient : public Application
 {
   public:
     /**
-     * \brief Creates a new instance of NRTV TCP client application.
+     * @brief Creates a new instance of NRTV TCP client application.
      *
      * After creation, the application must be further configured through
      * attributes. To avoid having to do this process manually, please use one of
      * the helper classes (either NrtvHelper or NrtvClientHelper).
      *
-     * \warning At the moment, only TCP protocol and IPv4 is supported.
+     * @warning At the moment, only TCP protocol and IPv4 is supported.
      */
     NrtvTcpClient();
 
@@ -73,29 +73,29 @@ class NrtvTcpClient : public Application
     static TypeId GetTypeId();
 
     /**
-     * \return the time the application is scheduled to start
+     * @return the time the application is scheduled to start
      */
     Time GetStartTime() const;
 
     /**
-     * \return the time the application is scheduled to stop, or 0 if the stop has
+     * @return the time the application is scheduled to stop, or 0 if the stop has
      *         never been scheduled
      */
     Time GetStopTime() const;
 
     /**
-     * \return true if the application has been scheduled to stop during the
+     * @return true if the application has been scheduled to stop during the
      *         simulation
      */
     bool IsScheduledToStop() const;
 
     /**
-     * \return the address of the destination server
+     * @return the address of the destination server
      */
     Address GetRemoteServerAddress() const;
 
     /**
-     * \return the destination port
+     * @return the destination port
      */
     uint16_t GetRemoteServerPort() const;
 
@@ -115,18 +115,18 @@ class NrtvTcpClient : public Application
     };
 
     /**
-     * \return the current state of the application
+     * @return the current state of the application
      */
     State_t GetState() const;
 
     /**
-     * \return the current state of the application in string format
+     * @return the current state of the application in string format
      */
     std::string GetStateString() const;
 
     /**
-     * \param state an arbitrary state of an application
-     * \return the state equivalently expressed in string format
+     * @param state an arbitrary state of an application
+     * @return the state equivalently expressed in string format
      */
     static std::string GetStateString(State_t state);
 
@@ -143,31 +143,31 @@ class NrtvTcpClient : public Application
 
     /**
      * Callback for connection succeeding.
-     * \param socket The socket bound to remote server address
+     * @param socket The socket bound to remote server address
      */
     void ConnectionSucceededCallback(Ptr<Socket> socket);
 
     /**
      * Callback for connection failing.
-     * \param socket The socket bound to remote server address
+     * @param socket The socket bound to remote server address
      */
     void ConnectionFailedCallback(Ptr<Socket> socket);
 
     /**
      * Callback for connection closing normally.
-     * \param socket The socket bound to remote server address
+     * @param socket The socket bound to remote server address
      */
     void NormalCloseCallback(Ptr<Socket> socket);
 
     /**
      * Callback for connection closing due to error.
-     * \param socket The socket bound to remote server address
+     * @param socket The socket bound to remote server address
      */
     void ErrorCloseCallback(Ptr<Socket> socket);
 
     /**
      * Callback for receiving data from the socket.
-     * \param socket The socket bound to remote server address
+     * @param socket The socket bound to remote server address
      */
     void ReceivedDataCallback(Ptr<Socket> socket);
 
@@ -188,8 +188,8 @@ class NrtvTcpClient : public Application
 
     /**
      * Receive a video slice from the video buffer.
-     * \param from Address of the sender.
-     * \return Size of the slice in bytes.
+     * @param from Address of the sender.
+     * @return Size of the slice in bytes.
      */
     uint32_t ReceiveVideoSlice(const Address& from);
 
@@ -200,7 +200,7 @@ class NrtvTcpClient : public Application
 
     /**
      * Switch state of the client.
-     * \param state New state.
+     * @param state New state.
      */
     void SwitchToState(State_t state);
 
@@ -230,7 +230,7 @@ class NrtvTcpClient : public Application
     // TRACE SOURCES
 
     /**
-     * \brief Trace source for packet being received.
+     * @brief Trace source for packet being received.
      *
      * Example signature of callback function (with context):
      *
@@ -240,7 +240,7 @@ class NrtvTcpClient : public Application
     TracedCallback<Ptr<const Packet>, const Address&> m_rxTrace;
 
     /**
-     * \brief Trace source for packet delay upon receiving of a packet.
+     * @brief Trace source for packet delay upon receiving of a packet.
      *
      * Example signature of callback function (with context):
      *
@@ -250,7 +250,7 @@ class NrtvTcpClient : public Application
     TracedCallback<const Time&, const Address&> m_rxDelayTrace;
 
     /**
-     * \brief Trace source for packet jitter upon receiving of a packet.
+     * @brief Trace source for packet jitter upon receiving of a packet.
      *
      * Example signature of callback function (with context):
      *
@@ -260,7 +260,7 @@ class NrtvTcpClient : public Application
     TracedCallback<const Time&, const Address&> m_rxJitterTrace;
 
     /**
-     * \brief Trace source for an entire slice being constructed from the buffer.
+     * @brief Trace source for an entire slice being constructed from the buffer.
      *
      * Example signature of callback function (with context):
      *
@@ -269,7 +269,7 @@ class NrtvTcpClient : public Application
     TracedCallback<Ptr<const Packet>> m_rxSliceTrace;
 
     /**
-     * \brief Trace source for all slices of a frame having been received.
+     * @brief Trace source for all slices of a frame having been received.
      *
      * Example signature of callback function (with context):
      *
@@ -279,7 +279,7 @@ class NrtvTcpClient : public Application
     TracedCallback<uint32_t, uint32_t> m_rxFrameTrace;
 
     /**
-     * \brief Trace source for application state changing.
+     * @brief Trace source for application state changing.
      *
      * Example signature of callback function (with context):
      *
@@ -295,7 +295,7 @@ class NrtvTcpClient : public Application
 }; // end of `class NrtvTcpClient`
 
 /**
- * \brief Receive (possibly) fragmented packets from NrtvServer and re-assemble
+ * @brief Receive (possibly) fragmented packets from NrtvServer and re-assemble
  *        them to the original video slices they were sent.
  */
 class NrtvTcpClientRxBuffer : public SimpleRefCount<NrtvTcpClientRxBuffer>
@@ -305,43 +305,43 @@ class NrtvTcpClientRxBuffer : public SimpleRefCount<NrtvTcpClientRxBuffer>
     NrtvTcpClientRxBuffer();
 
     /**
-     * \brief Check if the buffer is empty.
-     * \return true if the buffer is completely empty
+     * @brief Check if the buffer is empty.
+     * @return true if the buffer is completely empty
      */
     bool IsEmpty() const;
 
     /**
-     * \brief Check if the buffer contains at least one complete video slice.
+     * @brief Check if the buffer contains at least one complete video slice.
      *        If at least one slice is found, PopVideoSlice() can be called.
-     * \return true if the buffer contains at least a complete video slice.
+     * @return true if the buffer contains at least a complete video slice.
      */
     bool HasVideoSlice() const;
 
     /**
-     * \brief Insert a received packet into the buffer.
-     * \param packet the packet data to be added
+     * @brief Insert a received packet into the buffer.
+     * @param packet the packet data to be added
      *
-     * \warning If the packet is the first packet of a video slice, it must
+     * @warning If the packet is the first packet of a video slice, it must
      *          contain an NrtvHeader.
      */
     void PushPacket(Ptr<const Packet> packet);
 
     /**
-     * \brief Get and remove the next video slice from the buffer as a packet.
-     * \return the next video slice, re-assembled from the packets which have been
+     * @brief Get and remove the next video slice from the buffer as a packet.
+     * @return the next video slice, re-assembled from the packets which have been
      *         received (still including its NrtvHeader)
      *
-     * \warning As pre-conditions, IsEmpty() must be false and HasVideoSlice()
+     * @warning As pre-conditions, IsEmpty() must be false and HasVideoSlice()
      *          must be true before calling this method.
      */
     Ptr<Packet> PopVideoSlice();
 
   private:
     /**
-     * \param packet the packet to be read
-     * \return the slice size field of the NRTV header embedded in the packet
+     * @param packet the packet to be read
+     * @return the slice size field of the NRTV header embedded in the packet
      *
-     * \warning An NRTV header must be found in the beginning of the packet.
+     * @warning An NRTV header must be found in the beginning of the packet.
      */
     static uint32_t PeekSliceSize(Ptr<const Packet> packet);
 

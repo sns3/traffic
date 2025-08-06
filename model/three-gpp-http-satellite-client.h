@@ -37,8 +37,8 @@ class Packet;
 class ThreeGppHttpVariables;
 
 /**
- * \ingroup applications
- * \defgroup http ThreeGppHttpClientServer
+ * @ingroup applications
+ * @defgroup http ThreeGppHttpClientServer
  *
  * This traffic generator simulates web browsing traffic using the Hypertext
  * Transfer Protocol (HTTP). It consists of one or more ThreeGppHttpSatelliteClient
@@ -71,7 +71,7 @@ class ThreeGppHttpVariables;
  */
 
 /**
- * \ingroup http
+ * @ingroup http
  * Model application which simulates the traffic of a web browser. This
  * application works in conjunction with an ThreeGppHttpServer application.
  *
@@ -119,13 +119,13 @@ class ThreeGppHttpSatelliteClient : public Application
 
     /**
      * Returns the object TypeId.
-     * \return The object TypeId.
+     * @return The object TypeId.
      */
     static TypeId GetTypeId();
 
     /**
      * Returns a pointer to the associated socket.
-     * \return Pointer to the associated socket.
+     * @return Pointer to the associated socket.
      */
     Ptr<Socket> GetSocket() const;
 
@@ -150,27 +150,27 @@ class ThreeGppHttpSatelliteClient : public Application
 
     /**
      * Returns the current state of the application.
-     * \return The current state of the application.
+     * @return The current state of the application.
      */
     State_t GetState() const;
 
     /**
      * Returns the current state of the application in string format.
-     * \return The current state of the application in string format.
+     * @return The current state of the application in string format.
      */
     std::string GetStateString() const;
 
     /**
      * Returns the given state in string format.
-     * \param state An arbitrary state of an application.
-     * \return The given state equivalently expressed in string format.
+     * @param state An arbitrary state of an application.
+     * @return The given state equivalently expressed in string format.
      */
     static std::string GetStateString(State_t state);
 
     /**
      * Common callback signature for `ConnectionEstablished`, `RxMainObject`, and
      * `RxEmbeddedObject` trace sources.
-     * \param httpClient Pointer to this instance of ThreeGppHttpSatelliteClient,
+     * @param httpClient Pointer to this instance of ThreeGppHttpSatelliteClient,
      *                               which is where the trace originated.
      */
     typedef void (*TracedCallback)(Ptr<const ThreeGppHttpSatelliteClient> httpClient);
@@ -189,31 +189,31 @@ class ThreeGppHttpSatelliteClient : public Application
     /**
      * Invoked when a connection is established successfully on #m_socket. This
      * triggers a request for a main object.
-     * \param socket Pointer to the socket where the event originates from.
+     * @param socket Pointer to the socket where the event originates from.
      */
     void ConnectionSucceededCallback(Ptr<Socket> socket);
     /**
      * Invoked when #m_socket cannot establish a connection with the web server.
      * Simulation will stop and error will be raised.
-     * \param socket Pointer to the socket where the event originates from.
+     * @param socket Pointer to the socket where the event originates from.
      */
     void ConnectionFailedCallback(Ptr<Socket> socket);
     /**
      * Invoked when connection between #m_socket and the web sever is terminated.
      * Error will be logged, but simulation continues.
-     * \param socket Pointer to the socket where the event originates from.
+     * @param socket Pointer to the socket where the event originates from.
      */
     void NormalCloseCallback(Ptr<Socket> socket);
     /**
      * Invoked when connection between #m_socket and the web sever is terminated.
      * Error will be logged, but simulation continues.
-     * \param socket Pointer to the socket where the event originates from.
+     * @param socket Pointer to the socket where the event originates from.
      */
     void ErrorCloseCallback(Ptr<Socket> socket);
     /**
      * Invoked when #m_socket receives some packet data. Fires the `Rx` trace
      * source and triggers ReceiveMainObject() or ReceiveEmbeddedObject().
-     * \param socket Pointer to the socket where the event originates from.
+     * @param socket Pointer to the socket where the event originates from.
      */
     void ReceivedDataCallback(Ptr<Socket> socket);
 
@@ -265,8 +265,8 @@ class ThreeGppHttpSatelliteClient : public Application
      * fires the `RxMainObject`, `RxDelay`, and `RxRtt` trace sources. The client
      * then triggers EnterParsingTime().
      *
-     * \param packet The received packet.
-     * \param from Address of the sender.
+     * @param packet The received packet.
+     * @param from Address of the sender.
      */
     void ReceiveMainObject(Ptr<Packet> packet, const Address& from);
     /**
@@ -288,8 +288,8 @@ class ThreeGppHttpSatelliteClient : public Application
      * (#m_embeddedObjectsToBeRequested) the client can either trigger
      * RequestEmbeddedObject() or EnterReadingTime().
      *
-     * \param packet The received packet.
-     * \param from Address of the sender.
+     * @param packet The received packet.
+     * @param from Address of the sender.
      */
     void ReceiveEmbeddedObject(Ptr<Packet> packet, const Address& from);
     /**
@@ -301,7 +301,7 @@ class ThreeGppHttpSatelliteClient : public Application
      * This method is invoked as a sub-procedure of ReceiveMainObject() and
      * ReceiveEmbeddedObject().
      *
-     * \param packet The received packet. If it is the first packet of the object,
+     * @param packet The received packet. If it is the first packet of the object,
      *               then it must have a ThreeGppHttpHeader attached to it.
      */
     void Receive(Ptr<Packet> packet);
@@ -342,7 +342,7 @@ class ThreeGppHttpSatelliteClient : public Application
 
     /**
      * Change the state of the client. Fires the `StateTransition` trace source.
-     * \param state The new state.
+     * @param state The new state.
      */
     void SwitchToState(State_t state);
 

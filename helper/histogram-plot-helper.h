@@ -33,8 +33,8 @@ namespace ns3
 {
 
 /**
- * \defgroup traffic Traffic Generators
- * \brief Collection of applications which model realistic network traffic.
+ * @defgroup traffic Traffic Generators
+ * @brief Collection of applications which model realistic network traffic.
  *
  * The module provides two models of traffic: *web browsing traffic* and
  * *video streaming traffic*. The models are implemented as derived classes of
@@ -68,8 +68,8 @@ namespace ns3
  */
 
 /**
- * \ingroup traffic
- * \brief Class with a static method to generate a histogram (as a Gnuplot file)
+ * @ingroup traffic
+ * @brief Class with a static method to generate a histogram (as a Gnuplot file)
  *        from a specified random variable.
  *
  * For usage example, see http-variables-plot.cc and nrtv-variables-plot.cc in
@@ -81,26 +81,26 @@ class HistogramPlotHelper
 {
   public:
     /**
-     * \brief Write a Gnuplot file of a histogram from a given random variable.
+     * @brief Write a Gnuplot file of a histogram from a given random variable.
      *
-     * \param valueStream a callback to the function that returns a random value
+     * @param valueStream a callback to the function that returns a random value
      *                    of type `T` (must be specified as the function's
      *                    template argument)
-     * \param name the name of the plot, which determines the output file name
-     * \param plotTitle the text to be printed on top of the histogram
-     * \param axisLabel the text to be printed as the label of the histogram's
+     * @param name the name of the plot, which determines the output file name
+     * @param plotTitle the text to be printed on top of the histogram
+     * @param axisLabel the text to be printed as the label of the histogram's
      *                  X axis
-     * \param numOfSamples determines how many samples are retrieved from the
+     * @param numOfSamples determines how many samples are retrieved from the
      *                     function specified in `valueStream` argument; higher
      *                     values produces smoother curve but requires more
      *                     processing time
-     * \param binWidth the width of each histogram bar (in the same unit as the
+     * @param binWidth the width of each histogram bar (in the same unit as the
      *                 return values of the function specified in `valueStream`
      *                 argument)
-     * \param referenceMean a mean value (in the same unit as the return values of
+     * @param referenceMean a mean value (in the same unit as the return values of
      *                      the function specified in `valueStream` argument) to
      *                      be printed on the histogram for comparison purpose
-     * \param max an optional argument that can be specified to determine the
+     * @param max an optional argument that can be specified to determine the
      *            maximum value of the random values to be considered in the
      *            histogram; if unspecified, the histogram will automatically
      *            compute the maximum value in proportion to the `referenceMean`

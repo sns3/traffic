@@ -20,10 +20,10 @@
  */
 
 /**
- * \file
+ * @file
  *
- * \ingroup nrtv
- * \brief Simple example of two nodes connected by a point-to-point link. One
+ * @ingroup nrtv
+ * @brief Simple example of two nodes connected by a point-to-point link. One
  *        acts as a video streaming server, while the other one acts as the
  *        client.
  *

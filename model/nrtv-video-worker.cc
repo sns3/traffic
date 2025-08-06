@@ -280,7 +280,7 @@ NrtvVideoWorker::NewSlice()
     }
     else
     {
-        /// \todo We don't do retry at the moment, so we just do nothing in this case
+        /// @todo We don't do retry at the moment, so we just do nothing in this case
         NS_LOG_ERROR(this << " failure in sending packet");
     }
 #else  /* NS3_LOG_ENABLE */

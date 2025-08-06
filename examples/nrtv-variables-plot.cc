@@ -20,10 +20,10 @@
  */
 
 /**
- * \file
+ * @file
  *
- * \ingroup nrtv
- * \brief Example script for plotting histograms from some of the random
+ * @ingroup nrtv
+ * @brief Example script for plotting histograms from some of the random
  *        variable distributions used in NRTV traffic model.
  *
  * The script repeatedly draws random samples from the distributions and then

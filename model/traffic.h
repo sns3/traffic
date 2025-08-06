@@ -26,9 +26,9 @@ namespace ns3
 {
 
 /**
- * \brief Common signature used by callback to collector's trace source.
- * \param oldState Name of the old state.
- * \param newState Name of the new state.
+ * @brief Common signature used by callback to collector's trace source.
+ * @param oldState Name of the old state.
+ * @param newState Name of the new state.
  */
 typedef void (*StateTransitionCallback)(std::string, std::string);
 
