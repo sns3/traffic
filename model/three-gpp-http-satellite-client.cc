@@ -270,9 +270,8 @@ ThreeGppHttpSatelliteClient::ConnectionFailedCallback(Ptr<Socket> socket)
 
     if (m_state == CONNECTING)
     {
-        NS_FATAL_ERROR("Client failed to connect"
-                       << " to remote address " << m_remoteServerAddress << " port "
-                       << m_remoteServerPort << ".");
+        NS_FATAL_ERROR("Client failed to connect" << " to remote address " << m_remoteServerAddress
+                                                  << " port " << m_remoteServerPort << ".");
     }
     else
     {
@@ -500,8 +499,7 @@ ThreeGppHttpSatelliteClient::RequestEmbeddedObject()
             m_txTrace(packet);
             const int actualBytes = m_socket->Send(packet);
             NS_LOG_DEBUG(this << " Send() packet " << packet << " of " << packet->GetSize()
-                              << " bytes,"
-                              << " return value= " << actualBytes << ".");
+                              << " bytes," << " return value= " << actualBytes << ".");
 
             if (actualBytes != static_cast<int>(packetSize))
             {
@@ -697,11 +695,9 @@ ThreeGppHttpSatelliteClient::Receive(Ptr<Packet> packet)
      */
     if (m_objectBytesToBeReceived < contentSize)
     {
-        NS_LOG_WARN(this << " The received packet"
-                         << " (" << contentSize << " bytes of content)"
-                         << " is larger than"
-                         << " the content that we expected to receive"
-                         << " (" << m_objectBytesToBeReceived << " bytes).");
+        NS_LOG_WARN(this << " The received packet" << " (" << contentSize << " bytes of content)"
+                         << " is larger than" << " the content that we expected to receive" << " ("
+                         << m_objectBytesToBeReceived << " bytes).");
         // Stop expecting any more packet of this object.
         m_objectBytesToBeReceived = 0;
         m_constructedPacket = NULL;
@@ -726,8 +722,8 @@ ThreeGppHttpSatelliteClient::EnterParsingTime()
     if (m_state == EXPECTING_MAIN_OBJECT)
     {
         const Time parsingTime = m_httpVariables->GetParsingTime();
-        NS_LOG_INFO(this << " The parsing of this main object"
-                         << " will complete in " << parsingTime.GetSeconds() << " seconds.");
+        NS_LOG_INFO(this << " The parsing of this main object" << " will complete in "
+                         << parsingTime.GetSeconds() << " seconds.");
         m_eventParseMainObject =
             Simulator::Schedule(parsingTime, &ThreeGppHttpSatelliteClient::ParseMainObject, this);
         SwitchToState(PARSING_MAIN_OBJECT);
@@ -841,9 +837,8 @@ ThreeGppHttpSatelliteClient::SwitchToState(ThreeGppHttpSatelliteClient::State_t 
         if (m_objectBytesToBeReceived > 0)
         {
             NS_FATAL_ERROR("Cannot start a new receiving session"
-                           << " if the previous object"
-                           << " (" << m_objectBytesToBeReceived << " bytes)"
-                           << " is not completely received yet.");
+                           << " if the previous object" << " (" << m_objectBytesToBeReceived
+                           << " bytes)" << " is not completely received yet.");
         }
     }
 

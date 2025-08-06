@@ -214,7 +214,9 @@ NrtvHelper::InstallUsingIpv4(Ptr<Node> serverNode, NodeContainer clientNodes)
         const Ipv4Address serverAddress = interfaceAddress.GetLocal();
 
         if (tcpInUse)
+        {
             m_serverHelper->SetAttribute("LocalAddress", AddressValue(serverAddress));
+        }
 
         m_lastInstalledServer = m_serverHelper->Install(serverNode);
         ret.Add(m_lastInstalledServer);
@@ -238,9 +240,11 @@ NrtvHelper::InstallUsingIpv4(Ptr<Node> serverNode, NodeContainer clientNodes)
                 const Ipv4Address clientAddress = clientInterfaceAddress.GetLocal();
                 ApplicationContainer apps = m_clientHelper->Install((*it));
                 for (auto it2 = apps.Begin(); it2 != apps.End(); it2++)
+                {
                     (*it2)->SetAttribute(
                         "Local",
                         AddressValue(InetSocketAddress(clientAddress, serverApp->GetRemotePort())));
+                }
                 m_lastInstalledClients.Add(apps);
                 serverApp->AddClient(clientAddress, m_nrtvVariables->GetNumOfVideos());
             }

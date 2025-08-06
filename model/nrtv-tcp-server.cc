@@ -188,7 +188,9 @@ NrtvTcpServer::StartApplication()
 
         SwitchToState(STARTED);
         for (auto w = m_workers.begin(); w != m_workers.end(); w++)
+        {
             w->second->ChangeState(NrtvVideoWorker::READY);
+        }
 
     } // end of `if (m_state == NOT_STARTED)`
     else

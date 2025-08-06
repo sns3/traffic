@@ -227,9 +227,8 @@ ThreeGppHttpVariables::GetMainObjectSize()
     // Validate parameters.
     if (m_mainObjectSizeMax <= m_mainObjectSizeMin)
     {
-        NS_FATAL_ERROR("`MainObjectSizeMax` attribute "
-                       << " must be greater than"
-                       << " the `MainObjectSizeMin` attribute.");
+        NS_FATAL_ERROR("`MainObjectSizeMax` attribute " << " must be greater than"
+                                                        << " the `MainObjectSizeMin` attribute.");
     }
 
     /*
@@ -259,8 +258,7 @@ ThreeGppHttpVariables::GetEmbeddedObjectSize()
     if (m_embeddedObjectSizeMax <= m_embeddedObjectSizeMin)
     {
         NS_FATAL_ERROR("`EmbeddedObjectSizeMax` attribute "
-                       << " must be greater than"
-                       << " the `EmbeddedObjectSizeMin` attribute.");
+                       << " must be greater than" << " the `EmbeddedObjectSizeMin` attribute.");
     }
 
     /*
@@ -284,8 +282,7 @@ ThreeGppHttpVariables::GetNumOfEmbeddedObjects()
     if (m_numOfEmbeddedObjectsRng->GetBound() <= m_numOfEmbeddedObjectsScale)
     {
         NS_FATAL_ERROR("`NumOfEmbeddedObjectsMax` attribute "
-                       << " must be greater than"
-                       << " the `NumOfEmbeddedObjectsScale` attribute.");
+                       << " must be greater than" << " the `NumOfEmbeddedObjectsScale` attribute.");
     }
 
     uint32_t value = m_numOfEmbeddedObjectsRng->GetInteger();

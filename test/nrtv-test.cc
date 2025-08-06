@@ -199,8 +199,7 @@ NrtvClientRxBufferTestCase::RxCallback(std::string context,
 
         if (m_packetsInTransit.front() != packetSize)
         {
-            NS_LOG_INFO(this << " [" << GetName() << "]"
-                             << " some splitting had occurred,"
+            NS_LOG_INFO(this << " [" << GetName() << "]" << " some splitting had occurred,"
                              << " expected " << m_packetsInTransit.front() << " bytes"
                              << " but received " << packetSize << " bytes instead");
         }
@@ -276,8 +275,7 @@ NrtvTestSuite::NrtvTestSuite()
             for (uint8_t k = 0; k < 3; k++)
             {
                 std::ostringstream oss;
-                oss << protocols[i].GetName() << ", "
-                    << "delay=" << delayMs[j] << "ms, "
+                oss << protocols[i].GetName() << ", " << "delay=" << delayMs[j] << "ms, "
                     << "run=" << rngRun[k];
                 AddTestCase(new NrtvClientRxBufferTestCase(oss.str(),
                                                            rngRun[k],

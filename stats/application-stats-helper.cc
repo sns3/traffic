@@ -247,8 +247,8 @@ ApplicationStatsHelper::SetIdentifierType(ApplicationStatsHelper::IdentifierType
 
     if (m_isInstalled && (m_identifierType != identifierType))
     {
-        NS_LOG_WARN(this << " cannot modify the current identifier type"
-                         << " (" << GetIdentifierTypeName(m_identifierType) << ")"
+        NS_LOG_WARN(this << " cannot modify the current identifier type" << " ("
+                         << GetIdentifierTypeName(m_identifierType) << ")"
                          << " because this instance have already been installed");
     }
     else
@@ -270,8 +270,8 @@ ApplicationStatsHelper::SetOutputType(ApplicationStatsHelper::OutputType_t outpu
 
     if (m_isInstalled && (m_outputType != outputType))
     {
-        NS_LOG_WARN(this << " cannot modify the current output type"
-                         << " (" << GetIdentifierTypeName(m_identifierType) << ")"
+        NS_LOG_WARN(this << " cannot modify the current output type" << " ("
+                         << GetIdentifierTypeName(m_identifierType) << ")"
                          << " because this instance have already been installed");
     }
     else
@@ -360,8 +360,8 @@ ApplicationStatsHelper::CreateCollectorPerIdentifier(CollectorMap& collectorMap)
         break;
     }
 
-    NS_LOG_INFO(this << " created " << n << " instance(s)"
-                     << " of " << collectorMap.GetType().GetName() << " for "
+    NS_LOG_INFO(this << " created " << n << " instance(s)" << " of "
+                     << collectorMap.GetType().GetName() << " for "
                      << GetIdentifierTypeName(GetIdentifierType()));
 
     return n;

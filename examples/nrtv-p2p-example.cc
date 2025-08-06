@@ -91,11 +91,17 @@ main(int argc, char* argv[])
     std::stringstream prss;
     prss << "ns3::";
     if (protocol == "TCP")
+    {
         prss << "Tcp";
+    }
     else if (protocol == "UDP")
+    {
         prss << "Udp";
+    }
     else
+    {
         NS_FATAL_ERROR("Invalid protocol given, use either TCP or UDP in upper case.");
+    }
     prss << "SocketFactory";
 
     /// Log components ///

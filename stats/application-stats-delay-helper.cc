@@ -287,8 +287,7 @@ ApplicationStatsDelayHelper::DoInstall()
             break;
         }
 
-        NS_LOG_INFO(this << " created " << n << " instance(s)"
-                         << " of ApplicationDelayProbe");
+        NS_LOG_INFO(this << " created " << n << " instance(s)" << " of ApplicationDelayProbe");
         break;
     }
 
@@ -347,9 +346,8 @@ ApplicationStatsDelayHelper::RxDelayCallback(Time delay, const Address& from)
     else
     {
         NS_LOG_WARN(this << " discarding a packet delay of " << delay.GetSeconds()
-                         << " from statistics collection"
-                         << " because it comes from sender " << from
-                         << " without valid InetSocketAddress");
+                         << " from statistics collection" << " because it comes from sender "
+                         << from << " without valid InetSocketAddress");
     }
 
 } // end of `void RxDelayCallback (Time, const Address &)`
@@ -370,8 +368,8 @@ ApplicationStatsDelayHelper::SaveAddressAndIdentifier(Ptr<Application> applicati
     }
     else
     {
-        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)"
-                          << " in Node " << node->GetId());
+        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)" << " in Node "
+                          << node->GetId());
 
         // Skipping interface #0 because it is assumed to be a loopback interface.
         for (uint32_t i = 1; i < ipv4->GetNInterfaces(); i++)

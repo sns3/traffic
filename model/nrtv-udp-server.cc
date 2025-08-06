@@ -146,8 +146,7 @@ NrtvUdpServer::StartApplication()
     if (m_state == NOT_STARTED)
     {
         SwitchToState(STARTED);
-        NS_LOG_INFO(this << " NRTV UDP server was started - "
-                         << " Starting workers...");
+        NS_LOG_INFO(this << " NRTV UDP server was started - " << " Starting workers...");
 
         for (auto w = m_workers.begin(); w != m_workers.end(); w++)
         {

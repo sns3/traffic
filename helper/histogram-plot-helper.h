@@ -194,12 +194,11 @@ HistogramPlotHelper::Plot(Callback<T> valueStream,
     // the width of each bar
     ofs << "set boxwidth " << binWidth << std::endl;
     // the function to determine which bin a sample belongs to
-    ofs << "bin(x)=" << binWidth << "*floor(x/" << binWidth << ")"
-        << "+" << (0.5 * binWidth) << std::endl;
+    ofs << "bin(x)=" << binWidth << "*floor(x/" << binWidth << ")" << "+" << (0.5 * binWidth)
+        << std::endl;
     // definition of the histogram plot
     ofs << "plot '-' using (bin($1)):(1.0/" << numOfSamples << ") "
-        << "smooth freq with boxes notitle, "
-        << "'-' title 'Reference mean' with points, "
+        << "smooth freq with boxes notitle, " << "'-' title 'Reference mean' with points, "
         << "'-' title 'Actual mean' with points" << std::endl;
 
     // start writing the data points for the histogram

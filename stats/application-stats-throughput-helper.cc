@@ -374,8 +374,7 @@ ApplicationStatsThroughputHelper::DoInstall()
             m_conversionCollectors,
             &UnitConversionCollector::TraceSinkUinteger32,
             m_probes);
-        NS_LOG_INFO(this << " created " << n << " instance(s)"
-                         << " of ApplicationPacketProbe");
+        NS_LOG_INFO(this << " created " << n << " instance(s)" << " of ApplicationPacketProbe");
         break;
     }
 
@@ -423,8 +422,7 @@ ApplicationStatsThroughputHelper::RxCallback(Ptr<const Packet> packet, const Add
         if (it1 == m_identifierMap.end())
         {
             NS_LOG_WARN(this << " discarding packet " << packet << " (" << packet->GetSize()
-                             << " bytes)"
-                             << " from statistics collection because of"
+                             << " bytes)" << " from statistics collection because of"
                              << " unknown sender IPv4 address " << ipv4Addr);
         }
         else
@@ -442,10 +440,10 @@ ApplicationStatsThroughputHelper::RxCallback(Ptr<const Packet> packet, const Add
     }
     else
     {
-        NS_LOG_WARN(
-            this << " discarding packet " << packet << " (" << packet->GetSize() << " bytes)"
-                 << " from statistics collection"
-                 << " because it comes from sender " << from << " without valid InetSocketAddress");
+        NS_LOG_WARN(this << " discarding packet " << packet << " (" << packet->GetSize()
+                         << " bytes)" << " from statistics collection"
+                         << " because it comes from sender " << from
+                         << " without valid InetSocketAddress");
     }
 
 } // end of `void RxCallback (Ptr<const Packet>, const Address &)`
@@ -466,8 +464,8 @@ ApplicationStatsThroughputHelper::SaveAddressAndIdentifier(Ptr<Application> appl
     }
     else
     {
-        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)"
-                          << " in Node " << node->GetId());
+        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)" << " in Node "
+                          << node->GetId());
 
         // Skipping interface #0 because it is assumed to be a loopback interface.
         for (uint32_t i = 1; i < ipv4->GetNInterfaces(); i++)

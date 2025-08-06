@@ -66,10 +66,14 @@ ClientMainObjectReceived(Ptr<const ThreeGppHttpClient>, Ptr<const Packet> packet
     p->RemoveHeader(header);
     if (header.GetContentLength() == p->GetSize() &&
         header.GetContentType() == ThreeGppHttpHeader::MAIN_OBJECT)
+    {
         NS_LOG_INFO("Client has succesfully received a main object of " << p->GetSize()
                                                                         << " bytes.");
+    }
     else
+    {
         NS_LOG_INFO("Client failed to parse a main object. ");
+    }
 }
 
 void
@@ -80,10 +84,14 @@ ClientEmbeddedObjectReceived(Ptr<const ThreeGppHttpClient>, Ptr<const Packet> pa
     p->RemoveHeader(header);
     if (header.GetContentLength() == p->GetSize() &&
         header.GetContentType() == ThreeGppHttpHeader::EMBEDDED_OBJECT)
+    {
         NS_LOG_INFO("Client has succesfully received an embedded object of " << p->GetSize()
                                                                              << " bytes.");
+    }
     else
+    {
         NS_LOG_INFO("Client failed to parse an embedded object. ");
+    }
 }
 
 int
