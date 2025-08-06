@@ -22,9 +22,9 @@
 #ifndef NRTV_VARIABLES_H
 #define NRTV_VARIABLES_H
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
-#include <ns3/random-variable-stream.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
+#include "ns3/random-variable-stream.h"
 
 #include <string>
 

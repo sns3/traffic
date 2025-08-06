@@ -21,13 +21,13 @@
 
 #include "nrtv-variables.h"
 
-#include <ns3/double.h>
-#include <ns3/integer.h>
-#include <ns3/log.h>
-#include <ns3/pointer.h>
-#include <ns3/rng-stream.h>
-#include <ns3/string.h>
-#include <ns3/uinteger.h>
+#include "ns3/double.h"
+#include "ns3/integer.h"
+#include "ns3/log.h"
+#include "ns3/pointer.h"
+#include "ns3/rng-stream.h"
+#include "ns3/string.h"
+#include "ns3/uinteger.h"
 
 #include <cmath>
 #include <limits>

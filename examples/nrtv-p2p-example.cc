@@ -38,12 +38,12 @@
  * also be found in the working directory.
  */
 
-#include <ns3/applications-module.h>
-#include <ns3/core-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/network-module.h>
-#include <ns3/point-to-point-module.h>
-#include <ns3/traffic-module.h>
+#include "ns3/applications-module.h"
+#include "ns3/core-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/network-module.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/traffic-module.h"
 
 using namespace ns3;
 

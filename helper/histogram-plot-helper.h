@@ -22,7 +22,7 @@
 #ifndef HISTOGRAM_PLOT_HELPER_H
 #define HISTOGRAM_PLOT_HELPER_H
 
-#include <ns3/callback.h>
+#include "ns3/callback.h"
 
 #include <cmath>
 #include <fstream>

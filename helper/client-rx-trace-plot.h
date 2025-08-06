@@ -22,10 +22,10 @@
 #ifndef CLIENT_RX_TRACE_PLOT_H
 #define CLIENT_RX_TRACE_PLOT_H
 
-#include <ns3/application.h>
-#include <ns3/gnuplot.h>
-#include <ns3/object.h>
-#include <ns3/ptr.h>
+#include "ns3/application.h"
+#include "ns3/gnuplot.h"
+#include "ns3/object.h"
+#include "ns3/ptr.h"
 
 #include <string>
 

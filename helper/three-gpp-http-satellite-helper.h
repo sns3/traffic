@@ -30,11 +30,11 @@
 #ifndef THREE_GPP_HTTP_SATELLITE_HELPER_H
 #define THREE_GPP_HTTP_SATELLITE_HELPER_H
 
-#include <ns3/application-container.h>
-#include <ns3/node-container.h>
-#include <ns3/object-factory.h>
-#include <ns3/three-gpp-http-helper.h>
-#include <ns3/three-gpp-http-variables.h>
+#include "ns3/application-container.h"
+#include "ns3/node-container.h"
+#include "ns3/object-factory.h"
+#include "ns3/three-gpp-http-helper.h"
+#include "ns3/three-gpp-http-variables.h"
 
 #include <string>
 

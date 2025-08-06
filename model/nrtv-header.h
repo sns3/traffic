@@ -22,8 +22,8 @@
 #ifndef NRTV_HEADER_H
 #define NRTV_HEADER_H
 
-#include <ns3/header.h>
-#include <ns3/nstime.h>
+#include "ns3/header.h"
+#include "ns3/nstime.h"
 
 #include <ostream>
 
