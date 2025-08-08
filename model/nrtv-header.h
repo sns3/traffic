@@ -22,8 +22,8 @@
 #ifndef NRTV_HEADER_H
 #define NRTV_HEADER_H
 
-#include <ns3/header.h>
-#include <ns3/nstime.h>
+#include "ns3/header.h"
+#include "ns3/nstime.h"
 
 #include <ostream>
 
@@ -31,8 +31,8 @@ namespace ns3
 {
 
 /**
- * \ingroup nrtv
- * \brief Simple packet header for use in NRTV traffic models.
+ * @ingroup nrtv
+ * @brief Simple packet header for use in NRTV traffic models.
  *
  * The header is 24 bytes in length. There are 6 fields in the header:
  * - frame number (4 bytes, an index starting from 0);
@@ -88,7 +88,7 @@ namespace ns3
  * Instead of Packet::RemoveHeader(), we may use Packet::PeekHeader() if we
  * want to keep the header in the packet.
  *
- * \warning You will get an error if you invoke Packet::RemoveHeader() or
+ * @warning You will get an error if you invoke Packet::RemoveHeader() or
  *          Packet::PeekHeader() on a packet smaller than 24 bytes,
  *
  */
@@ -102,67 +102,67 @@ class NrtvHeader : public Header
     static TypeId GetTypeId(void);
 
     /**
-     * \param frameNumber the value for the "frame number" field of this header
+     * @param frameNumber the value for the "frame number" field of this header
      *                    instance
      */
     void SetFrameNumber(uint32_t frameNumber);
 
     /**
-     * \return the current value of the "frame number" field of this header
+     * @return the current value of the "frame number" field of this header
      *         instance
      */
     uint32_t GetFrameNumber() const;
 
     /**
-     * \param numOfFrames the value for the "number of frames" field of this
+     * @param numOfFrames the value for the "number of frames" field of this
      *                    header instance
      */
     void SetNumOfFrames(uint32_t numOfFrames);
 
     /**
-     * \return the current value of the "number of frames" field of this header
+     * @return the current value of the "number of frames" field of this header
      *         instance
      */
     uint32_t GetNumOfFrames() const;
 
     /**
-     * \param sliceNumber the value for the "slice number" field of this header
+     * @param sliceNumber the value for the "slice number" field of this header
      *                    instance
      */
     void SetSliceNumber(uint16_t sliceNumber);
 
     /**
-     * \return the current value of the "slice number" field of this header
+     * @return the current value of the "slice number" field of this header
      *         instance
      */
     uint16_t GetSliceNumber() const;
 
     /**
-     * \param numOfSlices the value for the "number of slices" field of this
+     * @param numOfSlices the value for the "number of slices" field of this
      *                    header instance
      */
     void SetNumOfSlices(uint16_t numOfSlices);
 
     /**
-     * \return the current value of the "number of slices" field of this header
+     * @return the current value of the "number of slices" field of this header
      *         instance
      */
     uint16_t GetNumOfSlices() const;
 
     /**
-     * \param sliceSize the value for the "slice size" field of this header
+     * @param sliceSize the value for the "slice size" field of this header
      *                    instance
      */
     void SetSliceSize(uint32_t sliceSize);
 
     /**
-     * \return the current value of the "slice size" field of this header
+     * @return the current value of the "slice size" field of this header
      *         instance
      */
     uint32_t GetSliceSize() const;
 
     /**
-     * \return the time the packet arrives on the sender side (can be used to
+     * @return the time the packet arrives on the sender side (can be used to
      *         calculate packet delay)
      */
     Time GetArrivalTime() const;

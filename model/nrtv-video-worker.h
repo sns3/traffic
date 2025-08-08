@@ -22,11 +22,11 @@
 #ifndef NRTV_VIDEO_WORKER_H
 #define NRTV_VIDEO_WORKER_H
 
-#include <ns3/callback.h>
-#include <ns3/event-id.h>
-#include <ns3/nstime.h>
-#include <ns3/object.h>
-#include <ns3/ptr.h>
+#include "ns3/callback.h"
+#include "ns3/event-id.h"
+#include "ns3/nstime.h"
+#include "ns3/object.h"
+#include "ns3/ptr.h"
 
 namespace ns3
 {
@@ -36,17 +36,17 @@ class Packet;
 class NrtvVariables;
 
 /**
- * \internal
- * \ingroup nrtv
- * \brief Represent a single video session and its transmission.
+ * @internal
+ * @ingroup nrtv
+ * @brief Represent a single video session and its transmission.
  */
 class NrtvVideoWorker : public Object
 {
   public:
     /**
-     * \brief Creates a new instance of worker and starts the transmission.
+     * @brief Creates a new instance of worker and starts the transmission.
      *
-     * \param socket pointer to the socket (must be already connected to a
+     * @param socket pointer to the socket (must be already connected to a
      *               destination client) that will be utilized by the worker to
      *               send video packets
      *
@@ -86,13 +86,13 @@ class NrtvVideoWorker : public Object
     static TypeId GetTypeId();
 
     /**
-     * \param callback this function is invoked after transmitting a video slice
+     * @param callback this function is invoked after transmitting a video slice
      *                 through the socket
      */
     void SetTxCallback(Callback<void, Ptr<Socket>, Ptr<const Packet>> callback);
 
     /**
-     * \param callback this function is invoked after a whole video has been
+     * @param callback this function is invoked after a whole video has been
      *                 transmitted
      *
      * After a video is completed, the worker will stay idle indefinitely.

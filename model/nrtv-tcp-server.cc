@@ -23,16 +23,16 @@
 
 #include "nrtv-video-worker.h"
 
-#include <ns3/address-utils.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/inet6-socket-address.h>
-#include <ns3/log.h>
-#include <ns3/packet.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/socket.h>
-#include <ns3/tcp-socket-factory.h>
-#include <ns3/uinteger.h>
+#include "ns3/address-utils.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/inet6-socket-address.h"
+#include "ns3/log.h"
+#include "ns3/packet.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/socket.h"
+#include "ns3/tcp-socket-factory.h"
+#include "ns3/uinteger.h"
 
 #include <map>
 #include <string>
@@ -188,7 +188,9 @@ NrtvTcpServer::StartApplication()
 
         SwitchToState(STARTED);
         for (auto w = m_workers.begin(); w != m_workers.end(); w++)
+        {
             w->second->ChangeState(NrtvVideoWorker::READY);
+        }
 
     } // end of `if (m_state == NOT_STARTED)`
     else

@@ -22,32 +22,32 @@
  */
 
 /**
- * \file nrtv-test.cc
- * \ingroup nrtv
- * \brief Test cases for NRTV traffic models, grouped in `nrtv` test suite.
+ * @file nrtv-test.cc
+ * @ingroup nrtv
+ * @brief Test cases for NRTV traffic models, grouped in `nrtv` test suite.
  */
 
-#include <ns3/application.h>
-#include <ns3/config.h>
-#include <ns3/data-rate.h>
-#include <ns3/integer.h>
-#include <ns3/internet-stack-helper.h>
-#include <ns3/ipv4-address-helper.h>
-#include <ns3/ipv4-interface-container.h>
-#include <ns3/log.h>
-#include <ns3/net-device-container.h>
-#include <ns3/node-container.h>
-#include <ns3/nrtv-header.h>
-#include <ns3/nrtv-helper.h>
-#include <ns3/nstime.h>
-#include <ns3/point-to-point-helper.h>
-#include <ns3/simulator.h>
-#include <ns3/string.h>
-#include <ns3/tcp-socket-factory.h>
-#include <ns3/test.h>
-#include <ns3/type-id.h>
-#include <ns3/udp-socket-factory.h>
-#include <ns3/uinteger.h>
+#include "ns3/application.h"
+#include "ns3/config.h"
+#include "ns3/data-rate.h"
+#include "ns3/integer.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-interface-container.h"
+#include "ns3/log.h"
+#include "ns3/net-device-container.h"
+#include "ns3/node-container.h"
+#include "ns3/nrtv-header.h"
+#include "ns3/nrtv-helper.h"
+#include "ns3/nstime.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/simulator.h"
+#include "ns3/string.h"
+#include "ns3/tcp-socket-factory.h"
+#include "ns3/test.h"
+#include "ns3/type-id.h"
+#include "ns3/udp-socket-factory.h"
+#include "ns3/uinteger.h"
 
 #include <list>
 #include <sstream>
@@ -57,8 +57,8 @@ NS_LOG_COMPONENT_DEFINE("NrtvTest");
 using namespace ns3; //{
 
 /**
- * \ingroup applications
- * \brief Verifies whether the NRTV client Rx buffer properly re-assemble
+ * @ingroup applications
+ * @brief Verifies whether the NRTV client Rx buffer properly re-assemble
  *        packets into video slices.
  *
  * Runs a simulation of an NRTV client connected to an NRTV server through a
@@ -70,13 +70,13 @@ class NrtvClientRxBufferTestCase : public TestCase
 {
   public:
     /**
-     * \brief Construct a new test case.
-     * \param name the test case name, which will be printed on the report
-     * \param rngRun the number of run to be used by the random number generator
-     * \param protocolTypeId determines the socket type (TCP or UDP)
-     * \param channelDelay fixed transmission delay to be set on the
+     * @brief Construct a new test case.
+     * @param name the test case name, which will be printed on the report
+     * @param rngRun the number of run to be used by the random number generator
+     * @param protocolTypeId determines the socket type (TCP or UDP)
+     * @param channelDelay fixed transmission delay to be set on the
      *                     point-to-point channel
-     * \param duration length of simulation
+     * @param duration length of simulation
      */
     NrtvClientRxBufferTestCase(std::string name,
                                uint32_t rngRun,
@@ -199,8 +199,7 @@ NrtvClientRxBufferTestCase::RxCallback(std::string context,
 
         if (m_packetsInTransit.front() != packetSize)
         {
-            NS_LOG_INFO(this << " [" << GetName() << "]"
-                             << " some splitting had occurred,"
+            NS_LOG_INFO(this << " [" << GetName() << "]" << " some splitting had occurred,"
                              << " expected " << m_packetsInTransit.front() << " bytes"
                              << " but received " << packetSize << " bytes instead");
         }
@@ -249,7 +248,7 @@ NrtvClientRxBufferTestCase::RxSliceCallback(std::string context, Ptr<const Packe
 }
 
 /**
- * \brief Test suite `nrtv`, verifying the NRTV traffic model.
+ * @brief Test suite `nrtv`, verifying the NRTV traffic model.
  */
 class NrtvTestSuite : public TestSuite
 {
@@ -276,8 +275,7 @@ NrtvTestSuite::NrtvTestSuite()
             for (uint8_t k = 0; k < 3; k++)
             {
                 std::ostringstream oss;
-                oss << protocols[i].GetName() << ", "
-                    << "delay=" << delayMs[j] << "ms, "
+                oss << protocols[i].GetName() << ", " << "delay=" << delayMs[j] << "ms, "
                     << "run=" << rngRun[k];
                 AddTestCase(new NrtvClientRxBufferTestCase(oss.str(),
                                                            rngRun[k],

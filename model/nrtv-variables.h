@@ -22,9 +22,9 @@
 #ifndef NRTV_VARIABLES_H
 #define NRTV_VARIABLES_H
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
-#include <ns3/random-variable-stream.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
+#include "ns3/random-variable-stream.h"
 
 #include <string>
 
@@ -32,8 +32,8 @@ namespace ns3
 {
 
 /**
- * \ingroup nrtv
- * \brief Container of various random variables for assisting the generation of
+ * @ingroup nrtv
+ * @brief Container of various random variables for assisting the generation of
  *        streaming traffic pattern by the Near Real-Time Video (NRTV) traffic
  *        model.
  *
@@ -67,9 +67,9 @@ class NrtvVariables : public Object
 {
   public:
     /**
-     * \brief Common signature used by callback to collector's trace source.
-     * \param oldState Name of the old state.
-     * \param newState Name of the new state.
+     * @brief Common signature used by callback to collector's trace source.
+     * @param oldState Name of the old state.
+     * @param newState Name of the new state.
      */
     typedef void (*StateTransitionCallback)(std::string, std::string);
 
@@ -82,9 +82,9 @@ class NrtvVariables : public Object
     // THE MORE USEFUL METHODS
 
     /**
-     * \brief Get a random length of video (in number of frames) to be sent by an
+     * @brief Get a random length of video (in number of frames) to be sent by an
      *        NRTV server.
-     * \return the number of frames in the video
+     * @return the number of frames in the video
      *
      * Number of frames per video is determined by a truncated log-norma
      * distribution. The default distribution settings produces random integers
@@ -95,8 +95,8 @@ class NrtvVariables : public Object
     uint32_t GetNumOfFrames();
 
     /**
-     * \brief Get a constant length of time between consecutive frames.
-     * \return time interval between frames
+     * @brief Get a constant length of time between consecutive frames.
+     * @return time interval between frames
      *
      * By default, frame interval is a constant value of 100 ms, which is
      * equivalent with a frame rate of 10 frames per second.
@@ -111,8 +111,8 @@ class NrtvVariables : public Object
     Time GetFrameInterval();
 
     /**
-     * \brief Get a constant number of slices (packets) per frame.
-     * \return the number of slices per frame
+     * @brief Get a constant number of slices (packets) per frame.
+     * @return the number of slices per frame
      *
      * By default, each frame consists of 8 slices, which can be modified by
      * setting the `NumOfSlices` attribute or calling the SetNumOfSlices()
@@ -121,8 +121,8 @@ class NrtvVariables : public Object
     uint16_t GetNumOfSlices();
 
     /**
-     * \brief Get a random integer indicating the size of a slice (in bytes).
-     * \return slice size in bytes
+     * @brief Get a random integer indicating the size of a slice (in bytes).
+     * @return slice size in bytes
      *
      * Slice size is determined by a truncated Pareto distribution. The default
      * distribution settings produces (after truncation) random integers between
@@ -131,9 +131,9 @@ class NrtvVariables : public Object
     uint32_t GetSliceSize();
 
     /**
-     * \brief Get a random length of delay which is introduced by a hypothetical
+     * @brief Get a random length of delay which is introduced by a hypothetical
      *        video encoder at NRTV server/application before serving each slice.
-     * \return the delay for encoding a video slice
+     * @return the delay for encoding a video slice
      *
      * Slice encoding delay is determined by truncated Pareto distribution. The
      * default distribution settings produces (after truncation) random values
@@ -145,8 +145,8 @@ class NrtvVariables : public Object
     uint64_t GetSliceEncodingDelayMilliSeconds();
 
     /**
-     * \brief Get a constant length of NRTV client's de-jitter buffer window size.
-     * \return length of de-jitter buffer window
+     * @brief Get a constant length of NRTV client's de-jitter buffer window size.
+     * @return length of de-jitter buffer window
      *
      * De-jitter buffer window is used to guarantee a continuous display of video
      * streaming data. Its default size is a constant value of 5 seconds. This
@@ -156,11 +156,11 @@ class NrtvVariables : public Object
     Time GetDejitterBufferWindowSize();
 
     /**
-     * \brief Get a random length of time which is spent by a hypothetical human
+     * @brief Get a random length of time which is spent by a hypothetical human
      *        user (NRTV client) to "rest" after a video session (e.g., posting a
      *        comment about the video, selecting the next video) before
      *        transitioning to the next video session.
-     * \return time interval between videos
+     * @return time interval between videos
      *
      * Client's idle time is determined by an exponential distribution. The
      * default distribution settings produces random values with a mean of
@@ -170,9 +170,9 @@ class NrtvVariables : public Object
     Time GetIdleTime();
 
     /**
-     * \brief Get a random length of time which is spent between opening the
+     * @brief Get a random length of time which is spent between opening the
      *              application and connecting to the server/client.
-     * \return time interval between starting application and opening connection.
+     * @return time interval between starting application and opening connection.
      */
     Time GetConnectionOpenDelay();
 
@@ -180,9 +180,9 @@ class NrtvVariables : public Object
     double GetIdleTimeSeconds();
 
     /**
-     * \brief Set a fixed random variable stream number to the random variables
+     * @brief Set a fixed random variable stream number to the random variables
      *        used by this model.
-     * \param stream the stream index to use.
+     * @param stream the stream index to use.
      *
      * Different random variable stream number makes random number generators to
      * produce different set of random values, thus may also produce different

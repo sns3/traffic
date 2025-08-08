@@ -21,8 +21,8 @@
 #ifndef TRAFFIC_TIME_TAG_H
 #define TRAFFIC_TIME_TAG_H
 
-#include <ns3/nstime.h>
-#include <ns3/tag.h>
+#include "ns3/nstime.h"
+#include "ns3/tag.h"
 
 #include <ostream>
 
@@ -30,8 +30,8 @@ namespace ns3
 {
 
 /**
- * \ingroup traffic
- * \brief Time tag used at the traffic model to time stamp a generated
+ * @ingroup traffic
+ * @brief Time tag used at the traffic model to time stamp a generated
  * packet. Time tag may be used to calculated delay and jitter statistics
  * at the receiver side.
  */

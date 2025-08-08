@@ -24,21 +24,21 @@
 #include "nrtv-variables.h"
 #include "nrtv-video-worker.h"
 
-#include <ns3/address-utils.h>
-#include <ns3/boolean.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/inet6-socket-address.h>
-#include <ns3/ipv4-address.h>
-#include <ns3/ipv6-address.h>
-#include <ns3/log.h>
-#include <ns3/nstime.h>
-#include <ns3/packet.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/socket.h>
-#include <ns3/tcp-socket-factory.h>
-#include <ns3/udp-socket-factory.h>
-#include <ns3/uinteger.h>
+#include "ns3/address-utils.h"
+#include "ns3/boolean.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/inet6-socket-address.h"
+#include "ns3/ipv4-address.h"
+#include "ns3/ipv6-address.h"
+#include "ns3/log.h"
+#include "ns3/nstime.h"
+#include "ns3/packet.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/socket.h"
+#include "ns3/tcp-socket-factory.h"
+#include "ns3/udp-socket-factory.h"
+#include "ns3/uinteger.h"
 
 #include <map>
 #include <string>
@@ -146,8 +146,7 @@ NrtvUdpServer::StartApplication()
     if (m_state == NOT_STARTED)
     {
         SwitchToState(STARTED);
-        NS_LOG_INFO(this << " NRTV UDP server was started - "
-                         << " Starting workers...");
+        NS_LOG_INFO(this << " NRTV UDP server was started - " << " Starting workers...");
 
         for (auto w = m_workers.begin(); w != m_workers.end(); w++)
         {

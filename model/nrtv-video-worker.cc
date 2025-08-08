@@ -24,13 +24,13 @@
 #include "nrtv-header.h"
 #include "nrtv-variables.h"
 
-#include <ns3/boolean.h>
-#include <ns3/log.h>
-#include <ns3/packet.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/socket.h>
-#include <ns3/uinteger.h>
+#include "ns3/boolean.h"
+#include "ns3/log.h"
+#include "ns3/packet.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/socket.h"
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 
@@ -66,9 +66,9 @@ NrtvVideoWorker::NrtvVideoWorker(Ptr<Socket> socket)
     NS_ASSERT(m_numOfFrames > 0);
     m_numOfSlices = m_nrtvVariables->GetNumOfSlices(); // slices per frame
     NS_ASSERT(m_numOfSlices > 0);
-    NS_LOG_INFO(this << " this video is " << m_numOfFrames << " frames long"
-                     << " (each frame is " << m_frameInterval.GetMilliSeconds()
-                     << " ms long and made of " << m_numOfSlices << " slices)");
+    NS_LOG_INFO(this << " this video is " << m_numOfFrames << " frames long" << " (each frame is "
+                     << m_frameInterval.GetMilliSeconds() << " ms long and made of "
+                     << m_numOfSlices << " slices)");
 
     socket->SetCloseCallbacks(MakeCallback(&NrtvVideoWorker::NormalCloseCallback, this),
                               MakeCallback(&NrtvVideoWorker::ErrorCloseCallback, this));
@@ -111,7 +111,9 @@ void
 NrtvVideoWorker::ChangeState(SendState_t state)
 {
     if (m_state == state)
+    {
         return; // If state is not changed, do nothing
+    }
     if (state == NrtvVideoWorker::READY)
     {
         // It is OK to start scheduling frames
@@ -141,8 +143,8 @@ NrtvVideoWorker::NormalCloseCallback(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_ASSERT_MSG(m_socket == socket,
-                  "Socket " << m_socket << " is expected, "
-                            << "but socket " << socket << " is received");
+                  "Socket " << m_socket << " is expected, " << "but socket " << socket
+                            << " is received");
     m_socket->SetSendCallback(MakeNullCallback<void, Ptr<Socket>, uint32_t>());
     CancelAllPendingEvents(); // cancel any scheduled transmission
     m_videoCompletedCallback(m_socket);
@@ -153,8 +155,8 @@ NrtvVideoWorker::ErrorCloseCallback(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_ASSERT_MSG(m_socket == socket,
-                  "Socket " << m_socket << " is expected, "
-                            << "but socket " << socket << " is received");
+                  "Socket " << m_socket << " is expected, " << "but socket " << socket
+                            << " is received");
     m_socket->SetSendCallback(MakeNullCallback<void, Ptr<Socket>, uint32_t>());
     CancelAllPendingEvents(); // cancel any scheduled transmission
     m_videoCompletedCallback(m_socket);
@@ -165,8 +167,8 @@ NrtvVideoWorker::SendCallback(Ptr<Socket> socket, uint32_t availableBufferSize)
 {
     NS_LOG_FUNCTION(this << socket << availableBufferSize);
     NS_ASSERT_MSG(m_socket == socket,
-                  "Socket " << m_socket << " is expected, "
-                            << "but socket " << socket << " is received");
+                  "Socket " << m_socket << " is expected, " << "but socket " << socket
+                            << " is received");
 }
 
 void
@@ -278,7 +280,7 @@ NrtvVideoWorker::NewSlice()
     }
     else
     {
-        /// \todo We don't do retry at the moment, so we just do nothing in this case
+        /// @todo We don't do retry at the moment, so we just do nothing in this case
         NS_LOG_ERROR(this << " failure in sending packet");
     }
 #else  /* NS3_LOG_ENABLE */

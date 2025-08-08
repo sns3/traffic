@@ -24,9 +24,9 @@
 
 #include "application-stats-helper.h"
 
-#include <ns3/address.h>
-#include <ns3/collector-map.h>
-#include <ns3/ptr.h>
+#include "ns3/address.h"
+#include "ns3/collector-map.h"
+#include "ns3/ptr.h"
 
 #include <list>
 #include <map>
@@ -42,8 +42,8 @@ class DataCollectionObject;
 class DistributionCollector;
 
 /**
- * \ingroup applicationstats
- * \brief
+ * @ingroup applicationstats
+ * @brief
  */
 class ApplicationStatsThroughputHelper : public ApplicationStatsHelper
 {
@@ -58,20 +58,20 @@ class ApplicationStatsThroughputHelper : public ApplicationStatsHelper
     static TypeId GetTypeId();
 
     /**
-     * \param averagingMode average all samples before passing them to aggregator.
+     * @param averagingMode average all samples before passing them to aggregator.
      */
     void SetAveragingMode(bool averagingMode);
 
     /**
-     * \return the currently active averaging mode.
+     * @return the currently active averaging mode.
      */
     bool GetAveragingMode() const;
 
     /**
-     * \brief Receive inputs from trace sources and determine the right collector
+     * @brief Receive inputs from trace sources and determine the right collector
      *        to forward the inputs to.
-     * \param packet received packet data.
-     * \param from the address of the sender of the packet.
+     * @param packet received packet data.
+     * @param from the address of the sender of the packet.
      *
      * Utilized to replace the role of probes when `SENDER` identifier is active.
      * The second argument contains the address of the packet sender, which is
@@ -87,10 +87,10 @@ class ApplicationStatsThroughputHelper : public ApplicationStatsHelper
 
   private:
     /**
-     * \brief Associate the given application's IPv4 address with the given
+     * @brief Associate the given application's IPv4 address with the given
      *        identifier.
-     * \param application an application instance.
-     * \param identifier the number to be associated with.
+     * @param application an application instance.
+     * @param identifier the number to be associated with.
      *
      * Any IPv4 address(es) which belong to the Node of the given application
      * will be saved in the #m_identifierMap member variable. Used only with

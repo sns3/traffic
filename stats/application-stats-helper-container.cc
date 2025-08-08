@@ -25,9 +25,9 @@
 #include "application-stats-helper.h"
 #include "application-stats-throughput-helper.h"
 
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/string.h>
+#include "ns3/enum.h"
+#include "ns3/log.h"
+#include "ns3/string.h"
 
 #include <map>
 #include <sstream>

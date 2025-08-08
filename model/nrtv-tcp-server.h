@@ -22,10 +22,10 @@
 #ifndef NRTV_TCP_SERVER_H
 #define NRTV_TCP_SERVER_H
 
-#include <ns3/address.h>
-#include <ns3/application.h>
-#include <ns3/nstime.h>
-#include <ns3/traced-callback.h>
+#include "ns3/address.h"
+#include "ns3/application.h"
+#include "ns3/nstime.h"
+#include "ns3/traced-callback.h"
 
 #include <map>
 #include <string>
@@ -38,8 +38,8 @@ class NrtvVariables;
 class NrtvVideoWorker;
 
 /**
- * \ingroup nrtv
- * \brief Model application which simulates the traffic of a Near Real-Time
+ * @ingroup nrtv
+ * @brief Model application which simulates the traffic of a Near Real-Time
  *        Video (NRTV) service, i.e., a video streaming service, over TCP.
  *
  * In summary, the application works as follows. Upon start, the application
@@ -56,7 +56,7 @@ class NrtvTcpServer : public Application
 {
   public:
     /**
-     * \brief Creates a new instance of NRTV server application which operates
+     * @brief Creates a new instance of NRTV server application which operates
      *        over TCP.
      *
      * After creation, the application must be further configured through
@@ -69,12 +69,12 @@ class NrtvTcpServer : public Application
     static TypeId GetTypeId();
 
     /**
-     * \return the address bound to the server
+     * @return the address bound to the server
      */
     Address GetLocalAddress() const;
 
     /**
-     * \return the port the server listens to
+     * @return the port the server listens to
      */
     uint16_t GetLocalPort() const;
 
@@ -87,18 +87,18 @@ class NrtvTcpServer : public Application
     };
 
     /**
-     * \return the current state of the application
+     * @return the current state of the application
      */
     State_t GetState() const;
 
     /**
-     * \return the current state of the application in string format
+     * @return the current state of the application in string format
      */
     std::string GetStateString() const;
 
     /**
-     * \param state an arbitrary state of an application
-     * \return the state equivalently expressed in string format
+     * @param state an arbitrary state of an application
+     * @return the state equivalently expressed in string format
      */
     static std::string GetStateString(State_t state);
 

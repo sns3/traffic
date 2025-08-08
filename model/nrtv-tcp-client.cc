@@ -24,16 +24,16 @@
 #include "nrtv-header.h"
 #include "nrtv-variables.h"
 
-#include <ns3/config.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/inet6-socket-address.h>
-#include <ns3/log.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/socket.h>
-#include <ns3/tcp-socket-factory.h>
-#include <ns3/udp-socket-factory.h>
-#include <ns3/uinteger.h>
+#include "ns3/config.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/inet6-socket-address.h"
+#include "ns3/log.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/socket.h"
+#include "ns3/tcp-socket-factory.h"
+#include "ns3/udp-socket-factory.h"
+#include "ns3/uinteger.h"
 
 #include <string>
 
@@ -56,8 +56,7 @@ NrtvTcpClient::NrtvTcpClient()
     NS_LOG_FUNCTION(this);
 
     m_dejitterBufferWindowSize = m_nrtvVariables->GetDejitterBufferWindowSize();
-    NS_LOG_INFO(this << " this client application uses"
-                     << " a de-jitter buffer window size of "
+    NS_LOG_INFO(this << " this client application uses" << " a de-jitter buffer window size of "
                      << m_dejitterBufferWindowSize.GetSeconds() << " seconds");
 }
 
@@ -276,7 +275,7 @@ NrtvTcpClient::ErrorCloseCallback(Ptr<Socket> socket)
 
     CancelAllPendingEvents();
     m_eventRetryConnection = Simulator::ScheduleNow(&NrtvTcpClient::RetryConnection, this);
-    /// \todo This won't work because the socket is already closed
+    /// @todo This won't work because the socket is already closed
 }
 
 void
@@ -457,8 +456,8 @@ NrtvTcpClient::ReceiveVideoSlice(const Address& from)
     NS_ASSERT(sliceSize + nrtvHeader.GetSerializedSize() == slice->GetSize());
 
     const Time delay = Simulator::Now() - nrtvHeader.GetArrivalTime();
-    NS_LOG_INFO(this << " received a " << sliceSize << "-byte video slice"
-                     << " for frame " << frameNumber << " and slice " << sliceNumber
+    NS_LOG_INFO(this << " received a " << sliceSize << "-byte video slice" << " for frame "
+                     << frameNumber << " and slice " << sliceNumber
                      << " (delay= " << delay.GetSeconds() << ")");
 
     m_rxSliceTrace(slice);
@@ -591,8 +590,8 @@ NrtvTcpClientRxBuffer::PushPacket(Ptr<const Packet> packet)
 
     // increase the buffer size counter
     m_totalBytes += packetSize;
-    NS_LOG_DEBUG(this << " Rx buffer now contains " << m_rxBuffer.size() << " packet(s)"
-                      << " (" << m_totalBytes << " bytes)");
+    NS_LOG_DEBUG(this << " Rx buffer now contains " << m_rxBuffer.size() << " packet(s)" << " ("
+                      << m_totalBytes << " bytes)");
 }
 
 Ptr<Packet>
@@ -613,8 +612,7 @@ NrtvTcpClientRxBuffer::PopVideoSlice()
         NS_ASSERT(!m_rxBuffer.empty()); // ensure that front() is not undefined
         const uint32_t packetSize = m_rxBuffer.front()->GetSize();
         NS_LOG_INFO(this << " using a " << packetSize << "-byte packet"
-                         << " to compose a video slice"
-                         << " (" << bytesToFetch << " bytes to go)");
+                         << " to compose a video slice" << " (" << bytesToFetch << " bytes to go)");
 
         if (packetSize <= bytesToFetch)
         {
@@ -645,8 +643,8 @@ NrtvTcpClientRxBuffer::PopVideoSlice()
     // deplete the buffer size counter
     NS_ASSERT(m_totalBytes >= packetSize);
     m_totalBytes -= packetSize;
-    NS_LOG_DEBUG(this << " Rx buffer now contains " << m_rxBuffer.size() << " packet(s)"
-                      << " (" << m_totalBytes << " bytes)");
+    NS_LOG_DEBUG(this << " Rx buffer now contains " << m_rxBuffer.size() << " packet(s)" << " ("
+                      << m_totalBytes << " bytes)");
 
     // determine the size of next slice to receive
     if (m_rxBuffer.empty())
@@ -667,8 +665,7 @@ NrtvTcpClientRxBuffer::PopVideoSlice()
     {
         // the buffer is not empty, but we cannot read an NRTV header
         m_sizeOfVideoSlice = 0;
-        NS_LOG_INFO(this << " cannot read the header yet,"
-                         << " it must have been split,"
+        NS_LOG_INFO(this << " cannot read the header yet," << " it must have been split,"
                          << " so the rest will come in the next packet");
     }
 

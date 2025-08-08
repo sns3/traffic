@@ -36,7 +36,7 @@ namespace ns3
 class DataRate;
 
 /**
- * \brief A helper to make it easier to instantiate an ns3::CbrApplication
+ * @brief A helper to make it easier to instantiate an ns3::CbrApplication
  * on a set of nodes.
  */
 class CbrHelper
@@ -45,11 +45,11 @@ class CbrHelper
     /**
      * Create an CbrHelper to make it easier to work with CbrApplications
      *
-     * \param protocol the name of the protocol to use to send traffic
+     * @param protocol the name of the protocol to use to send traffic
      *        by the applications. This string identifies the socket
      *        factory type used to create sockets for the applications.
      *        A typical value would be ns3::UdpSocketFactory.
-     * \param address the address of the remote node to send traffic
+     * @param address the address of the remote node to send traffic
      *        to.
      */
     CbrHelper(std::string protocol, Address address);
@@ -57,8 +57,8 @@ class CbrHelper
     /**
      * Helper function used to set the underlying application attributes.
      *
-     * \param name the name of the application attribute to set
-     * \param value the value of the application attribute to set
+     * @param name the name of the application attribute to set
+     * @param value the value of the application attribute to set
      */
     void SetAttribute(std::string name, const AttributeValue& value);
 
@@ -66,8 +66,8 @@ class CbrHelper
      * Helper function to set a constant constant traffic. Equivalent to
      * setting the attributes Interval and DataRate accordingly.
      *
-     * \param interval Interval for the sending packets
-     * \param packetSize size in bytes of the packet payloads generated
+     * @param interval Interval for the sending packets
+     * @param packetSize size in bytes of the packet payloads generated
      */
     void SetConstantTraffic(Time interval, uint32_t packetSize = 512);
 
@@ -75,9 +75,9 @@ class CbrHelper
      * Install an ns3::CbrApplication on each node of the input container
      * configured with all the attributes set with SetAttribute.
      *
-     * \param c NodeContainer of the set of nodes on which an CbrApplication
+     * @param c NodeContainer of the set of nodes on which an CbrApplication
      * will be installed.
-     * \returns Container of Ptr to the applications installed.
+     * @returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(NodeContainer c) const;
 
@@ -85,8 +85,8 @@ class CbrHelper
      * Install an ns3::CbrApplication on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param node The node on which an CbrApplication will be installed.
-     * \returns Container of Ptr to the applications installed.
+     * @param node The node on which an CbrApplication will be installed.
+     * @returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(Ptr<Node> node) const;
 
@@ -94,19 +94,19 @@ class CbrHelper
      * Install an ns3::CbrApplication on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param nodeName The node on which an CbrApplication will be installed.
-     * \returns Container of Ptr to the applications installed.
+     * @param nodeName The node on which an CbrApplication will be installed.
+     * @returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(std::string nodeName) const;
 
   private:
     /**
-     * \internal
+     * @internal
      * Install an ns3::CbrApplication on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param node The node on which an CbrApplication will be installed.
-     * \returns Ptr to the application installed.
+     * @param node The node on which an CbrApplication will be installed.
+     * @returns Ptr to the application installed.
      */
     Ptr<Application> InstallPriv(Ptr<Node> node) const;
     std::string m_protocol;

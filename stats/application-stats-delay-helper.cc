@@ -21,23 +21,23 @@
 
 #include "application-stats-delay-helper.h"
 
-#include <ns3/application-container.h>
-#include <ns3/application-delay-probe.h>
-#include <ns3/boolean.h>
-#include <ns3/data-collection-object.h>
-#include <ns3/distribution-collector.h>
-#include <ns3/enum.h>
-#include <ns3/gnuplot-aggregator.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/ipv4.h>
-#include <ns3/log.h>
-#include <ns3/multi-file-aggregator.h>
-#include <ns3/node.h>
-#include <ns3/nstime.h>
-#include <ns3/probe.h>
-#include <ns3/scalar-collector.h>
-#include <ns3/string.h>
-#include <ns3/unit-conversion-collector.h>
+#include "ns3/application-container.h"
+#include "ns3/application-delay-probe.h"
+#include "ns3/boolean.h"
+#include "ns3/data-collection-object.h"
+#include "ns3/distribution-collector.h"
+#include "ns3/enum.h"
+#include "ns3/gnuplot-aggregator.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/ipv4.h"
+#include "ns3/log.h"
+#include "ns3/multi-file-aggregator.h"
+#include "ns3/node.h"
+#include "ns3/nstime.h"
+#include "ns3/probe.h"
+#include "ns3/scalar-collector.h"
+#include "ns3/string.h"
+#include "ns3/unit-conversion-collector.h"
 
 #include <map>
 #include <sstream>
@@ -164,7 +164,7 @@ ApplicationStatsDelayHelper::DoInstall()
     }
 
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
-        /// \todo Add support for boxes in Gnuplot.
+        /// @todo Add support for boxes in Gnuplot.
         NS_FATAL_ERROR(GetOutputTypeName(GetOutputType())
                        << " is not a valid output type for this statistics.");
         break;
@@ -287,8 +287,7 @@ ApplicationStatsDelayHelper::DoInstall()
             break;
         }
 
-        NS_LOG_INFO(this << " created " << n << " instance(s)"
-                         << " of ApplicationDelayProbe");
+        NS_LOG_INFO(this << " created " << n << " instance(s)" << " of ApplicationDelayProbe");
         break;
     }
 
@@ -347,9 +346,8 @@ ApplicationStatsDelayHelper::RxDelayCallback(Time delay, const Address& from)
     else
     {
         NS_LOG_WARN(this << " discarding a packet delay of " << delay.GetSeconds()
-                         << " from statistics collection"
-                         << " because it comes from sender " << from
-                         << " without valid InetSocketAddress");
+                         << " from statistics collection" << " because it comes from sender "
+                         << from << " without valid InetSocketAddress");
     }
 
 } // end of `void RxDelayCallback (Time, const Address &)`
@@ -370,8 +368,8 @@ ApplicationStatsDelayHelper::SaveAddressAndIdentifier(Ptr<Application> applicati
     }
     else
     {
-        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)"
-                          << " in Node " << node->GetId());
+        NS_LOG_DEBUG(this << " found " << ipv4->GetNInterfaces() << " interface(s)" << " in Node "
+                          << node->GetId());
 
         // Skipping interface #0 because it is assumed to be a loopback interface.
         for (uint32_t i = 1; i < ipv4->GetNInterfaces(); i++)

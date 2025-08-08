@@ -19,28 +19,28 @@
  *
  */
 
-#include <ns3/basic-data-calculators.h>
-#include <ns3/config.h>
-#include <ns3/error-model.h>
-#include <ns3/integer.h>
-#include <ns3/internet-stack-helper.h>
-#include <ns3/ipv4-address-helper.h>
-#include <ns3/ipv6-address-helper.h>
-#include <ns3/log.h>
-#include <ns3/mac48-address.h>
-#include <ns3/node.h>
-#include <ns3/nstime.h>
-#include <ns3/packet.h>
-#include <ns3/ptr.h>
-#include <ns3/simple-channel.h>
-#include <ns3/simple-net-device.h>
-#include <ns3/tcp-congestion-ops.h>
-#include <ns3/tcp-l4-protocol.h>
-#include <ns3/test.h>
-#include <ns3/three-gpp-http-client.h>
-#include <ns3/three-gpp-http-header.h>
-#include <ns3/three-gpp-http-helper.h>
-#include <ns3/three-gpp-http-server.h>
+#include "ns3/basic-data-calculators.h"
+#include "ns3/config.h"
+#include "ns3/error-model.h"
+#include "ns3/integer.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv6-address-helper.h"
+#include "ns3/log.h"
+#include "ns3/mac48-address.h"
+#include "ns3/node.h"
+#include "ns3/nstime.h"
+#include "ns3/packet.h"
+#include "ns3/ptr.h"
+#include "ns3/simple-channel.h"
+#include "ns3/simple-net-device.h"
+#include "ns3/tcp-congestion-ops.h"
+#include "ns3/tcp-l4-protocol.h"
+#include "ns3/test.h"
+#include "ns3/three-gpp-http-client.h"
+#include "ns3/three-gpp-http-header.h"
+#include "ns3/three-gpp-http-helper.h"
+#include "ns3/three-gpp-http-server.h"
 
 #include <list>
 #include <sstream>
@@ -53,7 +53,7 @@ namespace ns3
 // HTTP OBJECT TEST CASE //////////////////////////////////////////////////////
 
 /**
- * \ingroup http
+ * @ingroup http
  * A test class which verifies that each HTTP object sent is also received the
  * same size.
  *
@@ -68,20 +68,20 @@ class ThreeGppHttpObjectTestCase : public TestCase
 {
   public:
     /**
-     * \param name A textual label to briefly describe the test.
-     * \param rngRun Run index to be used, intended to affect the values produced
+     * @param name A textual label to briefly describe the test.
+     * @param rngRun Run index to be used, intended to affect the values produced
      *               by random number generators throughout the test.
-     * \param tcpType Type of TCP algorithm to be used by the connection between
+     * @param tcpType Type of TCP algorithm to be used by the connection between
      *                the client and the server. Must be a child type of
      *                ns3::TcpSocketFactory.
-     * \param channelDelay Transmission delay between the client and the server
+     * @param channelDelay Transmission delay between the client and the server
      *                     (and vice versa) which is due to the channel.
-     * \param bitErrorRate The probability of transmission error between the
+     * @param bitErrorRate The probability of transmission error between the
      *                     client and the server (and vice versa) in the unit of
      *                     bits.
-     * \param mtuSize Maximum transmission unit (in bytes) to be used by the
+     * @param mtuSize Maximum transmission unit (in bytes) to be used by the
      *                server model.
-     * \param useIpv6 If true, IPv6 will be used to address both client and
+     * @param useIpv6 If true, IPv6 will be used to address both client and
      *                server. Otherwise, IPv4 will be used.
      */
     ThreeGppHttpObjectTestCase(const std::string& name,
@@ -101,7 +101,7 @@ class ThreeGppHttpObjectTestCase : public TestCase
      * \param[in] channel Pointer to a channel which the node's device will be
      *                    attached to.
      * \param[out] assignedAddress The resulting address of the node.
-     * \return Pointer to the newly created node.
+     * @return Pointer to the newly created node.
      */
     Ptr<Node> CreateSimpleInternetNode(Ptr<SimpleChannel> channel, Address& assignedAddress);
 
@@ -110,7 +110,7 @@ class ThreeGppHttpObjectTestCase : public TestCase
     virtual void DoTeardown();
 
     /**
-     * \internal
+     * @internal
      * Internal class used by ThreeGppHttpObjectTestCase. Keep track of the number
      * of object and bytes that have been sent and received in the simulation by
      * listening to the relevant trace sources.
@@ -122,12 +122,12 @@ class ThreeGppHttpObjectTestCase : public TestCase
         ThreeGppHttpObjectTracker();
         /**
          * Shall be invoked when a whole object has been transmitted.
-         * \param size Size of the whole object (in bytes).
+         * @param size Size of the whole object (in bytes).
          */
         void ObjectSent(uint32_t size);
         /**
          * Shall be invoked when an object part has been received.
-         * \param size Size of the object part (in bytes). This amount will be
+         * @param size Size of the object part (in bytes). This amount will be
          *             accumulated until ObjectReceived() is invoked.
          */
         void PartReceived(uint32_t size);
@@ -137,15 +137,15 @@ class ThreeGppHttpObjectTestCase : public TestCase
          * \param[out] txSize Size of the whole object (in bytes) when it was
          *                    transmitted.
          * \param[out] rxSize Size of the whole object (in bytes) received.
-         * \return True if this receive operation has a matching transmission
+         * @return True if this receive operation has a matching transmission
          *         operation (ObjectSent()), otherwise false. Both arguments are
          *         guaranteed to be replaced with initialized values if the return
          *         value is true.
          */
         bool ObjectReceived(uint32_t& txSize, uint32_t& rxSize);
-        /// \return True if zero object is currently tracked.
+        /// @return True if zero object is currently tracked.
         bool IsEmpty() const;
-        /// \return Number of whole objects that have been received so far.
+        /// @return Number of whole objects that have been received so far.
         uint16_t GetNumOfObjectsReceived() const;
 
       private:
@@ -172,88 +172,88 @@ class ThreeGppHttpObjectTestCase : public TestCase
     /**
      * Connected with `TxMainObjectRequest` trace source of the client.
      * Updates #m_requestObjectTracker.
-     * \param packet The packet of main object sent.
+     * @param packet The packet of main object sent.
      */
     void ClientTxMainObjectRequestCallback(Ptr<const Packet> packet);
     /**
      * Connected with `TxEmbeddedObjectRequest` trace source of the client.
      * Updates #m_requestObjectTracker.
-     * \param packet The packet of embedded object sent.
+     * @param packet The packet of embedded object sent.
      */
     void ClientTxEmbeddedObjectRequestCallback(Ptr<const Packet> packet);
     /**
      * Connected with `Rx` trace source of the server.
      * Updates #m_requestObjectTracker and perform some tests on the packet and
      * the size of the object.
-     * \param packet The packet received.
-     * \param from The address where the packet originates from.
+     * @param packet The packet received.
+     * @param from The address where the packet originates from.
      */
     void ServerRxCallback(Ptr<const Packet> packet, const Address& from);
     /**
      * Connected with `MainObject` trace source of the server.
      * Updates #m_mainObjectTracker.
-     * \param size Size of the generated main object (in bytes).
+     * @param size Size of the generated main object (in bytes).
      */
     void ServerMainObjectCallback(uint32_t size);
     /**
      * Connected with `RxMainObjectPacket` trace source of the client.
      * Updates #m_mainObjectTracker and perform some tests on the packet.
-     * \param packet The packet received.
+     * @param packet The packet received.
      */
     void ClientRxMainObjectPacketCallback(Ptr<const Packet> packet);
     /**
      * Connected with `RxMainObject` trace source of the client. Updates
      * #m_mainObjectTracker and perform some tests on the size of the object.
-     * \param httpClient Pointer to the application.
-     * \param packet Full packet received by application.
+     * @param httpClient Pointer to the application.
+     * @param packet Full packet received by application.
      */
     void ClientRxMainObjectCallback(Ptr<const ThreeGppHttpClient> httpClient,
                                     Ptr<const Packet> packet);
     /**
      * Connected with `EmbeddedObject` trace source of the server.
      * Updates #m_embeddedObjectTracker.
-     * \param size Size of the generated embedded object (in bytes).
+     * @param size Size of the generated embedded object (in bytes).
      */
     void ServerEmbeddedObjectCallback(uint32_t size);
     /**
      * Connected with `RxEmbeddedObjectPacket` trace source of the client.
      * Updates #m_embeddedObjectTracker and perform some tests on the packet.
-     * \param packet The packet received.
+     * @param packet The packet received.
      */
     void ClientRxEmbeddedObjectPacketCallback(Ptr<const Packet> packet);
     /**
      * Connected with `RxEmbeddedObject` trace source of the client. Updates
      * #m_embeddedObjectTracker and perform some tests on the size of the object.
-     * \param httpClient Pointer to the application.
-     * \param packet Full packet received by application.
+     * @param httpClient Pointer to the application.
+     * @param packet Full packet received by application.
      */
     void ClientRxEmbeddedObjectCallback(Ptr<const ThreeGppHttpClient> httpClient,
                                         Ptr<const Packet> packet);
     /**
      * Connected with `StateTransition` trace source of the client.
      * Increments #m_numOfPagesReceived when the client enters READING state.
-     * \param oldState The name of the previous state.
-     * \param newState The name of the current state.
+     * @param oldState The name of the previous state.
+     * @param newState The name of the current state.
      */
     void ClientStateTransitionCallback(const std::string& oldState, const std::string& newState);
     /**
      * Connected with `RxDelay` trace source of the client.
      * Updates the statistics in #m_delayCalculator.
-     * \param delay The packet one-trip delay time.
-     * \param from The address of the device where the packet originates from.
+     * @param delay The packet one-trip delay time.
+     * @param from The address of the device where the packet originates from.
      */
     void ClientRxDelayCallback(const Time& delay, const Address& from);
     /**
      * Connected with `RxRtt` trace source of the client.
      * Updates the statistics in #m_rttCalculator.
-     * \param rtt The packet round trip delay time.
-     * \param from The address of the device where the packet originates from.
+     * @param rtt The packet round trip delay time.
+     * @param from The address of the device where the packet originates from.
      */
     void ClientRxRttCallback(const Time& rtt, const Address& from);
     /**
      * Connected with `PhyRxDrop` trace source of both the client's and server's
      * devices. Increments #m_numOfPacketDrops.
-     * \param packet Pointer to the packet being dropped.
+     * @param packet Pointer to the packet being dropped.
      */
     void DeviceDropCallback(Ptr<const Packet> packet);
     /**
@@ -495,12 +495,12 @@ ThreeGppHttpObjectTestCase::DoRun()
                      << m_mainObjectTracker.GetNumOfObjectsReceived() << " object(s).");
     NS_LOG_INFO(this << " Total embedded objects received: "
                      << m_embeddedObjectTracker.GetNumOfObjectsReceived() << " object(s).");
-    NS_LOG_INFO(this << " One-trip delays:"
-                     << " average=" << m_delayCalculator->getMean() << " min="
-                     << m_delayCalculator->getMin() << " max=" << m_delayCalculator->getMax());
-    NS_LOG_INFO(this << " Round-trip delays:"
-                     << " average=" << m_rttCalculator->getMean() << " min="
-                     << m_rttCalculator->getMin() << " max=" << m_rttCalculator->getMax());
+    NS_LOG_INFO(this << " One-trip delays:" << " average=" << m_delayCalculator->getMean()
+                     << " min=" << m_delayCalculator->getMin()
+                     << " max=" << m_delayCalculator->getMax());
+    NS_LOG_INFO(this << " Round-trip delays:" << " average=" << m_rttCalculator->getMean()
+                     << " min=" << m_rttCalculator->getMin()
+                     << " max=" << m_rttCalculator->getMax());
     NS_LOG_INFO(this << " Number of packets dropped by the devices: " << m_numOfPacketDrops
                      << " packet(s).");
 
@@ -772,7 +772,7 @@ ThreeGppHttpObjectTestCase::DeviceDropCallback(Ptr<const Packet> packet)
 // TEST SUITE /////////////////////////////////////////////////////////////////
 
 /**
- * \ingroup http
+ * @ingroup http
  * A test class for running several system tests which validate the web
  * browsing traffic model.
  *
@@ -832,16 +832,16 @@ class ThreeGppHttpClientServerTestSuite : public TestSuite
     /**
      * Creates a test case with the given parameters.
      *
-     * \param rngRun Run index to be used, intended to affect the values produced
+     * @param rngRun Run index to be used, intended to affect the values produced
      *               by random number generators throughout the test.
-     * \param channelDelay Transmission delay between the client and the server
+     * @param channelDelay Transmission delay between the client and the server
      *                     (and vice versa) which is due to the channel.
-     * \param bitErrorRate The probability of transmission error between the
+     * @param bitErrorRate The probability of transmission error between the
      *                     client and the server (and vice versa) in the unit of
      *                     bits.
-     * \param mtuSize Maximum transmission unit (in bytes) to be used by the
+     * @param mtuSize Maximum transmission unit (in bytes) to be used by the
      *                server model.
-     * \param useIpv6 If true, IPv6 will be used to address both client and
+     * @param useIpv6 If true, IPv6 will be used to address both client and
      *                server. Otherwise, IPv4 will be used.
      */
     void AddHttpObjectTestCase(int64_t rngRun,

@@ -21,12 +21,12 @@
 #ifndef CBR_APPLICATION_H
 #define CBR_APPLICATION_H
 
-#include <ns3/address.h>
-#include <ns3/application.h>
-#include <ns3/event-id.h>
-#include <ns3/nstime.h>
-#include <ns3/ptr.h>
-#include <ns3/traced-callback.h>
+#include "ns3/address.h"
+#include "ns3/application.h"
+#include "ns3/event-id.h"
+#include "ns3/nstime.h"
+#include "ns3/ptr.h"
+#include "ns3/traced-callback.h"
 
 namespace ns3
 {
@@ -34,9 +34,9 @@ namespace ns3
 class Socket;
 
 /**
- * \ingroup traffic
+ * @ingroup traffic
  *
- * \brief Generate traffic to a single destination according to a CBR pattern.
+ * @brief Generate traffic to a single destination according to a CBR pattern.
  *
  * This traffic generator follows a CBR pattern: after CbrApplication::StartApplication
  * is called, CBR sending starts. The sending continues as long as applications runs.
@@ -64,14 +64,14 @@ class CbrApplication : public Application
     Ptr<Socket> GetSocket(void) const;
 
     /**
-     * \brief Get the number of sent bytes
-     * \return the number of sent bytes
+     * @brief Get the number of sent bytes
+     * @return the number of sent bytes
      */
     uint32_t GetSent(void) const;
 
     /**
-     * \brief Get the destination address of the application
-     * \return the destination address
+     * @brief Get the destination address of the application
+     * @return the destination address
      */
     const Address GetRemote(void) const;
 
@@ -115,14 +115,14 @@ class CbrApplication : public Application
     /**
      * Callback method to handle connection succeeded events
      *
-     * \param socket Pointer to socket.
+     * @param socket Pointer to socket.
      */
     void ConnectionSucceeded(Ptr<Socket> socket);
 
     /**
      * Callback method to handle connection failed events
      *
-     * \param socket Pointer to socket.
+     * @param socket Pointer to socket.
      */
     void ConnectionFailed(Ptr<Socket> socket);
 };

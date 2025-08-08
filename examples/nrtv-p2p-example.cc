@@ -20,10 +20,10 @@
  */
 
 /**
- * \file
+ * @file
  *
- * \ingroup nrtv
- * \brief Simple example of two nodes connected by a point-to-point link. One
+ * @ingroup nrtv
+ * @brief Simple example of two nodes connected by a point-to-point link. One
  *        acts as a video streaming server, while the other one acts as the
  *        client.
  *
@@ -38,12 +38,12 @@
  * also be found in the working directory.
  */
 
-#include <ns3/applications-module.h>
-#include <ns3/core-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/network-module.h>
-#include <ns3/point-to-point-module.h>
-#include <ns3/traffic-module.h>
+#include "ns3/applications-module.h"
+#include "ns3/core-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/network-module.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/traffic-module.h"
 
 using namespace ns3;
 
@@ -91,11 +91,17 @@ main(int argc, char* argv[])
     std::stringstream prss;
     prss << "ns3::";
     if (protocol == "TCP")
+    {
         prss << "Tcp";
+    }
     else if (protocol == "UDP")
+    {
         prss << "Udp";
+    }
     else
+    {
         NS_FATAL_ERROR("Invalid protocol given, use either TCP or UDP in upper case.");
+    }
     prss << "SocketFactory";
 
     /// Log components ///
