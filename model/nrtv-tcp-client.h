@@ -36,6 +36,10 @@ namespace ns3
 {
 
 class Socket;
+
+namespace traffic_extensions
+{
+
 class NrtvVariables;
 class NrtvTcpClientRxBuffer;
 
@@ -354,6 +358,7 @@ class NrtvTcpClientRxBuffer : public SimpleRefCount<NrtvTcpClientRxBuffer>
 
 }; // end of `class NrtvTcpClientRxBuffer`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_TCP_CLIENT_H */

@@ -319,7 +319,7 @@ ApplicationStatsHelper::CreateAggregator(std::string aggregatorTypeId,
 }
 
 uint32_t
-ApplicationStatsHelper::CreateCollectorPerIdentifier(CollectorMap& collectorMap) const
+ApplicationStatsHelper::CreateCollectorPerIdentifier(stats_extensions::CollectorMap& collectorMap) const
 {
     NS_LOG_FUNCTION(this);
     uint32_t n = 0;
@@ -366,6 +366,6 @@ ApplicationStatsHelper::CreateCollectorPerIdentifier(CollectorMap& collectorMap)
 
     return n;
 
-} // end of `uint32_t CreateCollectorPerIdentifier (CollectorMap &);`
+} // end of `uint32_t CreateCollectorPerIdentifier (stats_extensions::CollectorMap &);`
 
 } // end of namespace ns3

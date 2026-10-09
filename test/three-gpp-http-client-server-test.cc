@@ -49,6 +49,8 @@ NS_LOG_COMPONENT_DEFINE("ThreeGppHttpClientServerTest");
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 // HTTP OBJECT TEST CASE //////////////////////////////////////////////////////
 
@@ -888,7 +890,8 @@ class ThreeGppHttpClientServerTestSuite : public TestSuite
 
 }; // end of class `ThreeGppHttpClientServerTestSuite`
 
-/// The global instance of the `three-gpp-http-client-server` system test.
-static ThreeGppHttpClientServerTestSuite g_httpClientServerTestSuiteInstance;
-
+}
 } // end of namespace ns3
+
+/// The global instance of the `three-gpp-http-client-server` system test.
+static ns3::traffic_extensions::ThreeGppHttpClientServerTestSuite g_httpClientServerTestSuiteInstance;

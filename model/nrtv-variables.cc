@@ -32,10 +32,12 @@
 #include <cmath>
 #include <limits>
 
-NS_LOG_COMPONENT_DEFINE("NrtvVariables");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("NrtvVariables");
 
 NS_OBJECT_ENSURE_REGISTERED(NrtvVariables);
 
@@ -483,4 +485,5 @@ NrtvVariables::RefreshLogNormalParameters(Ptr<LogNormalRandomVariable> random,
     random->SetAttribute("Sigma", DoubleValue(sigma));
 }
 
+}
 } // namespace ns3

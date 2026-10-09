@@ -43,9 +43,11 @@
 #include "ns3/internet-module.h"
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
-#include "ns3/traffic-module.h"
+#include "ns3/traffic-extensions-module.h"
 
 using namespace ns3;
+using ns3::traffic_extensions::NrtvHelper;
+using ns3::traffic_extensions::ClientRxTracePlot;
 
 NS_LOG_COMPONENT_DEFINE("NrtvP2pExample");
 

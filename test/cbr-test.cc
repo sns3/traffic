@@ -32,7 +32,10 @@
 #include "ns3/string.h"
 #include "ns3/test.h"
 
-using namespace ns3;
+namespace ns3
+{
+namespace traffic_extensions
+{
 
 // \ brief Simple test case to verify Cbr application functionality.
 class CbrTestCase1 : public TestCase
@@ -127,5 +130,8 @@ CbrTestSuite::CbrTestSuite()
     AddTestCase(new CbrTestCase1, TestCase::Duration::QUICK);
 }
 
+}
+} // namespace ns3
+
 // Allocate an instance of this TestSuite
-static CbrTestSuite cbrTestSuite;
+static ns3::traffic_extensions::CbrTestSuite cbrTestSuite;

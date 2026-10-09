@@ -32,6 +32,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 CbrHelper::CbrHelper(std::string protocol, Address address)
 {
@@ -88,4 +90,5 @@ CbrHelper::SetConstantTraffic(Time interval, uint32_t packetSize)
     m_factory.Set("PacketSize", UintegerValue(packetSize));
 }
 
+}
 } // namespace ns3

@@ -97,14 +97,14 @@ ApplicationStatsDelayHelper::DoInstall()
         // Setup collectors.
         m_terminalCollectors.SetType("ns3::ScalarCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
         m_terminalCollectors.SetAttribute(
             "OutputType",
-            EnumValue(ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SAMPLE));
+            EnumValue(stats_extensions::ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SAMPLE));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator("Output",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::Write1d);
+                                                 &stats_extensions::MultiFileAggregator::Write1d);
         break;
     }
 
@@ -119,11 +119,11 @@ ApplicationStatsDelayHelper::DoInstall()
         // Setup collectors.
         m_terminalCollectors.SetType("ns3::UnitConversionCollector");
         m_terminalCollectors.SetAttribute("ConversionType",
-                                          EnumValue(UnitConversionCollector::TRANSPARENT));
+                                          EnumValue(stats_extensions::UnitConversionCollector::TRANSPARENT));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator("OutputTimeValue",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::Write2d);
+                                                 &stats_extensions::MultiFileAggregator::Write2d);
         break;
     }
 
@@ -139,27 +139,27 @@ ApplicationStatsDelayHelper::DoInstall()
 
         // Setup collectors.
         m_terminalCollectors.SetType("ns3::DistributionCollector");
-        DistributionCollector::OutputType_t outputType =
-            DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        stats_extensions::DistributionCollector::OutputType_t outputType =
+            stats_extensions::DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
         if (GetOutputType() == ApplicationStatsHelper::OUTPUT_PDF_FILE)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_PROBABILITY;
         }
         else if (GetOutputType() == ApplicationStatsHelper::OUTPUT_CDF_FILE)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
         }
         m_terminalCollectors.SetAttribute("OutputType", EnumValue(outputType));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator("Output",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::Write2d);
+                                                 &stats_extensions::MultiFileAggregator::Write2d);
         m_terminalCollectors.ConnectToAggregator("OutputString",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::AddContextHeading);
+                                                 &stats_extensions::MultiFileAggregator::AddContextHeading);
         m_terminalCollectors.ConnectToAggregator("Warning",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::EnableContextWarning);
+                                                 &stats_extensions::MultiFileAggregator::EnableContextWarning);
         break;
     }
 
@@ -180,9 +180,9 @@ ApplicationStatsDelayHelper::DoInstall()
         // Setup collectors.
         m_terminalCollectors.SetType("ns3::UnitConversionCollector");
         m_terminalCollectors.SetAttribute("ConversionType",
-                                          EnumValue(UnitConversionCollector::TRANSPARENT));
+                                          EnumValue(stats_extensions::UnitConversionCollector::TRANSPARENT));
         CreateCollectorPerIdentifier(m_terminalCollectors);
-        for (CollectorMap::Iterator it = m_terminalCollectors.Begin();
+        for (stats_extensions::CollectorMap::Iterator it = m_terminalCollectors.Begin();
              it != m_terminalCollectors.End();
              ++it)
         {
@@ -207,19 +207,19 @@ ApplicationStatsDelayHelper::DoInstall()
 
         // Setup collectors.
         m_terminalCollectors.SetType("ns3::DistributionCollector");
-        DistributionCollector::OutputType_t outputType =
-            DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        stats_extensions::DistributionCollector::OutputType_t outputType =
+            stats_extensions::DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
         if (GetOutputType() == ApplicationStatsHelper::OUTPUT_PDF_PLOT)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_PROBABILITY;
         }
         else if (GetOutputType() == ApplicationStatsHelper::OUTPUT_CDF_PLOT)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
         }
         m_terminalCollectors.SetAttribute("OutputType", EnumValue(outputType));
         CreateCollectorPerIdentifier(m_terminalCollectors);
-        for (CollectorMap::Iterator it = m_terminalCollectors.Begin();
+        for (stats_extensions::CollectorMap::Iterator it = m_terminalCollectors.Begin();
              it != m_terminalCollectors.End();
              ++it)
         {
@@ -253,18 +253,18 @@ ApplicationStatsDelayHelper::DoInstall()
         {
         case ApplicationStatsHelper::OUTPUT_SCALAR_FILE:
         case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT:
-            n = SetupProbesAtReceiver<ApplicationDelayProbe>("OutputSeconds",
+            n = SetupProbesAtReceiver<stats_extensions::ApplicationDelayProbe>("OutputSeconds",
                                                              m_terminalCollectors,
-                                                             &ScalarCollector::TraceSinkDouble,
+                                                             &stats_extensions::ScalarCollector::TraceSinkDouble,
                                                              m_probes);
             break;
 
         case ApplicationStatsHelper::OUTPUT_SCATTER_FILE:
         case ApplicationStatsHelper::OUTPUT_SCATTER_PLOT:
-            n = SetupProbesAtReceiver<ApplicationDelayProbe>(
+            n = SetupProbesAtReceiver<stats_extensions::ApplicationDelayProbe>(
                 "OutputSeconds",
                 m_terminalCollectors,
-                &UnitConversionCollector::TraceSinkDouble,
+                &stats_extensions::UnitConversionCollector::TraceSinkDouble,
                 m_probes);
             break;
 
@@ -274,10 +274,10 @@ ApplicationStatsDelayHelper::DoInstall()
         case ApplicationStatsHelper::OUTPUT_PDF_PLOT:
         case ApplicationStatsHelper::OUTPUT_CDF_FILE:
         case ApplicationStatsHelper::OUTPUT_CDF_PLOT:
-            n = SetupProbesAtReceiver<ApplicationDelayProbe>(
+            n = SetupProbesAtReceiver<stats_extensions::ApplicationDelayProbe>(
                 "OutputSeconds",
                 m_terminalCollectors,
-                &DistributionCollector::TraceSinkDouble,
+                &stats_extensions::DistributionCollector::TraceSinkDouble,
                 m_probes);
             break;
 
@@ -287,7 +287,7 @@ ApplicationStatsDelayHelper::DoInstall()
             break;
         }
 
-        NS_LOG_INFO(this << " created " << n << " instance(s)" << " of ApplicationDelayProbe");
+        NS_LOG_INFO(this << " created " << n << " instance(s)" << " of stats_extensions::ApplicationDelayProbe");
         break;
     }
 
@@ -401,7 +401,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector(Time delay, uint32_t identifi
     {
     case ApplicationStatsHelper::OUTPUT_SCALAR_FILE:
     case ApplicationStatsHelper::OUTPUT_SCALAR_PLOT: {
-        Ptr<ScalarCollector> c = collector->GetObject<ScalarCollector>();
+        Ptr<stats_extensions::ScalarCollector> c = collector->GetObject<stats_extensions::ScalarCollector>();
         NS_ASSERT(c != nullptr);
         c->TraceSinkDouble(0.0, delay.GetSeconds());
         break;
@@ -409,7 +409,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector(Time delay, uint32_t identifi
 
     case ApplicationStatsHelper::OUTPUT_SCATTER_FILE:
     case ApplicationStatsHelper::OUTPUT_SCATTER_PLOT: {
-        Ptr<UnitConversionCollector> c = collector->GetObject<UnitConversionCollector>();
+        Ptr<stats_extensions::UnitConversionCollector> c = collector->GetObject<stats_extensions::UnitConversionCollector>();
         NS_ASSERT(c != nullptr);
         c->TraceSinkDouble(0.0, delay.GetSeconds());
         break;
@@ -421,7 +421,7 @@ ApplicationStatsDelayHelper::PassSampleToCollector(Time delay, uint32_t identifi
     case ApplicationStatsHelper::OUTPUT_PDF_PLOT:
     case ApplicationStatsHelper::OUTPUT_CDF_FILE:
     case ApplicationStatsHelper::OUTPUT_CDF_PLOT: {
-        Ptr<DistributionCollector> c = collector->GetObject<DistributionCollector>();
+        Ptr<stats_extensions::DistributionCollector> c = collector->GetObject<stats_extensions::DistributionCollector>();
         NS_ASSERT(c != nullptr);
         c->TraceSinkDouble(0.0, delay.GetSeconds());
         break;

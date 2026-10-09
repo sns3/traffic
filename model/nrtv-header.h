@@ -29,6 +29,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 /**
  * @ingroup nrtv
@@ -186,6 +188,7 @@ class NrtvHeader : public Header
 
 }; // end of `class NrtvHeader`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_HEADER_H */

@@ -21,8 +21,7 @@
 
 #include "three-gpp-http-satellite-client.h"
 
-#include "three-gpp-http-variables.h"
-
+#include "ns3/three-gpp-http-variables.h"
 #include "ns3/callback.h"
 #include "ns3/double.h"
 #include "ns3/inet-socket-address.h"
@@ -37,10 +36,12 @@
 
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE("ThreeGppHttpSatelliteClient");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("ThreeGppHttpSatelliteClient");
 
 NS_OBJECT_ENSURE_REGISTERED(ThreeGppHttpSatelliteClient);
 
@@ -847,4 +848,5 @@ ThreeGppHttpSatelliteClient::SwitchToState(ThreeGppHttpSatelliteClient::State_t 
     m_stateTransitionTrace(oldState, newState);
 }
 
+}
 } // namespace ns3

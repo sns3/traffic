@@ -42,6 +42,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 /**
  * @ingroup nrtv
@@ -307,6 +309,7 @@ class NrtvHelper
 
 }; // end of `class NrtvHelper`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_HELPER_H */

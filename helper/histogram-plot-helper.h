@@ -31,6 +31,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 /**
  * @defgroup traffic Traffic Generators
@@ -226,6 +228,7 @@ HistogramPlotHelper::Plot(Callback<T> valueStream,
 
 } // end of `void Plot (...)`
 
+}
 } // namespace ns3
 
 #endif /* HISTOGRAM_PLOT_HELPER_H */

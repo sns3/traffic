@@ -36,6 +36,9 @@ class Socket;
 class Packet;
 class ThreeGppHttpVariables;
 
+namespace traffic_extensions
+{
+
 /**
  * @ingroup applications
  * @defgroup http ThreeGppHttpClientServer
@@ -425,6 +428,7 @@ class ThreeGppHttpSatelliteClient : public Application
 
 }; // end of `class ThreeGppHttpSatelliteClient`
 
+}
 } // namespace ns3
 
 #endif /* THREE_GPP_HTTP_CLIENT_H */

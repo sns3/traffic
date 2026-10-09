@@ -26,10 +26,12 @@
 
 #include <ostream>
 
-NS_LOG_COMPONENT_DEFINE("NrtvHeader");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("NrtvHeader");
 
 NS_OBJECT_ENSURE_REGISTERED(NrtvHeader);
 
@@ -169,4 +171,5 @@ NrtvHeader::GetInstanceTypeId() const
     return GetTypeId();
 }
 
+}
 } // namespace ns3

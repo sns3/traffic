@@ -38,6 +38,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 // NRTV CLIENT HELPER /////////////////////////////////////////////////////////
 
@@ -273,4 +275,5 @@ NrtvHelper::GetServer() const
     return m_lastInstalledServer;
 }
 
+}
 } // namespace ns3

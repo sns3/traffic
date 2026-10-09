@@ -54,7 +54,10 @@
 
 NS_LOG_COMPONENT_DEFINE("NrtvTest");
 
-using namespace ns3; //{
+namespace ns3
+{
+namespace traffic_extensions
+{
 
 /**
  * @ingroup applications
@@ -289,6 +292,7 @@ NrtvTestSuite::NrtvTestSuite()
 
 } // end of `NrtvTestSuite ()`
 
-static NrtvTestSuite g_nrtvTestSuiteInstance;
+}
+} // namespace ns3
 
-//} // end of namespace ns3
+static ns3::traffic_extensions::NrtvTestSuite g_nrtvTestSuiteInstance;

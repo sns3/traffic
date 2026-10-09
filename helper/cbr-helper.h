@@ -35,6 +35,9 @@ namespace ns3
 
 class DataRate;
 
+namespace traffic_extensions
+{
+
 /**
  * @brief A helper to make it easier to instantiate an ns3::CbrApplication
  * on a set of nodes.
@@ -114,6 +117,7 @@ class CbrHelper
     ObjectFactory m_factory;
 };
 
+}
 } // namespace ns3
 
 #endif /* CBR_HELPER_H */

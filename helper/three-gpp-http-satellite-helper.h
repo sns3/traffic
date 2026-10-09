@@ -40,6 +40,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 /**
  * @ingroup applications
@@ -282,6 +284,7 @@ class ThreeGppHttpHelper
 
 }; // end of `class ThreeGppHttpHelper`
 
+}
 } // namespace ns3
 
 #endif /* THREE_GPP_HTTP_HELPER_SATELLITE_H */

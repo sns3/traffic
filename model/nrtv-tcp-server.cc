@@ -37,10 +37,12 @@
 #include <map>
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE("NrtvTcpServer");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("NrtvTcpServer");
 
 NS_OBJECT_ENSURE_REGISTERED(NrtvTcpServer);
 
@@ -310,4 +312,5 @@ NrtvTcpServer::SwitchToState(NrtvTcpServer::State_t state)
     m_stateTransitionTrace(oldState, newState);
 }
 
+}
 } // namespace ns3

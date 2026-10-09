@@ -52,9 +52,11 @@
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/stats-module.h"
-#include "ns3/traffic-module.h"
+#include "ns3/traffic-extensions-module.h"
 
 using namespace ns3;
+using ns3::traffic_extensions::NrtvVariables;
+using ns3::traffic_extensions::HistogramPlotHelper;
 
 NS_LOG_COMPONENT_DEFINE("NrtvVariablesPlot");
 

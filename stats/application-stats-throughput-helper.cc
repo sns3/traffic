@@ -121,23 +121,23 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup second-level collectors.
         m_terminalCollectors.SetType("ns3::ScalarCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
         m_terminalCollectors.SetAttribute(
             "OutputType",
-            EnumValue(ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+            EnumValue(stats_extensions::ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator("Output",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::Write1d);
+                                                 &stats_extensions::MultiFileAggregator::Write1d);
 
         // Setup first-level collectors.
         m_conversionCollectors.SetType("ns3::UnitConversionCollector");
         m_conversionCollectors.SetAttribute("ConversionType",
-                                            EnumValue(UnitConversionCollector::FROM_BYTES_TO_KBIT));
+                                            EnumValue(stats_extensions::UnitConversionCollector::FROM_BYTES_TO_KBIT));
         CreateCollectorPerIdentifier(m_conversionCollectors);
         m_conversionCollectors.ConnectToCollector("Output",
                                                   m_terminalCollectors,
-                                                  &ScalarCollector::TraceSinkDouble);
+                                                  &stats_extensions::ScalarCollector::TraceSinkDouble);
         break;
     }
 
@@ -152,23 +152,23 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup second-level collectors.
         m_terminalCollectors.SetType("ns3::IntervalRateCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(IntervalRateCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::IntervalRateCollector::INPUT_DATA_TYPE_DOUBLE));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         m_terminalCollectors.ConnectToAggregator("OutputWithTime",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::Write2d);
+                                                 &stats_extensions::MultiFileAggregator::Write2d);
         m_terminalCollectors.ConnectToAggregator("OutputString",
                                                  m_aggregator,
-                                                 &MultiFileAggregator::AddContextHeading);
+                                                 &stats_extensions::MultiFileAggregator::AddContextHeading);
 
         // Setup first-level collectors.
         m_conversionCollectors.SetType("ns3::UnitConversionCollector");
         m_conversionCollectors.SetAttribute("ConversionType",
-                                            EnumValue(UnitConversionCollector::FROM_BYTES_TO_KBIT));
+                                            EnumValue(stats_extensions::UnitConversionCollector::FROM_BYTES_TO_KBIT));
         CreateCollectorPerIdentifier(m_conversionCollectors);
         m_conversionCollectors.ConnectToCollector("Output",
                                                   m_terminalCollectors,
-                                                  &IntervalRateCollector::TraceSinkDouble);
+                                                  &stats_extensions::IntervalRateCollector::TraceSinkDouble);
         break;
     }
 
@@ -190,47 +190,47 @@ ApplicationStatsThroughputHelper::DoInstall()
                                         BooleanValue(false),
                                         "GeneralHeading",
                                         StringValue("% throughput_kbps freq"));
-        Ptr<MultiFileAggregator> fileAggregator = m_aggregator->GetObject<MultiFileAggregator>();
+        Ptr<stats_extensions::MultiFileAggregator> fileAggregator = m_aggregator->GetObject<stats_extensions::MultiFileAggregator>();
         NS_ASSERT(fileAggregator != nullptr);
 
         // Setup the final-level collector.
-        m_averagingCollector = CreateObject<DistributionCollector>();
-        DistributionCollector::OutputType_t outputType =
-            DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        m_averagingCollector = CreateObject<stats_extensions::DistributionCollector>();
+        stats_extensions::DistributionCollector::OutputType_t outputType =
+            stats_extensions::DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
         if (GetOutputType() == ApplicationStatsHelper::OUTPUT_PDF_FILE)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_PROBABILITY;
         }
         else if (GetOutputType() == ApplicationStatsHelper::OUTPUT_CDF_FILE)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
         }
         m_averagingCollector->SetOutputType(outputType);
         m_averagingCollector->SetName("0");
         m_averagingCollector->TraceConnect(
             "Output",
             "0",
-            MakeCallback(&MultiFileAggregator::Write2d, fileAggregator));
+            MakeCallback(&stats_extensions::MultiFileAggregator::Write2d, fileAggregator));
         m_averagingCollector->TraceConnect(
             "OutputString",
             "0",
-            MakeCallback(&MultiFileAggregator::AddContextHeading, fileAggregator));
+            MakeCallback(&stats_extensions::MultiFileAggregator::AddContextHeading, fileAggregator));
         m_averagingCollector->TraceConnect(
             "Warning",
             "0",
-            MakeCallback(&MultiFileAggregator::EnableContextWarning, fileAggregator));
+            MakeCallback(&stats_extensions::MultiFileAggregator::EnableContextWarning, fileAggregator));
 
         // Setup second-level collectors.
         m_terminalCollectors.SetType("ns3::ScalarCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
         m_terminalCollectors.SetAttribute(
             "OutputType",
-            EnumValue(ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+            EnumValue(stats_extensions::ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         Callback<void, double> callback =
-            MakeCallback(&DistributionCollector::TraceSinkDouble1, m_averagingCollector);
-        for (CollectorMap::Iterator it = m_terminalCollectors.Begin();
+            MakeCallback(&stats_extensions::DistributionCollector::TraceSinkDouble1, m_averagingCollector);
+        for (stats_extensions::CollectorMap::Iterator it = m_terminalCollectors.Begin();
              it != m_terminalCollectors.End();
              ++it)
         {
@@ -240,11 +240,11 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup first-level collectors.
         m_conversionCollectors.SetType("ns3::UnitConversionCollector");
         m_conversionCollectors.SetAttribute("ConversionType",
-                                            EnumValue(UnitConversionCollector::FROM_BYTES_TO_KBIT));
+                                            EnumValue(stats_extensions::UnitConversionCollector::FROM_BYTES_TO_KBIT));
         CreateCollectorPerIdentifier(m_conversionCollectors);
         m_conversionCollectors.ConnectToCollector("Output",
                                                   m_terminalCollectors,
-                                                  &ScalarCollector::TraceSinkDouble);
+                                                  &stats_extensions::ScalarCollector::TraceSinkDouble);
         break;
     }
 
@@ -266,9 +266,9 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup second-level collectors.
         m_terminalCollectors.SetType("ns3::IntervalRateCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(IntervalRateCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::IntervalRateCollector::INPUT_DATA_TYPE_DOUBLE));
         CreateCollectorPerIdentifier(m_terminalCollectors);
-        for (CollectorMap::Iterator it = m_terminalCollectors.Begin();
+        for (stats_extensions::CollectorMap::Iterator it = m_terminalCollectors.Begin();
              it != m_terminalCollectors.End();
              ++it)
         {
@@ -282,11 +282,11 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup first-level collectors.
         m_conversionCollectors.SetType("ns3::UnitConversionCollector");
         m_conversionCollectors.SetAttribute("ConversionType",
-                                            EnumValue(UnitConversionCollector::FROM_BYTES_TO_KBIT));
+                                            EnumValue(stats_extensions::UnitConversionCollector::FROM_BYTES_TO_KBIT));
         CreateCollectorPerIdentifier(m_conversionCollectors);
         m_conversionCollectors.ConnectToCollector("Output",
                                                   m_terminalCollectors,
-                                                  &IntervalRateCollector::TraceSinkDouble);
+                                                  &stats_extensions::IntervalRateCollector::TraceSinkDouble);
         break;
     }
 
@@ -307,16 +307,16 @@ ApplicationStatsThroughputHelper::DoInstall()
         m_aggregator = plotAggregator;
 
         // Setup the final-level collector.
-        m_averagingCollector = CreateObject<DistributionCollector>();
-        DistributionCollector::OutputType_t outputType =
-            DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
+        m_averagingCollector = CreateObject<stats_extensions::DistributionCollector>();
+        stats_extensions::DistributionCollector::OutputType_t outputType =
+            stats_extensions::DistributionCollector::OUTPUT_TYPE_HISTOGRAM;
         if (GetOutputType() == ApplicationStatsHelper::OUTPUT_PDF_PLOT)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_PROBABILITY;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_PROBABILITY;
         }
         else if (GetOutputType() == ApplicationStatsHelper::OUTPUT_CDF_PLOT)
         {
-            outputType = DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
+            outputType = stats_extensions::DistributionCollector::OUTPUT_TYPE_CUMULATIVE;
         }
         m_averagingCollector->SetOutputType(outputType);
         m_averagingCollector->SetName("0");
@@ -328,14 +328,14 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup second-level collectors.
         m_terminalCollectors.SetType("ns3::ScalarCollector");
         m_terminalCollectors.SetAttribute("InputDataType",
-                                          EnumValue(ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
+                                          EnumValue(stats_extensions::ScalarCollector::INPUT_DATA_TYPE_DOUBLE));
         m_terminalCollectors.SetAttribute(
             "OutputType",
-            EnumValue(ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
+            EnumValue(stats_extensions::ScalarCollector::OUTPUT_TYPE_AVERAGE_PER_SECOND));
         CreateCollectorPerIdentifier(m_terminalCollectors);
         Callback<void, double> callback =
-            MakeCallback(&DistributionCollector::TraceSinkDouble1, m_averagingCollector);
-        for (CollectorMap::Iterator it = m_terminalCollectors.Begin();
+            MakeCallback(&stats_extensions::DistributionCollector::TraceSinkDouble1, m_averagingCollector);
+        for (stats_extensions::CollectorMap::Iterator it = m_terminalCollectors.Begin();
              it != m_terminalCollectors.End();
              ++it)
         {
@@ -345,11 +345,11 @@ ApplicationStatsThroughputHelper::DoInstall()
         // Setup first-level collectors.
         m_conversionCollectors.SetType("ns3::UnitConversionCollector");
         m_conversionCollectors.SetAttribute("ConversionType",
-                                            EnumValue(UnitConversionCollector::FROM_BYTES_TO_KBIT));
+                                            EnumValue(stats_extensions::UnitConversionCollector::FROM_BYTES_TO_KBIT));
         CreateCollectorPerIdentifier(m_conversionCollectors);
         m_conversionCollectors.ConnectToCollector("Output",
                                                   m_terminalCollectors,
-                                                  &ScalarCollector::TraceSinkDouble);
+                                                  &stats_extensions::ScalarCollector::TraceSinkDouble);
         break;
     }
 
@@ -372,7 +372,7 @@ ApplicationStatsThroughputHelper::DoInstall()
         const uint32_t n = SetupProbesAtReceiver<ApplicationPacketProbe>(
             "OutputBytes",
             m_conversionCollectors,
-            &UnitConversionCollector::TraceSinkUinteger32,
+            &stats_extensions::UnitConversionCollector::TraceSinkUinteger32,
             m_probes);
         NS_LOG_INFO(this << " created " << n << " instance(s)" << " of ApplicationPacketProbe");
         break;
@@ -431,7 +431,7 @@ ApplicationStatsThroughputHelper::RxCallback(Ptr<const Packet> packet, const Add
             Ptr<DataCollectionObject> collector = m_conversionCollectors.Get(it1->second);
             NS_ASSERT_MSG(collector != nullptr,
                           "Unable to find collector with identifier " << it1->second);
-            Ptr<UnitConversionCollector> c = collector->GetObject<UnitConversionCollector>();
+            Ptr<stats_extensions::UnitConversionCollector> c = collector->GetObject<stats_extensions::UnitConversionCollector>();
             NS_ASSERT(c != nullptr);
 
             // Pass the sample to the collector.

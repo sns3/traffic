@@ -33,6 +33,9 @@ namespace ns3
 
 class Socket;
 
+namespace traffic_extensions
+{
+
 /**
  * @ingroup traffic
  *
@@ -127,6 +130,7 @@ class CbrApplication : public Application
     void ConnectionFailed(Ptr<Socket> socket);
 };
 
+}
 } // namespace ns3
 
 #endif /* CBR_APPLICATION_H */

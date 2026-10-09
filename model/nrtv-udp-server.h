@@ -36,6 +36,10 @@ namespace ns3
 
 class Packet;
 class Socket;
+
+namespace traffic_extensions
+{
+
 class NrtvVariables;
 class NrtvVideoWorker;
 
@@ -154,6 +158,7 @@ class NrtvUdpServer : public Application
 
 }; // end of `class NrtvUdpServer`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_UDP_SERVER_H */

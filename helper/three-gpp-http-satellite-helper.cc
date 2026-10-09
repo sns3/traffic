@@ -36,6 +36,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 // 3GPP HTTP SATELLITE CLIENT HELPER /////////////////////////////////////////////////////////
 
@@ -216,4 +218,5 @@ ThreeGppHttpHelper::GetServer() const
     return m_lastInstalledServer;
 }
 
+}
 } // namespace ns3

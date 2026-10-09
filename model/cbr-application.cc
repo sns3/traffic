@@ -20,8 +20,6 @@
 
 #include "cbr-application.h"
 
-#include "traffic-time-tag.h"
-
 #include "ns3/boolean.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/inet6-socket-address.h"
@@ -36,11 +34,16 @@
 #include "ns3/trace-source-accessor.h"
 #include "ns3/udp-socket-factory.h"
 #include "ns3/uinteger.h"
+#include "ns3/time-tag.h"
 
-NS_LOG_COMPONENT_DEFINE("CbrApplication");
+using ns3::stats_extensions::TrafficTimeTag;
 
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("CbrApplication");
 
 NS_OBJECT_ENSURE_REGISTERED(CbrApplication);
 
@@ -242,4 +245,5 @@ CbrApplication::ConnectionFailed(Ptr<Socket> socket)
     NS_LOG_FUNCTION(this << socket);
 }
 
-} // Namespace ns3
+}
+} // namespace ns3

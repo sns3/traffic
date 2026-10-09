@@ -43,10 +43,12 @@
 #include <map>
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE("NrtvUdpServer");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("NrtvUdpServer");
 
 NS_OBJECT_ENSURE_REGISTERED(NrtvUdpServer);
 
@@ -289,4 +291,5 @@ NrtvUdpServer::SwitchToState(NrtvUdpServer::State_t state)
     m_stateTransitionTrace(oldState, newState);
 }
 
+}
 } // namespace ns3

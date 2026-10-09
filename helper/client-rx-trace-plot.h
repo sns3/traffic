@@ -34,8 +34,12 @@ namespace ns3
 
 class Packet;
 class Address;
-class NrtvTcpClient;
 class PacketSink;
+
+namespace traffic_extensions
+{
+
+class NrtvTcpClient;
 
 /**
  * @ingroup applications
@@ -126,6 +130,7 @@ class ClientRxTracePlot : public Object
 
 }; // end of `class ClientRxTracePlot`
 
+}
 } // namespace ns3
 
 #endif /* CLIENT_RX_TRACE_PLOT_H */

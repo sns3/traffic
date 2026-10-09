@@ -31,10 +31,12 @@
 #include <fstream>
 #include <string>
 
-NS_LOG_COMPONENT_DEFINE("ClientTracePlot");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("ClientTracePlot");
 
 NS_OBJECT_ENSURE_REGISTERED(ClientRxTracePlot);
 
@@ -124,4 +126,5 @@ ClientRxTracePlot::RxCallback(Ptr<const Packet> packet, const Address& from)
     m_packet.Add(Simulator::Now().GetSeconds(), static_cast<double>(packet->GetSize()));
 }
 
+}
 } // namespace ns3

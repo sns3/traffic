@@ -34,10 +34,12 @@
 
 #include <algorithm>
 
-NS_LOG_COMPONENT_DEFINE("NrtvVideoWorker");
-
 namespace ns3
 {
+namespace traffic_extensions
+{
+
+NS_LOG_COMPONENT_DEFINE("NrtvVideoWorker");
 
 NS_OBJECT_ENSURE_REGISTERED(NrtvVideoWorker);
 
@@ -324,4 +326,5 @@ NrtvVideoWorker::CancelAllPendingEvents()
     }
 }
 
+}
 } // namespace ns3

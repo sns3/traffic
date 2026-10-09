@@ -6,11 +6,11 @@ set(source_files
     model/cbr-application.cc
     model/nrtv-header.cc
     model/nrtv-tcp-client.cc
+    model/nrtv-tcp-client-rx-buffer.cc
     model/nrtv-tcp-server.cc
     model/nrtv-udp-server.cc
     model/nrtv-variables.cc
     model/nrtv-video-worker.cc
-    model/traffic-time-tag.cc
     model/three-gpp-http-satellite-client.cc
     stats/application-stats-helper.cc
     stats/application-stats-delay-helper.cc
@@ -32,7 +32,6 @@ set(header_files
     model/nrtv-udp-server.h
     model/nrtv-variables.h
     model/nrtv-video-worker.h
-    model/traffic-time-tag.h
     model/three-gpp-http-satellite-client.h
     stats/application-stats-helper.h
     stats/application-stats-delay-helper.h
@@ -46,14 +45,14 @@ set(test_sources
 )
 
 build_lib(
-  LIBNAME traffic
+  LIBNAME traffic-extensions
   SOURCE_FILES ${source_files}
   HEADER_FILES ${header_files}
   LIBRARIES_TO_LINK
     ${libcore}
     ${libapplications}
     ${libflow-monitor}
-    ${libmagister-stats}
+    ${libstats-extensions}
     ${libpoint-to-point}
   TEST_SOURCES ${test_sources}
 )

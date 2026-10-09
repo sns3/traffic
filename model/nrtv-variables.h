@@ -30,6 +30,8 @@
 
 namespace ns3
 {
+namespace traffic_extensions
+{
 
 /**
  * @ingroup nrtv
@@ -274,6 +276,7 @@ class NrtvVariables : public Object
 
 }; // end of `class NrtvVariables`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_VARIABLES_H */

@@ -293,7 +293,7 @@ class ApplicationStatsHelper : public Object
      * The collector instances in the map are simply labelled using running
      * integers starting from 0.
      */
-    uint32_t CreateCollectorPerIdentifier(CollectorMap& collectorMap) const;
+    uint32_t CreateCollectorPerIdentifier(stats_extensions::CollectorMap& collectorMap) const;
 
     /**
      * @brief Create a probe attached to every receiver application and connected
@@ -314,7 +314,7 @@ class ApplicationStatsHelper : public Object
      *     uint32_t n = SetupProbesAtReceiver<ApplicationPacketProbe> (
      *                      "OutputBytes",
      *                      collectorMap,
-     *                      &ScalarCollector::TraceSinkUinteger32,
+     *                      &stats_extensions::ScalarCollector::TraceSinkUinteger32,
      *                      m_probes);
      * @endcode
      *
@@ -330,7 +330,7 @@ class ApplicationStatsHelper : public Object
      */
     template <typename P, typename Q, typename R, typename C>
     uint32_t SetupProbesAtReceiver(std::string probeOutputName,
-                                   CollectorMap& collectorMap,
+                                   stats_extensions::CollectorMap& collectorMap,
                                    R (C::*collectorTraceSink)(Q, Q),
                                    std::list<Ptr<Probe>>& probeList);
 
@@ -372,7 +372,7 @@ class ApplicationStatsHelper : public Object
 template <typename P, typename Q, typename R, typename C>
 uint32_t
 ApplicationStatsHelper::SetupProbesAtReceiver(std::string probeOutputName,
-                                              CollectorMap& collectorMap,
+                                              stats_extensions::CollectorMap& collectorMap,
                                               R (C::*collectorTraceSink)(Q, Q),
                                               std::list<Ptr<Probe>>& probeList)
 {

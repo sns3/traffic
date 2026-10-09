@@ -33,6 +33,10 @@ namespace ns3
 
 class Socket;
 class Packet;
+
+namespace traffic_extensions
+{
+
 class NrtvVariables;
 
 /**
@@ -145,6 +149,7 @@ class NrtvVideoWorker : public Object
 
 }; // end of `class NrtvVideoWorker`
 
+}
 } // namespace ns3
 
 #endif /* NRTV_VIDEO_WORKER_H */

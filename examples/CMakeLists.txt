@@ -11,7 +11,7 @@ foreach(
     NAME ${example}
     SOURCE_FILES ${example}.cc
     LIBRARIES_TO_LINK
-    ${libtraffic}
+    ${libtraffic-extensions}
     ${libapplications}
     ${libpoint-to-point}
     ${libinternet}
