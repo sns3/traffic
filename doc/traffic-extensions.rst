@@ -32,14 +32,14 @@ and :ref:`fig-http-embedded-object-size`.
 
 .. _fig-http-main-object-size:
 
-.. figure:: figures/http-main-object-size.*
+.. figure:: figures/http-main-object-size.png
    :figwidth: 15cm
 
    3GPP HTTP main object size histogram
 
 .. _fig-http-embedded-object-size:
 
-.. figure:: figures/http-embedded-object-size.*
+.. figure:: figures/http-embedded-object-size.png
    :figwidth: 15cm
 
    3GPP HTTP embedded object size histogram
@@ -54,7 +54,7 @@ generate any significant traffic in the system. Reading time is illustrated in
 
 .. _fig-http-reading-time:
 
-.. figure:: figures/http-reading-time.*
+.. figure:: figures/http-reading-time.png
    :figwidth: 15cm
 
    3GPP HTTP reading time histogram
@@ -121,14 +121,14 @@ In summary, the application works as follows.
 
 .. _fig-http-parsing-time:
 
-.. figure:: figures/http-parsing-time.*
+.. figure:: figures/http-parsing-time.png
    :figwidth: 15cm
 
    3GPP HTTP parsing time histogram
 
 .. _fig-http-num-of-embedded-objects:
 
-.. figure:: figures/http-num-of-embedded-objects.*
+.. figure:: figures/http-num-of-embedded-objects.png
    :figwidth: 15cm
 
    3GPP HTTP number of embedded objects histogram
@@ -266,7 +266,7 @@ from the buffer once they are delivered. An example of traffic received by a sin
 
 .. _fig-nrtv-client-trace:
 
-.. figure:: figures/nrtv-client-trace.*
+.. figure:: figures/nrtv-client-trace.png
    :figwidth: 15cm
 
    NRTV client traffic received with default configuration
@@ -318,7 +318,7 @@ request.
 
 .. _fig-nrtv-idle-time:
 
-.. figure:: figures/nrtv-idle-time.*
+.. figure:: figures/nrtv-idle-time.png
    :figwidth: 15cm
 
    NRTV TCP client idle time histogram
@@ -335,7 +335,7 @@ number of frames is illustrated in :ref:`fig-nrtv-num-of-frames`.
 
 .. _fig-nrtv-num-of-frames:
 
-.. figure:: figures/nrtv-num-of-frames.*
+.. figure:: figures/nrtv-num-of-frames.png
    :figwidth: 15cm
 
    NRTV number of frames per video histogram
@@ -350,14 +350,14 @@ and encoding delays with default attribute values can be seen in figures
 
 .. _fig-nrtv-slice-size:
 
-.. figure:: figures/nrtv-slice-size.*
+.. figure:: figures/nrtv-slice-size.png
    :figwidth: 15cm
 
    NRTV slice size histogram
 
 .. _fig-nrtv-slice-encoding-delay:
 
-.. figure:: figures/nrtv-slice-encoding-delay.*
+.. figure:: figures/nrtv-slice-encoding-delay.png
    :figwidth: 15cm
 
    NRTV slice encoding delay histogram
@@ -375,7 +375,7 @@ invoked.
 
 .. _fig-nrtv-slice-size:
 
-.. figure:: figures/nrtv-slice-size.*
+.. figure:: figures/nrtv-slice-size.png
    :figwidth: 15cm
 
    NRTV slice size histogram

@@ -8,4 +8,4 @@
 
      ln -s path/to/sns3/traffic/ traffic-extensions
 
-.. include:: doc/traffic-extensions.rst
+Read the full documentation at `<doc/traffic-extensions.rst>`_.
